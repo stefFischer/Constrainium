@@ -3,10 +3,7 @@ package at.sfischer.constraints.data;
 import at.sfischer.constraints.model.*;
 
 import java.lang.reflect.Array;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataValue<T> {
 
@@ -52,6 +49,19 @@ public class DataValue<T> {
 
     public T getValue() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DataValue<?> dataValue = (DataValue<?>) o;
+        return Objects.equals(type, dataValue.type) && Objects.equals(value, dataValue.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, value);
     }
 
     public Map<String, Type> getDataTypes(){
@@ -112,6 +122,8 @@ public class DataValue<T> {
             return new BooleanLiteral((Boolean) value);
         } else if (type == TypeEnum.STRING) {
             return new StringLiteral((String) value);
+        } else if (type == TypeEnum.COMPLEXTYPE) {
+            return new ComplexValue((DataObject) value);
         } else if (type instanceof ArrayType) {
             Type elementType = ((ArrayType) type).elementType();
             if (elementType == TypeEnum.NUMBER) {

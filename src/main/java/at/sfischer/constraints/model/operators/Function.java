@@ -123,6 +123,16 @@ public abstract class Function implements Operator {
         return null;
     }
 
+    protected ComplexValue getComplexValue(int i){
+        Node arg = getParameter(i).evaluate();
+        setParameter(i, arg);
+        if(arg instanceof ComplexValue){
+            return (ComplexValue)arg;
+        }
+
+        return null;
+    }
+
     protected String[] getStringArrayArgument(int i){
         Node arg = getParameter(i).evaluate();
         setParameter(i, arg);

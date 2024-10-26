@@ -47,6 +47,23 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
     }
 
+    public DataValue<?> getDataValue(String name){
+        return dataValues.get(name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DataObject that = (DataObject) o;
+        return Objects.equals(dataValues, that.dataValues);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataValues);
+    }
+
     public Map<String, Type> getDataTypes(){
         Map<String, Type> dataTypes = new HashMap<>();
         for (Map.Entry<String, DataValue<?>> entry : dataValues.entrySet()) {
