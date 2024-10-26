@@ -53,7 +53,7 @@ public class DataObjectTest {
 		expected.put("isEmpty", new BooleanLiteral(false));
 		expected.put("object.id", new NumberLiteral(0));
 		expected.put("object.value", new StringLiteral("string"));
-		Map<String, Literal<?>> actual = d.getDataValues();
+		Map<String, Node> actual = d.getDataValues();
 
 		assertEquals(expected, actual);
 	}
@@ -70,7 +70,7 @@ public class DataObjectTest {
 		  new NumberLiteral(2), 
 		  new NumberLiteral(3), 
 		  new NumberLiteral(4) }));
-		Map<String, Literal<?>> actual = d.getDataValues();
+		Map<String, Node> actual = d.getDataValues();
 
 		assertEquals(expected, actual);
 	}

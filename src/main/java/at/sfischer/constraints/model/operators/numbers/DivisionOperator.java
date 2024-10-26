@@ -42,7 +42,7 @@ public class DivisionOperator extends ArithmeticOperator {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new DivisionOperator(this.left.setVariableValues(values), this.right.setVariableValues(values));
     }
 }

@@ -31,7 +31,7 @@ public class IsNumeric extends Function {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new IsNumeric(getParameter(0).setVariableValues(values));
     }
 

@@ -42,7 +42,7 @@ public class FixedLengthStringTest {
 		}
 
 		for (int i = 0; i < values.length; i++) {
-			Map<Variable, Literal<?>> valuesMap = new HashMap<>();
+			Map<Variable, Node> valuesMap = new HashMap<>();
 			valuesMap.put(variable, values[i]);
 			Node node = operator.setVariableValues(valuesMap);
 			Node result = node.evaluate();

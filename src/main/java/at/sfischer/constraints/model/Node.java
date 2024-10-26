@@ -16,22 +16,22 @@ public interface Node {
 
     List<Node> getChildren();
 
-    default Node setVariableNameValue(String name, Literal<?> value){
-        Map<Variable, Literal<?>> variableValues = new HashMap<>();
+    default Node setVariableNameValue(String name, Node value){
+        Map<Variable, Node> variableValues = new HashMap<>();
         variableValues.put(new Variable(name), value);
         return setVariableValues(variableValues);
     }
 
-    default Node setVariableNameValues(Map<String, Literal<?>> values){
-        Map<Variable, Literal<?>> variableValues = new HashMap<>();
-        for (Map.Entry<String, Literal<?>> entry : values.entrySet()) {
+    default Node setVariableNameValues(Map<String, Node> values){
+        Map<Variable, Node> variableValues = new HashMap<>();
+        for (Map.Entry<String, Node> entry : values.entrySet()) {
             variableValues.put(new Variable(entry.getKey()), entry.getValue());
         }
 
         return setVariableValues(variableValues);
     }
 
-    Node setVariableValues(Map<Variable, Literal<?>> values);
+    Node setVariableValues(Map<Variable, Node> values);
 
     default String nodeString() {
         return nodeString("");

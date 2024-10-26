@@ -74,21 +74,21 @@ public class DataValue<T> {
         return dataTypes;
     }
 
-    public Map<String, Literal<?>> getDataValues() {
-        Map<String,  Literal<?>> dataValues = new HashMap<>();
+    public Map<String, Node> getDataValues() {
+        Map<String,  Node> dataValues = new HashMap<>();
         if (type == TypeEnum.COMPLEXTYPE) {
             dataValues.putAll(((DataObject) value).getDataValues());
         } else if (type instanceof ArrayType && ((ArrayType) type).elementType() == TypeEnum.COMPLEXTYPE) {
             DataObject[] val = (DataObject[]) value;
-            Map<String, List<Literal<?>>> arrayValues = new HashMap<>();
+            Map<String, List<Node>> arrayValues = new HashMap<>();
             for (DataObject dataObject : val) {
-                Map<String, Literal<?>> elementValues = dataObject.getDataValues();
-                for (Map.Entry<String, Literal<?>> entry : elementValues.entrySet()) {
-                    List<Literal<?>> literals = arrayValues.computeIfAbsent(entry.getKey(), k -> new LinkedList<>());
+                Map<String, Node> elementValues = dataObject.getDataValues();
+                for (Map.Entry<String, Node> entry : elementValues.entrySet()) {
+                    List<Node> literals = arrayValues.computeIfAbsent(entry.getKey(), k -> new LinkedList<>());
                     literals.add(entry.getValue());
                 }
             }
-            for (Map.Entry<String, List<Literal<?>>> entry : arrayValues.entrySet()) {
+            for (Map.Entry<String, List<Node>> entry : arrayValues.entrySet()) {
                 dataValues.put(entry.getKey(), ArrayValues.createArrayValuesFromList(entry.getValue()));
             }
 

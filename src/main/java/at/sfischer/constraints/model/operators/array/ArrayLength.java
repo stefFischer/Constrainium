@@ -25,7 +25,7 @@ public class ArrayLength extends Function {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new ArrayLength(getParameter(0).setVariableValues(values));
     }
 

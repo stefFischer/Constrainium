@@ -29,7 +29,7 @@ public class NotOperator extends LogicalUnaryOperator {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new NotOperator(this.operand.setVariableValues(values));
     }
 }

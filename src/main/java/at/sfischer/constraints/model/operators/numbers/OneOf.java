@@ -45,7 +45,7 @@ public class OneOf extends Function {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         //noinspection unchecked
         return new OneOf(getParameter(0).setVariableValues(values), (ArrayValues<NumberLiteral>) getParameter(2));
     }

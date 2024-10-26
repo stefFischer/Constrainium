@@ -51,13 +51,13 @@ public class ArrayValues<T extends Literal<?>> extends Literal<T[]> {
         return Objects.hash(super.hashCode(), elementType);
     }
 
-    public static ArrayValues<?> createArrayValuesFromList(List<Literal<?>> literals){
+    public static ArrayValues<?> createArrayValuesFromList(List<Node> literals){
         if(literals.isEmpty()){
             return new ArrayValues<>(TypeEnum.ANY, new BooleanLiteral[0]);
         }
 
         Type elementType = null;
-        for (Literal<?> literal : literals) {
+        for (Node literal : literals) {
             if(elementType == null){
                 elementType = literal.getReturnType();
             } else if(!elementType.equals(literal.getReturnType())) {
@@ -68,19 +68,19 @@ public class ArrayValues<T extends Literal<?>> extends Literal<T[]> {
         if(elementType == TypeEnum.NUMBER){
             NumberLiteral[] literalArray = new NumberLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
-                literalArray[i] = new NumberLiteral((Number)literals.get(i).getValue());
+                literalArray[i] = new NumberLiteral(((NumberLiteral)literals.get(i)).getValue());
             }
             return new ArrayValues<>(TypeEnum.NUMBER, literalArray);
         } else if(elementType == TypeEnum.BOOLEAN){
             BooleanLiteral[] literalArray = new BooleanLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
-                literalArray[i] = new BooleanLiteral((boolean)literals.get(i).getValue());
+                literalArray[i] = new BooleanLiteral(((BooleanLiteral)literals.get(i)).getValue());
             }
             return new ArrayValues<>(TypeEnum.BOOLEAN, literalArray);
         } else if(elementType == TypeEnum.STRING){
             StringLiteral[] literalArray = new StringLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
-                literalArray[i] = new StringLiteral((String)literals.get(i).getValue());
+                literalArray[i] = new StringLiteral(((StringLiteral)literals.get(i)).getValue());
             }
             return new ArrayValues<>(TypeEnum.STRING, literalArray);
         }

@@ -37,6 +37,6 @@ public class EqualOperator extends NumberComparisonOperator {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new EqualOperator(this.left.setVariableValues(values), this.right.setVariableValues(values));
     }}

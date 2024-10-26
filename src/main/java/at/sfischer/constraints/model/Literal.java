@@ -33,7 +33,7 @@ public abstract class Literal<T> implements Node {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return this;
     }
 

@@ -39,7 +39,7 @@ public abstract class ArrayQuantifier extends Function {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
+    public Node setVariableValues(Map<Variable, Node> values) {
         return new ForAll(getParameter(0).setVariableValues(values), getParameter(1).setVariableValues(values));
     }
 

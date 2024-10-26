@@ -139,13 +139,13 @@ public class InOutputDataCollection implements DataCollection<Pair<DataObject, D
     @Override
     public void visitDataEntries(Set<String> fieldNames, DataEntryVisitor<Pair<DataObject, DataObject>> visitor) {
         for (Pair<DataObject, DataObject> dataObjectPair : dataCollection) {
-            Map<String, Literal<?>> inputValues = dataObjectPair.getValue0().getDataValues();
+            Map<String, Node> inputValues = dataObjectPair.getValue0().getDataValues();
             for (String fieldName : new HashSet<>(inputValues.keySet())) {
                 if(!fieldNames.contains(fieldName)){
                     inputValues.remove(fieldName);
                 }
             }
-            Map<String, Literal<?>> outputValues = dataObjectPair.getValue1().getDataValues();
+            Map<String, Node> outputValues = dataObjectPair.getValue1().getDataValues();
             for (String fieldName : new HashSet<>(outputValues.keySet())) {
                 if(!fieldNames.contains(fieldName)){
                     outputValues.remove(fieldName);

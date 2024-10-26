@@ -34,7 +34,7 @@ public class SimpleDataCollection implements DataCollection<DataObject> {
     @Override
     public void visitDataEntries(Set<String> fieldNames, DataEntryVisitor<DataObject> visitor) {
         for (DataObject dataObject : getDataCollection()) {
-            Map<String, Literal<?>> values = dataObject.getDataValues();
+            Map<String, Node> values = dataObject.getDataValues();
             for (String fieldName : new HashSet<>(values.keySet())) {
                 if(!fieldNames.contains(fieldName)){
                     values.remove(fieldName);

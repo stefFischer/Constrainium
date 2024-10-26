@@ -1,9 +1,6 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.ArrayType;
-import at.sfischer.constraints.model.Literal;
-import at.sfischer.constraints.model.Type;
-import at.sfischer.constraints.model.TypeEnum;
+import at.sfischer.constraints.model.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -70,11 +67,11 @@ public class DataObject {
         return dataTypes;
     }
 
-    public Map<String, Literal<?>> getDataValues(){
-        Map<String, Literal<?>> dataValues = new HashMap<>();
+    public Map<String, Node> getDataValues(){
+        Map<String, Node> dataValues = new HashMap<>();
         for (Map.Entry<String, DataValue<?>> entry : this.dataValues.entrySet()) {
-            Map<String, Literal<?>> values = entry.getValue().getDataValues();
-            for (Map.Entry<String, Literal<?>> typeEntry : values.entrySet()) {
+            Map<String, Node> values = entry.getValue().getDataValues();
+            for (Map.Entry<String, Node> typeEntry : values.entrySet()) {
                 if(typeEntry.getKey().isEmpty()){
                     dataValues.put(entry.getKey(), typeEntry.getValue());
                 } else {

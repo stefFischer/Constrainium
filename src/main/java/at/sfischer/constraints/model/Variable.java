@@ -53,8 +53,8 @@ public class Variable implements Node {
     }
 
     @Override
-    public Node setVariableValues(Map<Variable, Literal<?>> values) {
-        Literal<?> value = values.get(this);
+    public Node setVariableValues(Map<Variable, Node> values) {
+        Node value = values.get(this);
         if(value != null){
             return value;
         }
