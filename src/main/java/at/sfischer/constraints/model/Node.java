@@ -2,9 +2,7 @@ package at.sfischer.constraints.model;
 
 import at.sfischer.constraints.model.operators.Operator;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface Node {
 
@@ -79,6 +77,14 @@ public interface Node {
     }
 
     default Map<Variable, Type> inferVariableTypes(){
+        return inferVariableTypes(new HashSet<>());
+    }
+
+    default Map<Variable, Type> inferVariableTypes(Node... childrenToExclude){
+        return inferVariableTypes(new HashSet<>(Arrays.asList(childrenToExclude)));
+    }
+
+    default Map<Variable, Type> inferVariableTypes(Set<Node> childrenToExclude){
         Map<Variable, Type> variableTypes = new HashMap<>();
         List<Node>  children = getChildren();
         if(children != null) {
@@ -93,6 +99,10 @@ public interface Node {
 
             int i = 0;
             for (Node child : children) {
+                if(childrenToExclude.contains(child)){
+                    continue;
+                }
+
                 if (child instanceof Variable){
                     Type variableType = types.get(i);
                     Type t = variableTypes.get((Variable)child);

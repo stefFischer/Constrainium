@@ -1,9 +1,11 @@
 package at.sfischer.constraints.model.operators.array;
 
+import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.numbers.EqualOperator;
 import at.sfischer.constraints.model.operators.numbers.OneOf;
+import at.sfischer.constraints.model.operators.objects.Reference;
 import at.sfischer.constraints.model.operators.strings.IsUrl;
 import at.sfischer.constraints.model.operators.strings.StringLength;
 import at.sfischer.constraints.model.operators.strings.OneOfString;
@@ -188,5 +190,22 @@ public class ForAllTest {
 
 		assertInstanceOf(BooleanLiteral.class,result);
 		assertEquals(false, ((BooleanLiteral)result).getValue());
+	}
+
+	@Test
+	public void evaluateNestedForAll() {
+		String jsonData = "{array:[{numbers:[1]},{numbers:[2]},{numbers:[3]}]}";
+		DataObject obj = DataObject.parseData(jsonData);
+
+		Node array = obj.getDataValue("array").getLiteralValue();
+
+		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
+		ForAll innerOperator = new ForAll(new Reference(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("numbers")), condition);
+		ForAll operator = new ForAll(array, innerOperator);
+
+		Node result = operator.evaluate();
+
+		assertInstanceOf(BooleanLiteral.class,result);
+		assertEquals(true, ((BooleanLiteral)result).getValue());
 	}
 }

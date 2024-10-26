@@ -3,6 +3,7 @@ package at.sfischer.constraints.model.operators.array;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.Function;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public abstract class ArrayQuantifier extends Function {
             return false;
         }
 
-        Node array = getParameter(0);
+        Node array = getParameter(0).evaluate();
         if(!(array instanceof ArrayValues<?>)){
             return false;
         }
@@ -40,7 +41,17 @@ public abstract class ArrayQuantifier extends Function {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new ForAll(getParameter(0).setVariableValues(values), getParameter(1).setVariableValues(values));
+        Node array = getParameter(0);
+        Node condition = getParameter(1);
+
+        Node newArray = array.setVariableValues(values);
+
+        Map<Variable, Node> newValues = new HashMap<>(values);
+        // The quantifiers set the element value directly on the condition, if an element identifier is passed here, there must be an outer quantifier and we should not pass it further into the condition.
+        newValues.remove(new Variable(ELEMENT_NAME));
+        Node newCondition = condition.setVariableValues(newValues);
+
+        return new ForAll(newArray, newCondition);
     }
 
     @Override
@@ -55,10 +66,16 @@ public abstract class ArrayQuantifier extends Function {
 
     @Override
     public Map<Variable, Type> inferVariableTypes() {
-        Map<Variable, Type> variableTypeMap =  super.inferVariableTypes();
-        arrayElementType = variableTypeMap.remove(new Variable(ELEMENT_NAME));
-        variableTypeMap =  super.inferVariableTypes();
-        variableTypeMap.remove(new Variable(ELEMENT_NAME));
+        Node array = getParameter(0);
+        Node condition = getParameter(1);
+        Map<Variable, Type> conditionTypeMap = super.inferVariableTypes(array);
+        arrayElementType = conditionTypeMap.remove(new Variable(ELEMENT_NAME));
+        conditionTypeMap = super.inferVariableTypes(array);
+        conditionTypeMap.remove(new Variable(ELEMENT_NAME));
+
+        Map<Variable, Type> variableTypeMap = super.inferVariableTypes(condition);
+        variableTypeMap.putAll(conditionTypeMap);
+
         return variableTypeMap;
     }
 
