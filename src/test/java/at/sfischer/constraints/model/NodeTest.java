@@ -1,7 +1,10 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.AndOperator;
+import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.numbers.AdditionOperator;
+import at.sfischer.constraints.model.operators.numbers.EqualOperator;
 import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
 import org.junit.jupiter.api.*;
 
@@ -32,6 +35,17 @@ public class NodeTest {
 		expected.put(new Variable("x"), TypeEnum.NUMBER);
 		expected.put(new Variable("y"), TypeEnum.NUMBER);
 		expected.put(new Variable("z"), TypeEnum.NUMBER);
+
+		Map<Variable, Type> actual = node.inferVariableTypes();
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void inferVariableTypesTest3() {
+		Node node = new ForAll(new Variable("a"), new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0))));
+		Map<Variable, Type> expected = new HashMap<>();
+		expected.put(new Variable("a"), new ArrayType(TypeEnum.NUMBER));
 
 		Map<Variable, Type> actual = node.inferVariableTypes();
 
