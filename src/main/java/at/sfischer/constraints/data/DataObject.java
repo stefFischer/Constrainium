@@ -1,6 +1,7 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
+import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -64,6 +65,32 @@ public class DataObject {
         return Objects.hash(dataValues);
     }
 
+    public Map<Type, List<Pair<String, DataValue<?>>>> getValuesByType(){
+        Map<Type, List<Pair<String, DataValue<?>>>> dataByTypes = new HashMap<>();
+        for (Map.Entry<String, DataValue<?>> entry : dataValues.entrySet()) {
+            Type type = entry.getValue().getType();
+            List<Pair<String, DataValue<?>>> data = dataByTypes.computeIfAbsent(type, k -> new LinkedList<>());
+            String fieldName = entry.getKey();
+            DataValue<?> value = entry.getValue();
+            data.add(new Pair<>(fieldName, value));
+
+            if(value.getValue() instanceof DataObject){
+                Map<Type, List<Pair<String, DataValue<?>>>> internalDataByTypes = ((DataObject) value.getValue()).getValuesByType();
+                for (Map.Entry<Type, List<Pair<String, DataValue<?>>>> internalEntry : internalDataByTypes.entrySet()) {
+                    Type internalType = internalEntry.getKey();
+                    List<Pair<String, DataValue<?>>> data2 = dataByTypes.computeIfAbsent(internalType, k -> new LinkedList<>());
+                    for (Pair<String, DataValue<?>> pair : internalEntry.getValue()) {
+                        String internalFieldName = pair.getValue0();
+                        DataValue<?> internalValue = pair.getValue1();
+                        data2.add(new Pair<>(fieldName + "." + internalFieldName, internalValue));
+                    }
+                }
+            }
+        }
+
+        return dataByTypes;
+    }
+
     public Map<String, Type> getDataTypes(){
         Map<String, Type> dataTypes = new HashMap<>();
         for (Map.Entry<String, DataValue<?>> entry : dataValues.entrySet()) {
@@ -72,9 +99,7 @@ public class DataObject {
                 if(typeEntry.getKey().isEmpty()){
                     dataTypes.put(entry.getKey(), typeEntry.getValue());
                 } else {
-                    if(entry.getValue().getType() instanceof ArrayType) {
-                        dataTypes.put(entry.getKey() + "[" + typeEntry.getKey() + "]", typeEntry.getValue());
-                    } else {
+                    if(!(entry.getValue().getType() instanceof ArrayType)) {
                         dataTypes.put(entry.getKey() + "." + typeEntry.getKey(), typeEntry.getValue());
                     }
                 }
@@ -92,9 +117,7 @@ public class DataObject {
                 if(typeEntry.getKey().isEmpty()){
                     dataValues.put(entry.getKey(), typeEntry.getValue());
                 } else {
-                    if(entry.getValue().getType() instanceof ArrayType) {
-                        dataValues.put(entry.getKey() + "[" + typeEntry.getKey() + "]", typeEntry.getValue());
-                    } else {
+                    if(!(entry.getValue().getType() instanceof ArrayType)) {
                         dataValues.put(entry.getKey() + "." + typeEntry.getKey(), typeEntry.getValue());
                     }
                 }

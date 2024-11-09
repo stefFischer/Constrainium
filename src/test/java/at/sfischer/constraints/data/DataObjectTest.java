@@ -114,7 +114,18 @@ public class DataObjectTest {
 		expected.put("size", TypeEnum.NUMBER);
 		expected.put("object.number", TypeEnum.NUMBER);
 		expected.put("array", new ArrayType(TypeEnum.COMPLEXTYPE));
-		expected.put("array[number]", new ArrayType(TypeEnum.NUMBER));
+
+		Map<String, Type> actual = d.getDataTypes();
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void getDataObjectArrayTypesIncludingArrays() {
+		String jsonData = "{array:[{numbers:[1]},{numbers:[2]},{numbers:[3]}]}";
+		DataObject d = DataObject.parseData(jsonData);
+		Map<String, Type> expected = new HashMap<>();
+		expected.put("array", new ArrayType(TypeEnum.COMPLEXTYPE));
 
 		Map<String, Type> actual = d.getDataTypes();
 

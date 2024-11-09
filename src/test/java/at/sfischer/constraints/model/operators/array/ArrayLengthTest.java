@@ -47,8 +47,6 @@ public class ArrayLengthTest {
 		Set<Constraint> expected = new HashSet<>();
 		Constraint constraint1 = new Constraint(new GreaterThanOperator(new ArrayLength(new Variable("array")), new NumberLiteral(1)));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new GreaterThanOperator(new ArrayLength(new Variable("array[number]")), new NumberLiteral(1)));
-		expected.add(constraint2);
 
 		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
 

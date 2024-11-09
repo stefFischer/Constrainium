@@ -2,12 +2,14 @@ package at.sfischer.constraints;
 
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.model.NumberLiteral;
+import at.sfischer.constraints.model.StringLiteral;
 import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
 import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
+import at.sfischer.constraints.model.operators.objects.Reference;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,7 +112,7 @@ public class ConstraintTest {
 
 	@Test
 	public void applyDataTestObjectArray() {
-		Constraint constraint = new Constraint(new ForAll(new Variable("array[number]"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
+		Constraint constraint = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10))));
 		SimpleDataCollection data = SimpleDataCollection.parseData(
 				"{size:0, object:{number:2}, array:[{number:1},{number:2},{number:3}]}",
 				"{size:1, object:{number:3}, array:[{number:4},{number:5},{number:6}]}",

@@ -70,19 +70,31 @@ public class ArrayValues<T extends Literal<?>> extends Literal<T[]> {
             for (int i = 0; i < literals.size(); i++) {
                 literalArray[i] = new NumberLiteral(((NumberLiteral)literals.get(i)).getValue());
             }
-            return new ArrayValues<>(TypeEnum.NUMBER, literalArray);
+            return new ArrayValues<>(elementType, literalArray);
         } else if(elementType == TypeEnum.BOOLEAN){
             BooleanLiteral[] literalArray = new BooleanLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
                 literalArray[i] = new BooleanLiteral(((BooleanLiteral)literals.get(i)).getValue());
             }
-            return new ArrayValues<>(TypeEnum.BOOLEAN, literalArray);
+            return new ArrayValues<>(elementType, literalArray);
         } else if(elementType == TypeEnum.STRING){
             StringLiteral[] literalArray = new StringLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
                 literalArray[i] = new StringLiteral(((StringLiteral)literals.get(i)).getValue());
             }
-            return new ArrayValues<>(TypeEnum.STRING, literalArray);
+            return new ArrayValues<>(elementType, literalArray);
+        } else if(elementType == TypeEnum.COMPLEXTYPE){
+            ComplexValue[] literalArray = new ComplexValue[literals.size()];
+            for (int i = 0; i < literals.size(); i++) {
+                literalArray[i] = new ComplexValue(((ComplexValue)literals.get(i)).getValue());
+            }
+            return new ArrayValues<>(elementType, literalArray);
+        } else if(elementType instanceof ArrayType){
+            ArrayValues<?>[] literalArray = new ArrayValues[literals.size()];
+            for (int i = 0; i < literals.size(); i++) {
+                literalArray[i] = createArrayValuesFromList(Arrays.asList(((ArrayValues<?>)literals.get(i)).getValue()));
+            }
+            return new ArrayValues<>(elementType, literalArray);
         }
 
         throw new UnsupportedOperationException("Unsupported element type: " + elementType);

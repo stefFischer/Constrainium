@@ -1,10 +1,15 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ForAll;
+import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
+import at.sfischer.constraints.model.operators.objects.Reference;
+import org.javatuples.Pair;
 
 import java.util.*;
 
-public class SimpleDataCollection implements DataCollection<DataObject> {
+public class SimpleDataCollection extends DataCollection<DataObject> {
 
     private final Set<DataObject> dataCollection;
 
@@ -44,7 +49,16 @@ public class SimpleDataCollection implements DataCollection<DataObject> {
         }
     }
 
+    @Override
+    public int size() {
+        return this.dataCollection.size();
+    }
+
     protected Map<String, Type> getDataTypes(){
+        return getDataTypes(this.dataCollection);
+    }
+
+    protected Map<String, Type> getDataTypes(Collection<DataObject> dataCollection){
         Map<String, Type> dataTypes = new HashMap<>();
         for (DataObject dataObject : dataCollection) {
             Map<String, Type> dataObjectTypes = dataObject.getDataTypes();
@@ -63,61 +77,25 @@ public class SimpleDataCollection implements DataCollection<DataObject> {
         return dataTypes;
     }
 
-    protected Map<Type, List<String>> getFieldTypes(){
-        Map<Type, List<String>> fieldTypes = new HashMap<>();
-        Map<String, Type> dataTypes = getDataTypes();
-        for (Map.Entry<String, Type> entry : dataTypes.entrySet()) {
-            List<String> dataForType = fieldTypes.computeIfAbsent(entry.getValue(), k -> new ArrayList<>());
-            dataForType.add(entry.getKey());
-        }
-
-        return fieldTypes;
+    private void findAssignableFields(List<Pair<Node, Set<Variable>>> terms, Map<Variable, Type> variableTypes){
+        findAssignableFields(terms, variableTypes, variableNodeProvider, this.dataCollection);
     }
 
     @Override
     public boolean applyDataToTerms(List<Node> terms, Map<Variable, Type> variableTypes){
-        Map<Type, List<String>> fieldTypes = getFieldTypes();
-        for (Map.Entry<Variable, Type> entry : variableTypes.entrySet()) {
-            List<String> dataForType = getAssignableFields(fieldTypes, entry.getValue());
-            if(dataForType.isEmpty()){
-                return false;
-            }
+        List<Pair<Node, Set<Variable>>> termsToAssign = new LinkedList<>();
+        terms.forEach(term -> termsToAssign.add(new Pair<>(term, new HashSet<>())));
+        findAssignableFields(termsToAssign, variableTypes);
 
-            List<Node> nextReplacedTerms = new LinkedList<>();
-            for (String name : dataForType) {
-                for (Node term : terms) {
-                    Node clone = term.setVariableValues(new HashMap<>());
-                    clone.visitNodes((VariableVisitor) variable -> {
-                        if(!variable.equals(entry.getKey())){
-                            return;
-                        }
-
-                        variable.setReplacementName(name);
-                    });
-
-                    nextReplacedTerms.add(clone);
-                }
-            }
-
-            terms.clear();
-            terms.addAll(nextReplacedTerms);
-            for (Node replacedTerm : terms) {
-                replacedTerm.visitNodes((VariableVisitor) Variable::replaceName);
+        terms.clear();
+        for (Pair<Node, Set<Variable>> pair : termsToAssign) {
+            // Check if all variables have been assigned a field.
+            if(pair.getValue1().containsAll(variableTypes.keySet())){
+                terms.add(pair.getValue0());
             }
         }
 
-        return true;
-    }
-
-    private List<String> getAssignableFields(Map<Type, List<String>> fieldTypes, Type variableType){
-        List<String> fields = new LinkedList<>();
-        for (Map.Entry<Type, List<String>> entry : fieldTypes.entrySet()) {
-            if(entry.getKey().canAssignTo(variableType)){
-                fields.addAll(entry.getValue());
-            }
-        }
-
-        return fields;
+        return !terms.isEmpty();
     }
 
     @Override
