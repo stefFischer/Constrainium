@@ -4,6 +4,7 @@ import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.miner.ConstraintMiner;
+import at.sfischer.constraints.miner.ConstraintMinerFromData;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
@@ -48,7 +49,8 @@ public class ArrayLengthTest {
 		Constraint constraint1 = new Constraint(new GreaterThanOperator(new ArrayLength(new Variable("array")), new NumberLiteral(1)));
 		expected.add(constraint1);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().

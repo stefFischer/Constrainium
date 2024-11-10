@@ -1,10 +1,12 @@
 package at.sfischer.constraints.miner;
 
 import at.sfischer.constraints.Constraint;
-import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.SimpleDataCollection;
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.NumberLiteral;
+import at.sfischer.constraints.model.StringLiteral;
+import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.Exists;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -16,13 +18,13 @@ import at.sfischer.constraints.model.operators.numbers.LessThanOrEqualOperator;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import at.sfischer.constraints.model.operators.strings.StringEquals;
 import org.javatuples.Pair;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConstraintMinerTest {
 	@Test
@@ -47,7 +49,8 @@ public class ConstraintMinerTest {
 		Constraint constraint4 = new Constraint(new OrOperator(new LessThanOrEqualOperator(new Variable("object.number"), new NumberLiteral(0)), new NotOperator(new Variable("isEmpty"))));
 		expected.add(constraint4);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -71,7 +74,8 @@ public class ConstraintMinerTest {
 		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new Variable("object.number"), new Variable("size")));
 		expected.add(constraint2);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -93,7 +97,8 @@ public class ConstraintMinerTest {
 		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
 		expected.add(constraint1);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -119,7 +124,8 @@ public class ConstraintMinerTest {
 		Constraint constraint3 = new Constraint(new LessThanOperator(new Variable("object.number"), new NumberLiteral(10)));
 		expected.add(constraint3);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -141,7 +147,8 @@ public class ConstraintMinerTest {
 		Constraint constraint1 = new Constraint(new ForAll(new Variable("object"), new ForAll(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("array")), new LessThanOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10)))));
 		expected.add(constraint1);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -163,7 +170,8 @@ public class ConstraintMinerTest {
 		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new ForAll(new Variable(ArrayQuantifier.ELEMENT_NAME), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10)))));
 		expected.add(constraint1);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -183,7 +191,8 @@ public class ConstraintMinerTest {
 
 		// We have no constraint matching the data, so it should return an empty set.
 		Set<Constraint> expected = new HashSet<>();
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertEquals(expected, actual);
 	}
@@ -201,7 +210,8 @@ public class ConstraintMinerTest {
 
 		// We have no constraint matching the data, so it should return an empty set.
 		Set<Constraint> expected = new HashSet<>();
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertEquals(expected, actual);
 	}
@@ -221,7 +231,8 @@ public class ConstraintMinerTest {
 		Constraint constraint1 = new Constraint(new Exists(new Variable("array"), new StringEquals(new Variable(ArrayQuantifier.ELEMENT_NAME), new Variable("element"))));
 		expected.add(constraint1);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -249,7 +260,8 @@ public class ConstraintMinerTest {
 		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("object.number"), new Variable("size")));
 		expected.add(constraint4);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -277,7 +289,8 @@ public class ConstraintMinerTest {
 		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("object.number"), new Variable("add")));
 		expected.add(constraint4);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -301,7 +314,8 @@ public class ConstraintMinerTest {
 		Constraint constraint2 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Variable("size"), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")))));
 		expected.add(constraint2);
 
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertThat(actual).
 				usingRecursiveComparison().
@@ -321,7 +335,8 @@ public class ConstraintMinerTest {
 
 		// We have no constraint matching the data, so it should return an empty set.
 		Set<Constraint> expected = new HashSet<>();
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertEquals(expected, actual);
 	}
@@ -339,7 +354,8 @@ public class ConstraintMinerTest {
 
 		// We have no constraint matching the data, so it should return an empty set.
 		Set<Constraint> expected = new HashSet<>();
-		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertEquals(expected, actual);
 	}
