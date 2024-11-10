@@ -27,6 +27,7 @@ public record Constraint(Node term) {
                     validConstraintData.removeDataEntry(dataObject);
                 }
             } else {
+                // TODO: Do not panic when a constraint does not apply for data, but instead store a counter for this and use it as an additional statistic to derive a likelihood for a constraint to be true.
                 throw new IllegalArgumentException("Could not apply data (" + values + ") to constraint, remaining: " + result.getClass().getName());
             }
         });
