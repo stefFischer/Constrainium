@@ -1,2 +1,2 @@
-rootProject.name = "ConstraintMiner"
+rootProject.name = "Constrainium"
 
