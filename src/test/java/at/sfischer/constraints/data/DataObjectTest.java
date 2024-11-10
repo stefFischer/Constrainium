@@ -3,13 +3,11 @@ package at.sfischer.constraints.data;
 import at.sfischer.constraints.model.*;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.HashMap;
 import java.util.Map;
-import at.sfischer.constraints.model.Type;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DataObjectTest {
 	@Test

@@ -1,6 +1,9 @@
 package at.sfischer.constraints.model.operators.numbers;
 
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.BooleanLiteral;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.NumberLiteral;
+import at.sfischer.constraints.model.Variable;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

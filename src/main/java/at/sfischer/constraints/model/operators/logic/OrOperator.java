@@ -1,7 +1,6 @@
 package at.sfischer.constraints.model.operators.logic;
 
 import at.sfischer.constraints.model.BooleanLiteral;
-import at.sfischer.constraints.model.Literal;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Variable;
 

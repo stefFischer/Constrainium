@@ -1,7 +1,8 @@
 package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SuperSetTest {

@@ -7,12 +7,12 @@ import at.sfischer.constraints.model.operators.numbers.EqualOperator;
 import at.sfischer.constraints.model.operators.numbers.OneOf;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import at.sfischer.constraints.model.operators.strings.IsUrl;
-import at.sfischer.constraints.model.operators.strings.StringLength;
 import at.sfischer.constraints.model.operators.strings.OneOfString;
+import at.sfischer.constraints.model.operators.strings.StringLength;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class ForAllTest {
 	@Test

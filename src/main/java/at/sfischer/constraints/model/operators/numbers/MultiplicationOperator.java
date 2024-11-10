@@ -1,6 +1,5 @@
 package at.sfischer.constraints.model.operators.numbers;
 
-import at.sfischer.constraints.model.Literal;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.NumberLiteral;
 import at.sfischer.constraints.model.Variable;

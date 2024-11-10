@@ -2,8 +2,9 @@ package at.sfischer.constraints.model.operators.objects;
 
 import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.model.*;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ReferenceTest {
 

@@ -1,7 +1,5 @@
 package at.sfischer.constraints.model;
 
-import java.util.Objects;
-
 public enum TypeEnum implements Type {
     ANY, NUMBER, BOOLEAN, STRING, COMPLEXTYPE;
 

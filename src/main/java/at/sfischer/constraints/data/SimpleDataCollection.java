@@ -1,10 +1,8 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
-import at.sfischer.constraints.model.operators.array.ForAll;
-import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
-import at.sfischer.constraints.model.operators.objects.Reference;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.Variable;
 import org.javatuples.Pair;
 
 import java.util.*;

@@ -1,6 +1,9 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.ArrayType;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.TypeEnum;
 import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;

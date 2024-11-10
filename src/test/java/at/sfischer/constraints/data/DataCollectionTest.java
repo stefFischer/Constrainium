@@ -1,12 +1,12 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.TypeEnum;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import at.sfischer.constraints.model.TypeEnum;
-import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DataCollectionTest {

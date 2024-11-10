@@ -6,14 +6,14 @@ import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.numbers.AdditionOperator;
 import at.sfischer.constraints.model.operators.numbers.EqualOperator;
 import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
-import org.junit.jupiter.api.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class NodeTest {
 	@Test

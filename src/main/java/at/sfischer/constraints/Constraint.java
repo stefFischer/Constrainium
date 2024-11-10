@@ -1,7 +1,10 @@
 package at.sfischer.constraints;
 
 import at.sfischer.constraints.data.DataCollection;
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.BooleanLiteral;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.TypeEnum;
+import at.sfischer.constraints.model.VariableVisitor;
 
 import java.util.HashSet;
 import java.util.Set;

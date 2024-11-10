@@ -3,8 +3,10 @@ package at.sfischer.constraints.model.operators.strings;
 import at.sfischer.constraints.model.BooleanLiteral;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.StringLiteral;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class IsDateTest {
 	@Test

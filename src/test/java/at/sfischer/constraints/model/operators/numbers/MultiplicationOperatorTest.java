@@ -3,11 +3,11 @@ package at.sfischer.constraints.model.operators.numbers;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.NumberLiteral;
 import at.sfischer.constraints.model.Variable;
-import at.sfischer.constraints.model.operators.numbers.MultiplicationOperator;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class MultiplicationOperatorTest {
 	@Test

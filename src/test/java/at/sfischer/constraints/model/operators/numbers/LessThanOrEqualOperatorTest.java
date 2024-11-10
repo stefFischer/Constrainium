@@ -4,8 +4,6 @@ import at.sfischer.constraints.model.BooleanLiteral;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.NumberLiteral;
 import at.sfischer.constraints.model.Variable;
-import at.sfischer.constraints.model.operators.numbers.AdditionOperator;
-import at.sfischer.constraints.model.operators.numbers.LessThanOrEqualOperator;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

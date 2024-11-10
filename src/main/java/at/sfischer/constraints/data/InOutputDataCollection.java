@@ -1,10 +1,11 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.Variable;
 import org.javatuples.Pair;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InOutputDataCollection extends DataCollection<Pair<DataObject, DataObject>> {
 

@@ -7,14 +7,14 @@ import at.sfischer.constraints.miner.ConstraintMiner;
 import at.sfischer.constraints.miner.ConstraintMinerFromData;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
-import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class ArrayLengthTest {
 	@Test

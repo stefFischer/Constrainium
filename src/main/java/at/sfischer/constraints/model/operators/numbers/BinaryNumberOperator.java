@@ -1,10 +1,10 @@
 package at.sfischer.constraints.model.operators.numbers;
 
-import at.sfischer.constraints.model.TypeEnum;
-import at.sfischer.constraints.model.operators.BinaryOperator;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.NumberLiteral;
 import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.TypeEnum;
+import at.sfischer.constraints.model.operators.BinaryOperator;
 
 import java.util.List;
 
