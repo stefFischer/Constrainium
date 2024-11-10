@@ -51,8 +51,10 @@ public abstract class ArrayQuantifier extends Function {
         newValues.remove(new Variable(ELEMENT_NAME));
         Node newCondition = condition.setVariableValues(newValues);
 
-        return new ForAll(newArray, newCondition);
+        return createArrayQuantifier(newArray, newCondition);
     }
+
+    protected abstract ArrayQuantifier createArrayQuantifier(Node array, Node condition);
 
     @Override
     public List<Type> parameterTypes() {

@@ -6,6 +6,7 @@ import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.Exists;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.logic.OrOperator;
@@ -13,6 +14,7 @@ import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperato
 import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
 import at.sfischer.constraints.model.operators.numbers.LessThanOrEqualOperator;
 import at.sfischer.constraints.model.operators.objects.Reference;
+import at.sfischer.constraints.model.operators.strings.StringEquals;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.*;
 
@@ -202,6 +204,28 @@ public class ConstraintMinerTest {
 		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
 
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void getPossibleConstraintsStringMemberOfArray() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{element:\"ONE\", array:[\"ONE\", \"TWO\"]}",
+				"{element:\"TWO\", array:[\"TWO\", \"THREE\", \"FOUR\"]}",
+				"{element:\"FOUR\", array:[\"ONE\", \"FOUR\"]}"
+		);
+
+		Set<Node> terms = new HashSet<>();
+		terms.add(new Exists(new Variable("a"), new StringEquals(new Variable(ArrayQuantifier.ELEMENT_NAME), new Variable("b"))));
+
+		Set<Constraint> expected = new HashSet<>();
+		Constraint constraint1 = new Constraint(new Exists(new Variable("array"), new StringEquals(new Variable(ArrayQuantifier.ELEMENT_NAME), new Variable("element"))));
+		expected.add(constraint1);
+
+		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
 	}
 
 	@Test

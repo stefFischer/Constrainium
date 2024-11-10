@@ -1,10 +1,9 @@
 package at.sfischer.constraints.model.operators.array;
 
-import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.Function;
-
-import java.util.List;
-import java.util.Map;
+import at.sfischer.constraints.model.ArrayValues;
+import at.sfischer.constraints.model.BooleanLiteral;
+import at.sfischer.constraints.model.Literal;
+import at.sfischer.constraints.model.Node;
 
 public class Exists extends ArrayQuantifier {
 
@@ -12,6 +11,11 @@ public class Exists extends ArrayQuantifier {
 
     public Exists(Node array, Node condition) {
         super(FUNCTION_NAME, array, condition);
+    }
+
+    @Override
+    protected ArrayQuantifier createArrayQuantifier(Node array, Node condition) {
+        return new Exists(array, condition);
     }
 
     @Override

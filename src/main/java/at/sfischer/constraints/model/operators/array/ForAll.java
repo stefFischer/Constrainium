@@ -14,6 +14,11 @@ public class ForAll extends ArrayQuantifier {
     }
 
     @Override
+    protected ArrayQuantifier createArrayQuantifier(Node array, Node condition) {
+        return new ForAll(array, condition);
+    }
+
+    @Override
     public Node evaluate() {
         ArrayValues<?> arrayValues = getArrayArgument(0);
         Node condition = getParameter(1);
