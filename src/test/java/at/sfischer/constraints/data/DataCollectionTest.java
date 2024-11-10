@@ -37,6 +37,7 @@ public class DataCollectionTest {
 		Map<String, Type> expected = new HashMap<>();
 		expected.put("size", TypeEnum.NUMBER);
 		expected.put("isEmpty", TypeEnum.BOOLEAN);
+		expected.put("object", TypeEnum.COMPLEXTYPE);
 		expected.put("object.id", TypeEnum.NUMBER);
 		expected.put("object.value", TypeEnum.STRING);
 		Map<String, Type> actual = dataCollection.getDataTypes();

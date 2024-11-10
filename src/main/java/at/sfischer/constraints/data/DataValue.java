@@ -76,11 +76,9 @@ public class DataValue<T> {
                     dataTypes.put(entry.getKey(), new ArrayType(entry.getValue()));
                 }
             }
-            dataTypes.put("", type);
-        } else {
-            dataTypes.put("", type);
         }
 
+        dataTypes.put("", type);
         return dataTypes;
     }
 
@@ -101,13 +99,9 @@ public class DataValue<T> {
             for (Map.Entry<String, List<Node>> entry : arrayValues.entrySet()) {
                 dataValues.put(entry.getKey(), ArrayValues.createArrayValuesFromList(entry.getValue()));
             }
-
-            // Need to also add an ArrayValues with Complex elements. Otherwise, we cannot define a constraint on an array holding complex elements.
-            dataValues.put("", getLiteralValue());
-        } else {
-            dataValues.put("", getLiteralValue());
         }
 
+        dataValues.put("", getLiteralValue());
         return dataValues;
     }
 
