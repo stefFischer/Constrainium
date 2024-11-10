@@ -24,4 +24,13 @@ public record ConstraintResults(Constraint constraint, DataCollection<?> data, D
     public double violationRate() {
         return 1.0 - applicationRate();
     }
+
+    @Override
+    public String toString() {
+        return "ConstraintResults{" +
+                "constraint=" + constraint +
+                ", data=" + data.size() +
+                ", validConstraintData=" + validConstraintData.size() +
+                '}';
+    }
 }
