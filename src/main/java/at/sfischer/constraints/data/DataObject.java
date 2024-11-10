@@ -48,6 +48,15 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
     }
 
+    public void putValue(String name, DataValue<?>[] value) {
+        Type nestedArrayType = value[0].getType();
+        dataValues.put(name, new DataValue<>(new ArrayType(nestedArrayType), value));
+    }
+
+    protected void putDataValue(String name, DataValue<?> value) {
+        dataValues.put(name, value);
+    }
+
     public DataValue<?> getDataValue(String name){
         return dataValues.get(name);
     }
@@ -169,30 +178,13 @@ public class DataObject {
     private static void parseArray(DataObject dao, String key, JSONArray array){
         Class<?> elementType = null;
         List<Object> values = new ArrayList<>();
+        // Infer the element type pf the array.
         for (Object value : array) {
-            if(value instanceof Number){
-                elementType = inferElementType(elementType, value);
-                values.add(value);
-            } else if (value instanceof Boolean){
-                elementType = inferElementType(elementType, value);
-                values.add(value);
-            } else if (value instanceof String) {
-                elementType = inferElementType(elementType, value);
-                values.add(value);
-            } else if (value instanceof JSONArray) {
-                elementType = inferElementType(elementType, value);
-
-                // TODO Support nested array.
-                System.err.println("NESTED ARRAY NOT YET SUPPORTED");
-
-            } else if (value instanceof JSONObject) {
-                elementType = inferElementType(elementType, value);
-                DataObject valueDao = new DataObject();
-                parseObject(valueDao, (JSONObject)value);
-                values.add(value);
-            }
+            elementType = inferElementType(elementType, value);
+            values.add(value);
         }
 
+        // Insert value array into data object.
         if(elementType == Number.class){
             Number[] value = new Number[values.size()];
             for (int i = 0; i < values.size(); i++) {
@@ -212,8 +204,14 @@ public class DataObject {
             }
             dao.putValue(key, value);
         } else if(elementType == JSONArray.class){
-            // TODO Support nested array.
-
+            DataValue<?>[] value = new DataValue[values.size()];
+            for (int i = 0; i < values.size(); i++) {
+                DataObject valueDao = new DataObject();
+                parseArray(valueDao, key, (JSONArray)values.get(i));
+                DataValue<?> dataValue = valueDao.dataValues.get(key);
+                value[i] = dataValue;
+            }
+            dao.putValue(key, value);
         } else if(elementType == Object.class){
             DataObject[] value = new DataObject[values.size()];
             for (int i = 0; i < values.size(); i++) {

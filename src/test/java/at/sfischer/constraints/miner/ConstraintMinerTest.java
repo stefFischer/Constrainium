@@ -146,7 +146,27 @@ public class ConstraintMinerTest {
 				isEqualTo(expected);
 	}
 
-	// TODO Also test with nested arrays.
+	@Test
+	public void getPossibleConstraintsTestNestedArrays() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{array:[[1,2],[3,4]]}",
+				"{array:[[5,6],[3,4]]}",
+				"{array:[[7,8],[1,9]]}"
+		);
+
+		Set<Node> terms = new HashSet<>();
+		terms.add(new ForAll(new Variable("a"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
+
+		Set<Constraint> expected = new HashSet<>();
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new ForAll(new Variable(ArrayQuantifier.ELEMENT_NAME), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10)))));
+		expected.add(constraint1);
+
+		Set<Constraint> actual = ConstraintMiner.getPossibleConstraints(data, terms);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
+	}
 
 	@Test
 	public void getPossibleConstraintsNoMatchingConstraintTest1() {

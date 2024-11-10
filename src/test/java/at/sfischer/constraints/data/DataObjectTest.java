@@ -100,10 +100,7 @@ public class DataObjectTest {
 
 		Map<String, Type> actual = d.getDataTypes();
 
-		System.out.println(actual);
-
-		// TODO Implement support for nested arrays.
-//		assertEquals(expected, actual);
+		assertEquals(expected, actual);
 	}
 
 	@Test

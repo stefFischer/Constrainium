@@ -29,6 +29,7 @@ public abstract class DataCollection<T> {
     }
 
     protected static final FieldNodeProvider variableNodeProvider = field -> new Variable(field.getValue0());
+    protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayQuantifier.ELEMENT_NAME);
     protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(field.getValue0()));
 
     protected static void findAssignableFields(List<Pair<Node, Set<Variable>>> terms, Map<Variable, Type> variableTypes, FieldNodeProvider fieldNodeProvider, DataObject[] dataCollection){
@@ -73,17 +74,37 @@ public abstract class DataCollection<T> {
                     }
                 }
 
-                if(type instanceof ArrayType && ((ArrayType) type).elementType() == TypeEnum.COMPLEXTYPE){
-                    for (Pair<String, DataValue<?>> field : fields) {
-                        DataValue<?> dataValue = field.getValue1();
-                        if(dataValue.getValue() instanceof DataObject[]){
-                            Node value = fieldNodeProvider.generateNode(field);
-                            List<Pair<Node, Set<Variable>>> internalTerms = new LinkedList<>(terms);
-                            findAssignableFields(internalTerms, variableTypes, arrayDereferenceProvider, (DataObject[]) dataValue.getValue());
-                            // Transform term by inserting it into a ForAll node use the current field value as the array parameter.
-                            for (Pair<Node, Set<Variable>> term : internalTerms) {
-                                Node replacementTerm = new ForAll(value, term.getValue0());
-                                internalReplacedTerms.add(new Pair<>(replacementTerm, term.getValue1()));
+                if(type instanceof ArrayType) {
+                    if (((ArrayType) type).elementType() == TypeEnum.COMPLEXTYPE) {
+                        for (Pair<String, DataValue<?>> field : fields) {
+                            DataValue<?> dataValue = field.getValue1();
+                            if (dataValue.getValue() instanceof DataObject[]) {
+                                Node value = fieldNodeProvider.generateNode(field);
+                                List<Pair<Node, Set<Variable>>> internalTerms = new LinkedList<>(terms);
+                                findAssignableFields(internalTerms, variableTypes, arrayDereferenceProvider, (DataObject[]) dataValue.getValue());
+                                // Transform term by inserting it into a ForAll node use the current field value as the array parameter.
+                                for (Pair<Node, Set<Variable>> term : internalTerms) {
+                                    Node replacementTerm = new ForAll(value, term.getValue0());
+                                    internalReplacedTerms.add(new Pair<>(replacementTerm, term.getValue1()));
+                                }
+                            }
+                        }
+                    } else if (((ArrayType) type).elementType() instanceof ArrayType) {
+                        for (Pair<String, DataValue<?>> field : fields) {
+                            DataValue<?> dataValue = field.getValue1();
+                            if (dataValue.getValue() instanceof DataValue[]) {
+                                Node value = fieldNodeProvider.generateNode(field);
+                                for (DataValue<?> dataValueArray : (DataValue<?>[]) dataValue.getValue()) {
+                                    DataObject dao = new DataObject();
+                                    dao.putDataValue(field.getValue0(), dataValueArray);
+                                    List<Pair<Node, Set<Variable>>> internalTerms = new LinkedList<>(terms);
+                                    findAssignableFields(internalTerms, variableTypes, arrayElementProvider, new DataObject[]{dao});
+                                    // Transform term by inserting it into a ForAll node use the current field value as the array parameter.
+                                    for (Pair<Node, Set<Variable>> term : internalTerms) {
+                                        Node replacementTerm = new ForAll(value, term.getValue0());
+                                        internalReplacedTerms.add(new Pair<>(replacementTerm, term.getValue1()));
+                                    }
+                                }
                             }
                         }
                     }
