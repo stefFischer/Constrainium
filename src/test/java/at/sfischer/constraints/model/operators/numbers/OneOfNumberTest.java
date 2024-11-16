@@ -12,12 +12,12 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-public class OneOfTest {
+public class OneOfNumberTest {
 	@Test
 	public void evaluateTrueOneOptionTest() {
 		Node value = new NumberLiteral(2);
 		NumberLiteral numberOfOptions = new NumberLiteral(3);
-		OneOf operator = new OneOf(value, numberOfOptions);
+		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -28,7 +28,7 @@ public class OneOfTest {
 	public void evaluateTrueOnlySameOptionsTest() {
 		Variable value = new Variable("a");
 		NumberLiteral numberOfOptions = new NumberLiteral(3);
-		OneOf operator = new OneOf(value, numberOfOptions);
+		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{
 				new NumberLiteral(1),
@@ -55,7 +55,7 @@ public class OneOfTest {
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
 		NumberLiteral numberOfOptions = new NumberLiteral(3);
-		OneOf operator = new OneOf(value, numberOfOptions);
+		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{
 				new NumberLiteral(1),
@@ -74,7 +74,7 @@ public class OneOfTest {
 	public void evaluateFalseFollowedTrueTest() {
 		Variable value = new Variable("a");
 		NumberLiteral numberOfOptions = new NumberLiteral(3);
-		OneOf operator = new OneOf(value, numberOfOptions);
+		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{
 				new NumberLiteral(1),
@@ -91,7 +91,7 @@ public class OneOfTest {
 		});
 	}
 
-	private void testValues(OneOf operator, Variable variable, NumberLiteral[] values, boolean[] expected){
+	private void testValues(OneOfNumber operator, Variable variable, NumberLiteral[] values, boolean[] expected){
 		if(values.length != expected.length){
 			throw new IllegalArgumentException("Values and expected outcomes need to have the same length.");
 		}

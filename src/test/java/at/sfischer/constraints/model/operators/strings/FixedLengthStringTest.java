@@ -1,7 +1,7 @@
 package at.sfischer.constraints.model.operators.strings;
 
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.numbers.OneOf;
+import at.sfischer.constraints.model.operators.numbers.OneOfNumber;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class FixedLengthStringTest {
 	@Test
 	public void evaluate() {
-		OneOf operator = new OneOf(new StringLength(new StringLiteral("ONE")), new NumberLiteral(1));
+		OneOfNumber operator = new OneOfNumber(new StringLength(new StringLiteral("ONE")), new NumberLiteral(1));
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -23,7 +23,7 @@ public class FixedLengthStringTest {
 	@Test
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
-		OneOf operator = new OneOf(new StringLength(value), new NumberLiteral(1));
+		OneOfNumber operator = new OneOfNumber(new StringLength(value), new NumberLiteral(1));
 
 		testValues(operator, value, new StringLiteral[]{
 				new StringLiteral("ONE"),
@@ -36,7 +36,7 @@ public class FixedLengthStringTest {
 		});
 	}
 
-	private void testValues(OneOf operator, Variable variable, StringLiteral[] values, boolean[] expected){
+	private void testValues(OneOfNumber operator, Variable variable, StringLiteral[] values, boolean[] expected){
 		if(values.length != expected.length){
 			throw new IllegalArgumentException("Values and expected outcomes need to have the same length.");
 		}

@@ -6,15 +6,15 @@ import at.sfischer.constraints.model.operators.Function;
 import java.util.List;
 import java.util.Map;
 
-public class OneOf extends Function {
+public class OneOfNumber extends Function {
 
     private static final String FUNCTION_NAME = "number.OneOf";
 
-    public OneOf(Node value, NumberLiteral numberOfOptions) {
+    public OneOfNumber(Node value, NumberLiteral numberOfOptions) {
         this(value, new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[numberOfOptions.getValue().intValue()]));
     }
 
-    public OneOf(Node value, ArrayValues<NumberLiteral> options) {
+    public OneOfNumber(Node value, ArrayValues<NumberLiteral> options) {
         super(FUNCTION_NAME, value, new NumberLiteral(options.getValue().length), options);
     }
 
@@ -47,7 +47,7 @@ public class OneOf extends Function {
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
         //noinspection unchecked
-        return new OneOf(getParameter(0).setVariableValues(values), (ArrayValues<NumberLiteral>) getParameter(2));
+        return new OneOfNumber(getParameter(0).setVariableValues(values), (ArrayValues<NumberLiteral>) getParameter(2));
     }
 
     @Override
