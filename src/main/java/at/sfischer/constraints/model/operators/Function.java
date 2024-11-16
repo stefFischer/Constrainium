@@ -179,6 +179,29 @@ public abstract class Function implements Operator {
         return null;
     }
 
+    protected ArrayValues<?>[] getNestedArrayArgument(int i){
+        Node arg = getParameter(i).evaluate();
+        setParameter(i, arg);
+        if(arg instanceof ArrayValues<?>){
+            if(((ArrayValues<?>) arg).getElementType() instanceof ArrayType){
+                //noinspection unchecked
+                ArrayValues<?>[] value = ((ArrayValues<ArrayValues<?>>) arg).getValue();
+                ArrayValues<?>[] val = new ArrayValues[value.length];
+                for (int j = 0; j < value.length; j++) {
+                    if(value[j] != null){
+                        val[j] = value[j];
+                    } else {
+                        val[j] = null;
+                    }
+                }
+
+                return val;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public String toString() {
         return name +"(parameters=" + parameters + ')';
