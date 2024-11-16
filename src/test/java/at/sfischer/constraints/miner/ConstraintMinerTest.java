@@ -1,6 +1,7 @@
 package at.sfischer.constraints.miner;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.model.Node;
@@ -25,6 +26,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ConstraintMinerTest {
 	@Test
@@ -176,6 +178,11 @@ public class ConstraintMinerTest {
 		assertThat(actual).
 				usingRecursiveComparison().
 				isEqualTo(expected);
+
+		for (Constraint constraint : actual) {
+			ConstraintResults results = constraint.applyData(data);
+			assertFalse(results.foundCounterExample());
+		}
 	}
 
 	@Test

@@ -152,6 +152,14 @@ public class DataValue<T> {
                 }
 
                 return new ArrayValues<>(elementType, array);
+            } else if (elementType instanceof ArrayType) {
+                DataValue<?>[] val = (DataValue<?>[]) value;
+                ArrayValues<?>[] array = new ArrayValues[val.length];
+                for (int i = 0; i < val.length; i++) {
+                    array[i] = (ArrayValues<?>)getLiteralValue(elementType, val[i].getValue());
+                }
+
+                return new ArrayValues<>(elementType, array);
             }
         }
 
