@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ArrayValues<T extends Literal<?>> extends Literal<T[]> {
+public class ArrayValues<T extends Value<?>> extends Value<T[]> {
 
     private final Type elementType;
 

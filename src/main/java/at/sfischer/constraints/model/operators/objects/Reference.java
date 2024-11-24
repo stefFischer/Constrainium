@@ -23,7 +23,7 @@ public class Reference extends Function  {
 
         if(object != null && reference != null){
             DataObject dataObject = object.getValue();
-            Literal<?> value = getLiteralValue(dataObject, reference);
+            Value<?> value = getLiteralValue(dataObject, reference);
             if(value != null){
                 return value;
             }
@@ -32,11 +32,11 @@ public class Reference extends Function  {
         return this;
     }
 
-    public static Literal<?> getLiteralValue(DataObject object, String reference){
+    public static Value<?> getLiteralValue(DataObject object, String reference){
         return getLiteralValue(object, reference.split("\\."));
     }
 
-    public static Literal<?> getLiteralValue(DataObject object, String[] reference){
+    public static Value<?> getLiteralValue(DataObject object, String[] reference){
         DataObject curObject = object;
         for (int i = 0; i < reference.length; i++) {
             String fieldName = reference[i];
@@ -45,7 +45,7 @@ public class Reference extends Function  {
                 break;
             }
 
-            Literal<?> literal = value.getLiteralValue();
+            Value<?> literal = value.getLiteralValue();
             if(i == reference.length - 1){
                 return literal;
             }

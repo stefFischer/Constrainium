@@ -105,11 +105,11 @@ public class DataValue<T> {
         return dataValues;
     }
 
-    public Literal<?> getLiteralValue() {
+    public Value<?> getLiteralValue() {
         return getLiteralValue(type, value);
     }
 
-    public static <T> Literal<?> getLiteralValue(Type type, T value){
+    public static <T> Value<?> getLiteralValue(Type type, T value){
         if (type == TypeEnum.NUMBER) {
             return new NumberLiteral((Number) value);
         } else if (type == TypeEnum.BOOLEAN) {

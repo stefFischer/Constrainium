@@ -1,6 +1,6 @@
 package at.sfischer.constraints.model;
 
-public class BooleanLiteral extends Literal<Boolean> {
+public class BooleanLiteral extends Value<Boolean> {
 
     public BooleanLiteral(Boolean value) {
         super(value);

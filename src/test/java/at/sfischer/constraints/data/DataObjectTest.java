@@ -46,7 +46,7 @@ public class DataObjectTest {
 	public void getDataValuesTest() {
 		String jsonData = "{size:1, isEmpty:false, object:{id:0, value:\"string\"}}";
 		DataObject d = DataObject.parseData(jsonData);
-		Map<String, Literal<?>> expected = new HashMap<>();
+		Map<String, Value<?>> expected = new HashMap<>();
 		expected.put("size", new NumberLiteral(1));
 		expected.put("isEmpty", new BooleanLiteral(false));
 		expected.put("object", new ComplexValue(DataObject.parseData("{id:0, value:\"string\"}")));
@@ -61,7 +61,7 @@ public class DataObjectTest {
 	public void getDataValuesArrayTest() {
 		String jsonData = "{size:0, object:{number:2}, array:[1,2,3,4]}";
 		DataObject d = DataObject.parseData(jsonData);
-		Map<String, Literal<?>> expected = new HashMap<>();
+		Map<String, Value<?>> expected = new HashMap<>();
 		expected.put("size", new NumberLiteral(0));
 		expected.put("object", new ComplexValue(DataObject.parseData("{number:2}")));
 		expected.put("object.number", new NumberLiteral(2));

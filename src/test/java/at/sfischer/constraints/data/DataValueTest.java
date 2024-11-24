@@ -20,8 +20,8 @@ public class DataValueTest {
 	@Test
 	public void getLiteralValueNumber() {
 		DataValue<Number> dataValue = new DataValue<>(TypeEnum.NUMBER, 2);
-		Literal<Number> expected = new NumberLiteral(2);
-		Literal<?> actual = dataValue.getLiteralValue();
+		Value<Number> expected = new NumberLiteral(2);
+		Value<?> actual = dataValue.getLiteralValue();
 
 		assertEquals(expected, actual);
 	}
@@ -29,8 +29,8 @@ public class DataValueTest {
 	@Test
 	public void getLiteralValueBoolean() {
 		DataValue<Boolean> dataValue = new DataValue<>(TypeEnum.BOOLEAN, true);
-		Literal<Boolean> expected = new BooleanLiteral(true);
-		Literal<?> actual = dataValue.getLiteralValue();
+		Value<Boolean> expected = new BooleanLiteral(true);
+		Value<?> actual = dataValue.getLiteralValue();
 
 		assertEquals(expected, actual);
 	}
@@ -38,8 +38,8 @@ public class DataValueTest {
 	@Test
 	public void getLiteralValueString() {
 		DataValue<String> dataValue = new DataValue<>(TypeEnum.STRING, "string");
-		Literal<String> expected = new StringLiteral("string");
-		Literal<?> actual = dataValue.getLiteralValue();
+		Value<String> expected = new StringLiteral("string");
+		Value<?> actual = dataValue.getLiteralValue();
 
 		assertEquals(expected, actual);
 	}

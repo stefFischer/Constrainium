@@ -2,7 +2,7 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.ArrayValues;
 import at.sfischer.constraints.model.BooleanLiteral;
-import at.sfischer.constraints.model.Literal;
+import at.sfischer.constraints.model.Value;
 import at.sfischer.constraints.model.Node;
 
 public class Exists extends ArrayQuantifier {
@@ -24,8 +24,8 @@ public class Exists extends ArrayQuantifier {
         Node condition = getParameter(1);
 
         if(arrayValues != null){
-            Literal<?>[] elements = arrayValues.getValue();
-            for (Literal<?> element : elements) {
+            Value<?>[] elements = arrayValues.getValue();
+            for (Value<?> element : elements) {
                 Node cond = condition.setVariableNameValue(ELEMENT_NAME, element);
                 Node result = cond.evaluate();
                 if(result instanceof BooleanLiteral){

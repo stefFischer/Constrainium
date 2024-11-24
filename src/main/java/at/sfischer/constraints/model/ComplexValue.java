@@ -2,7 +2,7 @@ package at.sfischer.constraints.model;
 
 import at.sfischer.constraints.data.DataObject;
 
-public class ComplexValue extends Literal<DataObject> {
+public class ComplexValue extends Value<DataObject> {
 
     public ComplexValue(DataObject value) {
         super(value);

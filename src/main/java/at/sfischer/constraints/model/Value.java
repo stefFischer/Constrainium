@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public abstract class Literal<T> implements Node {
+public abstract class Value<T> implements Node {
 
     protected T value;
 
-    public Literal(T value) {
+    public Value(T value) {
         this.value = value;
     }
 
@@ -45,8 +45,8 @@ public abstract class Literal<T> implements Node {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Literal<?> literal = (Literal<?>) o;
-        return Objects.equals(value, literal.value);
+        Value<?> value = (Value<?>) o;
+        return Objects.equals(this.value, value.value);
     }
 
     @Override
