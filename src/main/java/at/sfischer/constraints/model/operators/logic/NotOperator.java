@@ -17,7 +17,7 @@ public class NotOperator extends LogicalUnaryOperator {
         Boolean operand = this.getBoolean();
         if(operand != null){
             boolean result = !operand;
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         if(this.operand instanceof NotOperator){

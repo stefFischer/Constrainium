@@ -37,16 +37,15 @@ public class OneOfNumberArray extends Function {
                 //noinspection unchecked
                 ArrayValues<ArrayValues<NumberLiteral>> optionParameter = (ArrayValues<ArrayValues<NumberLiteral>>) getParameter(2);
                 optionParameter.setValue(i, new ArrayValues<>(TypeEnum.NUMBER, firstValue.getValue()));
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
 
             // The current value is already an option.
             } else if (Arrays.equals(options[i].getValue(), firstValue.getValue())) {
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             }
         }
 
-        return new BooleanLiteral(false);
-
+        return BooleanLiteral.FALSE;
     }
 
     @Override

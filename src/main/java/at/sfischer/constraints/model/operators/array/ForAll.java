@@ -37,7 +37,7 @@ public class ForAll extends ArrayQuantifier {
                 }
             }
 
-            return new BooleanLiteral(true);
+            return BooleanLiteral.TRUE;
         }
 
         return this;

@@ -30,15 +30,15 @@ public class OneOfNumber extends Function {
                     //noinspection unchecked
                     ArrayValues<NumberLiteral> optionParameter = (ArrayValues<NumberLiteral>) getParameter(2);
                     optionParameter.setValue(i, new NumberLiteral(first));
-                    return new BooleanLiteral(true);
+                    return BooleanLiteral.TRUE;
 
                 // The current value is already an option.
                 } else if (options[i].doubleValue() == first.doubleValue()) {
-                    return new BooleanLiteral(true);
+                    return BooleanLiteral.TRUE;
                 }
             }
 
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         return this;

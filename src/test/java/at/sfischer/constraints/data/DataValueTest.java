@@ -29,7 +29,7 @@ public class DataValueTest {
 	@Test
 	public void getLiteralValueBoolean() {
 		DataValue<Boolean> dataValue = new DataValue<>(TypeEnum.BOOLEAN, true);
-		Value<Boolean> expected = new BooleanLiteral(true);
+		Value<Boolean> expected = BooleanLiteral.TRUE;
 		Value<?> actual = dataValue.getLiteralValue();
 
 		assertEquals(expected, actual);

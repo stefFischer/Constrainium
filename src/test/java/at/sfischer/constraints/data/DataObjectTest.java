@@ -48,7 +48,7 @@ public class DataObjectTest {
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Value<?>> expected = new HashMap<>();
 		expected.put("size", new NumberLiteral(1));
-		expected.put("isEmpty", new BooleanLiteral(false));
+		expected.put("isEmpty", BooleanLiteral.FALSE);
 		expected.put("object", new ComplexValue(DataObject.parseData("{id:0, value:\"string\"}")));
 		expected.put("object.id", new NumberLiteral(0));
 		expected.put("object.value", new StringLiteral("string"));

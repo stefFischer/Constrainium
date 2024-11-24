@@ -74,7 +74,7 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
         } else if(elementType == TypeEnum.BOOLEAN){
             BooleanLiteral[] literalArray = new BooleanLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
-                literalArray[i] = new BooleanLiteral(((BooleanLiteral)literals.get(i)).getValue());
+                literalArray[i] = BooleanLiteral.getBooleanLiteral(((BooleanLiteral)literals.get(i)).getValue());
             }
             return new ArrayValues<>(elementType, literalArray);
         } else if(elementType == TypeEnum.STRING){

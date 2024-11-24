@@ -37,7 +37,7 @@ public class Exists extends ArrayQuantifier {
                 }
             }
 
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         return this;

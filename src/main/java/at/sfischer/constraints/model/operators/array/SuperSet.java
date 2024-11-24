@@ -29,7 +29,7 @@ public class SuperSet extends Function {
         Set<?> setA = Set.of(a.getValue());
         Set<?> setB = Set.of(b.getValue());
         //noinspection SuspiciousMethodCalls
-        return new BooleanLiteral(setA.containsAll(setB));
+        return BooleanLiteral.getBooleanLiteral(setA.containsAll(setB));
     }
 
     @Override

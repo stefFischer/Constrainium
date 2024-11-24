@@ -23,9 +23,9 @@ public class IsUrl extends Function {
         if(first != null){
             try{
                 new URL(first);
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             } catch (MalformedURLException e) {
-                return new BooleanLiteral(false);
+                return BooleanLiteral.FALSE;
             }
         }
 

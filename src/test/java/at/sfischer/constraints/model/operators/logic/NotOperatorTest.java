@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class NotOperatorTest {
 	@Test
 	public void evaluateTrue() {
-		NotOperator operator = new NotOperator(new BooleanLiteral(false));
+		NotOperator operator = new NotOperator(BooleanLiteral.FALSE);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class, result);
@@ -21,7 +21,7 @@ public class NotOperatorTest {
 
 	@Test
 	public void evaluateFalse() {
-		NotOperator operator = new NotOperator(new BooleanLiteral(true));
+		NotOperator operator = new NotOperator(BooleanLiteral.TRUE);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class, result);

@@ -21,11 +21,11 @@ public class EqualOperator extends NumberComparisonOperator {
         // Numbers could be resolved.
         if(left != null && right != null){
             boolean result = left.doubleValue() == right.doubleValue();
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         if(this.left.equals(this.right)){
-            return new BooleanLiteral(true);
+            return BooleanLiteral.TRUE;
         }
 
         if(left != null){

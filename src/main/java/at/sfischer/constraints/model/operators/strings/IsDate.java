@@ -34,11 +34,11 @@ public class IsDate extends Function {
         if(first != null && patterns != null){
             for (String pattern : patterns) {
                 if(isDate(first, pattern)){
-                    return new BooleanLiteral(true);
+                    return BooleanLiteral.TRUE;
                 }
             }
 
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         return this;

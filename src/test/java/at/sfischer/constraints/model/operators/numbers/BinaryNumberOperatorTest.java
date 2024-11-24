@@ -35,7 +35,7 @@ public class BinaryNumberOperatorTest {
 	}
 	@Test
 	public void validateLeftNotNumber() {
-		Node left = new BooleanLiteral(true);
+		Node left = BooleanLiteral.TRUE;
 		Node right = new NumberLiteral(2);
 		BinaryNumberOperator operator = new AdditionOperator(left, right);
 
@@ -45,7 +45,7 @@ public class BinaryNumberOperatorTest {
 	@Test
 	public void validateRightNotNumber() {
 		Node left = new NumberLiteral(2);
-		Node right = new BooleanLiteral(true);
+		Node right = BooleanLiteral.TRUE;
 		BinaryNumberOperator operator = new AdditionOperator(left, right);
 
 		assertFalse(operator.validate());

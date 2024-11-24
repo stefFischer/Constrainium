@@ -81,10 +81,10 @@ public class NodeTest {
 	@Test
 	public void setVariableValuesTest2() {
 		Node node = new AndOperator(new Variable("a"), new LessThanOperator(new Variable("z"), new AdditionOperator(new AdditionOperator(new NumberLiteral(4.0), new Variable("x")), new Variable("y"))));
-		Node expected = new AndOperator(new BooleanLiteral(true), new LessThanOperator(new NumberLiteral(3.0), new AdditionOperator(new AdditionOperator(new NumberLiteral(4.0), new NumberLiteral(2.0)), new NumberLiteral(1.0))));
+		Node expected = new AndOperator(BooleanLiteral.TRUE, new LessThanOperator(new NumberLiteral(3.0), new AdditionOperator(new AdditionOperator(new NumberLiteral(4.0), new NumberLiteral(2.0)), new NumberLiteral(1.0))));
 
 		Map<Variable, Node> values = new HashMap<>();
-		values.put(new Variable("a"), new BooleanLiteral(true));
+		values.put(new Variable("a"), BooleanLiteral.TRUE);
 		values.put(new Variable("x"), new NumberLiteral(2.0));
 		values.put(new Variable("y"), new NumberLiteral(1.0));
 		values.put(new Variable("z"), new NumberLiteral(3.0));
@@ -93,6 +93,6 @@ public class NodeTest {
 		assertThat(actual)
 				.usingRecursiveComparison()
 				.isEqualTo(expected);
-		assertEquals(new BooleanLiteral(true), actual.evaluate());
+		assertEquals(BooleanLiteral.TRUE, actual.evaluate());
 	}
 }

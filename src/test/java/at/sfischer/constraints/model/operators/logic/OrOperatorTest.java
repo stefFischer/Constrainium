@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class OrOperatorTest {
 	@Test
 	public void evaluateTrue() {
-		OrOperator operator = new OrOperator(new BooleanLiteral(false), new BooleanLiteral(true));
+		OrOperator operator = new OrOperator(BooleanLiteral.FALSE, BooleanLiteral.TRUE);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class, result);
@@ -20,7 +20,7 @@ public class OrOperatorTest {
 
 	@Test
 	public void evaluateFalse() {
-		OrOperator operator = new OrOperator(new BooleanLiteral(false), new BooleanLiteral(false));
+		OrOperator operator = new OrOperator(BooleanLiteral.FALSE, BooleanLiteral.FALSE);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class, result);
@@ -30,29 +30,29 @@ public class OrOperatorTest {
 	@Test
 	public void evaluateSimplificationTest1() {
 		Node left = new Variable("a");
-		Node right = new BooleanLiteral(true);
+		Node right = BooleanLiteral.TRUE;
 		OrOperator operator = new OrOperator(left, right);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
-		assertEquals(new BooleanLiteral(true), result);
+		assertEquals(BooleanLiteral.TRUE, result);
 	}
 
 	@Test
 	public void evaluateSimplificationTest2() {
-		Node left = new BooleanLiteral(true);
+		Node left = BooleanLiteral.TRUE;
 		Node right = new Variable("a");
 		OrOperator operator = new OrOperator(left, right);
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
-		assertEquals(new BooleanLiteral(true), result);
+		assertEquals(BooleanLiteral.TRUE, result);
 	}
 
 	@Test
 	public void evaluateSimplificationTest3() {
 		Node left = new Variable("a");
-		Node right = new BooleanLiteral(false);
+		Node right = BooleanLiteral.FALSE;
 		OrOperator operator = new OrOperator(left, right);
 		Node result = operator.evaluate();
 
@@ -62,7 +62,7 @@ public class OrOperatorTest {
 
 	@Test
 	public void evaluateSimplificationTest4() {
-		Node left = new BooleanLiteral(false);
+		Node left = BooleanLiteral.FALSE;
 		Node right = new Variable("a");
 		OrOperator operator = new OrOperator(left, right);
 		Node result = operator.evaluate();

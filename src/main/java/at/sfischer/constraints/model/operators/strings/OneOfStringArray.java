@@ -37,16 +37,15 @@ public class OneOfStringArray extends Function {
                 //noinspection unchecked
                 ArrayValues<ArrayValues<StringLiteral>> optionParameter = (ArrayValues<ArrayValues<StringLiteral>>) getParameter(2);
                 optionParameter.setValue(i, new ArrayValues<>(TypeEnum.STRING, firstValue.getValue()));
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
 
             // The current value is already an option.
             } else if (Arrays.equals(options[i].getValue(), firstValue.getValue())) {
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             }
         }
 
-        return new BooleanLiteral(false);
-
+        return BooleanLiteral.FALSE;
     }
 
     @Override

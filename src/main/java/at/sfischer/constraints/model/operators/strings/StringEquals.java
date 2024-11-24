@@ -21,11 +21,11 @@ public class StringEquals extends Function {
 
         if(first != null && second != null){
             boolean result = first.equals(second);
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         if(getParameter(0).equals(getParameter(1))){
-            return new BooleanLiteral(true);
+            return BooleanLiteral.TRUE;
         }
 
         return this;

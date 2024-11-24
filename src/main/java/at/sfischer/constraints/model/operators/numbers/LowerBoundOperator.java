@@ -57,7 +57,7 @@ public class LowerBoundOperator extends Function {
 
         if(bounds.length == 0){
             // There are no more bounds to be checked, because we found a value lower than all bounds.
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         valuesCounter = valuesCounter.intValue()  + 1;
@@ -73,7 +73,7 @@ public class LowerBoundOperator extends Function {
 
         if(currentBound.doubleValue() <= value.doubleValue()){
             if(valuesAtBoundCounter.intValue() >= minValuesAtBound.intValue() && valuesCounter.intValue() >= minValues.intValue()){
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             }
 
             return MoreStatisticalEvidenceNeeded.INSTANCE;
@@ -98,7 +98,7 @@ public class LowerBoundOperator extends Function {
             // Update valuesAtBoundCounter.
             NumberLiteral valuesAtBoundCounterParameter = (NumberLiteral) getParameter(3);
             valuesAtBoundCounterParameter.setValue(0);
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         NumberLiteral[] newBounds = new NumberLiteral[newIndex + 1];
@@ -115,7 +115,7 @@ public class LowerBoundOperator extends Function {
         valuesAtBoundCounterParameter.setValue(1);
         valuesAtBoundCounter = 1;
         if(valuesAtBoundCounter.intValue() >= minValuesAtBound.intValue() && valuesCounter.intValue() >= minValues.intValue()){
-            return new BooleanLiteral(true);
+            return BooleanLiteral.TRUE;
         }
 
         return MoreStatisticalEvidenceNeeded.INSTANCE;

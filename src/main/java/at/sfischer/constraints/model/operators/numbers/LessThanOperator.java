@@ -21,11 +21,11 @@ public class LessThanOperator extends NumberComparisonOperator {
         // Numbers could be resolved.
         if(left != null && right != null){
             boolean result = left.doubleValue() < right.doubleValue();
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         if(this.left.equals(this.right)){
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         if(left != null){

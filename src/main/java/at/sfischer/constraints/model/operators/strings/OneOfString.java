@@ -30,15 +30,15 @@ public class OneOfString extends Function {
                     //noinspection unchecked
                     ArrayValues<StringLiteral> optionParameter = (ArrayValues<StringLiteral>) getParameter(2);
                     optionParameter.setValue(i, new StringLiteral(first));
-                    return new BooleanLiteral(true);
+                    return BooleanLiteral.TRUE;
 
                 // The current value is already an option.
                 } else if (options[i].equals(first)) {
-                    return new BooleanLiteral(true);
+                    return BooleanLiteral.TRUE;
                 }
             }
 
-            return new BooleanLiteral(false);
+            return BooleanLiteral.FALSE;
         }
 
         return this;

@@ -113,7 +113,7 @@ public class DataValue<T> {
         if (type == TypeEnum.NUMBER) {
             return new NumberLiteral((Number) value);
         } else if (type == TypeEnum.BOOLEAN) {
-            return new BooleanLiteral((Boolean) value);
+            return BooleanLiteral.getBooleanLiteral((Boolean) value);
         } else if (type == TypeEnum.STRING) {
             return new StringLiteral((String) value);
         } else if (type == TypeEnum.COMPLEXTYPE) {
@@ -132,7 +132,7 @@ public class DataValue<T> {
                 boolean[] val =  (boolean[])value;
                 BooleanLiteral[] literalValues = new BooleanLiteral[val.length];
                 for (int i = 0; i < val.length; i++) {
-                    literalValues[i] = new BooleanLiteral(val[i]);
+                    literalValues[i] = BooleanLiteral.getBooleanLiteral(val[i]);
                 }
 
                 return new ArrayValues<>(elementType, literalValues);

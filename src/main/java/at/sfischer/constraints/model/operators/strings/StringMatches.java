@@ -21,7 +21,7 @@ public class StringMatches extends Function {
         
         if(first != null && second != null){
             boolean result = first.matches(second);
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         return this;

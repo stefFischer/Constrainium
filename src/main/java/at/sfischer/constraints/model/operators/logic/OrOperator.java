@@ -18,7 +18,7 @@ public class OrOperator extends LogicalBinaryOperator {
         Boolean right = this.getRightBoolean();
         if(left != null && right != null){
             boolean result = left || right;
-            return new BooleanLiteral(result);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         if(this.left.equals(this.right)){
@@ -27,7 +27,7 @@ public class OrOperator extends LogicalBinaryOperator {
 
         if(left != null){
             if(left){
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             }
 
             return this.right;
@@ -35,7 +35,7 @@ public class OrOperator extends LogicalBinaryOperator {
 
         if(right != null){
             if(right){
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             }
 
             return this.left;

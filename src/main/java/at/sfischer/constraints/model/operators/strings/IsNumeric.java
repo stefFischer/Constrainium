@@ -21,9 +21,9 @@ public class IsNumeric extends Function {
         if(first != null){
             try{
                 Double.parseDouble(first);
-                return new BooleanLiteral(true);
+                return BooleanLiteral.TRUE;
             } catch (NumberFormatException e) {
-                return new BooleanLiteral(false);
+                return BooleanLiteral.FALSE;
             }
         }
 
