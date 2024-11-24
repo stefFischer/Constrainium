@@ -9,13 +9,13 @@ import java.util.*;
 
 public class SimpleDataCollection extends DataCollection<DataObject> {
 
-    private final Set<DataObject> dataCollection;
+    private final List<DataObject> dataCollection;
 
     public SimpleDataCollection() {
-        this.dataCollection = new HashSet<>();
+        this.dataCollection = new LinkedList<>();
     }
 
-    public Set<DataObject> getDataCollection() {
+    public List<DataObject> getDataCollection() {
         return dataCollection;
     }
 
@@ -94,6 +94,11 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
         }
 
         return !terms.isEmpty();
+    }
+
+    @Override
+    public DataCollection<DataObject> emptyDataCollection() {
+        return new SimpleDataCollection();
     }
 
     @Override

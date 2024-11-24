@@ -9,10 +9,10 @@ import java.util.*;
 
 public class InOutputDataCollection extends DataCollection<Pair<DataObject, DataObject>> {
 
-    private final Set<Pair<DataObject, DataObject>> dataCollection;
+    private final List<Pair<DataObject, DataObject>> dataCollection;
 
     public InOutputDataCollection() {
-        this.dataCollection = new HashSet<>();
+        this.dataCollection = new LinkedList<>();
     }
 
     @Override
@@ -85,6 +85,11 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     @Override
     public void removeDataEntry(Pair<DataObject, DataObject> dataEntry) {
         dataCollection.remove(dataEntry);
+    }
+
+    @Override
+    public DataCollection<Pair<DataObject, DataObject>> emptyDataCollection() {
+        return new InOutputDataCollection();
     }
 
     @Override

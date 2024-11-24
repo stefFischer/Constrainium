@@ -89,7 +89,7 @@ public abstract class Function implements Operator {
         return this.parameters.get(i);
     }
 
-    private void setParameter(int i, Node value){
+    protected void setParameter(int i, Node value){
         parameters.set(i, value);
     }
 

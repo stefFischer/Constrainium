@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public abstract class Literal<T> implements Node {
 
-    protected final T value;
+    protected T value;
 
     public Literal(T value) {
         this.value = value;
@@ -15,6 +15,10 @@ public abstract class Literal<T> implements Node {
 
     public T getValue() {
         return value;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 
     @Override

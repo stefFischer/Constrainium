@@ -16,9 +16,15 @@ public abstract class DataCollection<T> {
 
     public abstract void visitDataEntries(Set<String> fieldNames, DataEntryVisitor<T> visitor);
 
+    public void addAll(DataCollection<T> collection){
+        collection.visitDataEntries(new HashSet<>(), (values, dataEntry) -> addDataEntry(dataEntry));
+    }
+
     public abstract void addDataEntry(T dataEntry);
 
     public abstract void removeDataEntry(T dataEntry);
+
+    public abstract DataCollection<T> emptyDataCollection();
 
     public abstract DataCollection<T> clone();
 
