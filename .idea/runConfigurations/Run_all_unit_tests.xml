@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":test" />
+          <option value=":core:test" />
           <option value="--tests" />
           <option value="&quot;at.sfischer.constraints.*&quot;" />
         </list>
