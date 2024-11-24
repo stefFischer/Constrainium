@@ -25,8 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConstraintMinerTest {
 	@Test
@@ -307,7 +306,7 @@ public class ConstraintMinerTest {
 	@Test
 	public void getPossibleConstraintsTest7() {
 		InOutputDataCollection data = InOutputDataCollection.parseData(
-				new Pair<>("{size:0}", "{array:[{number:1},{number:2},{number:3}]}"),
+				new Pair<>("{size:3}", "{array:[{number:1},{number:2},{number:3}]}"),
 				new Pair<>("{size:5}", "{array:[{number:1},{number:2},{number:3}]}"),
 				new Pair<>("{size:3}", "{array:[{number:1},{number:2},{number:3}]}")
 		);
@@ -327,6 +326,13 @@ public class ConstraintMinerTest {
 		assertThat(actual).
 				usingRecursiveComparison().
 				isEqualTo(expected);
+
+		// Evaluate the constraints with data.
+		ConstraintResults results1 = constraint1.applyData(data);
+		assertTrue(results1.foundCounterExample());
+
+		ConstraintResults results2 = constraint2.applyData(data);
+		assertFalse(results2.foundCounterExample());
 	}
 
 	@Test
