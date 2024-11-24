@@ -13,13 +13,23 @@ public class IsDate extends Function {
 
     private static final String FUNCTION_NAME = "string.isDate";
 
-    public static final StringLiteral[] DATE_PATTERNS = new StringLiteral[]{
+    public static final StringLiteral[] YMD_DATE_PATTERNS = new StringLiteral[]{
             new StringLiteral("yyyy-MM-dd"),
             new StringLiteral("yyyy/MM/dd")
     };
 
+    public static final StringLiteral[] DMY_DATE_PATTERNS = new StringLiteral[]{
+            new StringLiteral("dd-MM-yyyy"),
+            new StringLiteral("dd/MM/yyyy")
+    };
+
+    public static final StringLiteral[] MDY_DATE_PATTERNS = new StringLiteral[]{
+            new StringLiteral("MM-dd-yyyy"),
+            new StringLiteral("MM/dd/yyyy")
+    };
+
     public IsDate(Node value) {
-        this(value, new ArrayValues<>(TypeEnum.STRING, DATE_PATTERNS));
+        this(value, new ArrayValues<>(TypeEnum.STRING, YMD_DATE_PATTERNS));
     }
 
     public IsDate(Node value, ArrayValues<StringLiteral> patterns) {
