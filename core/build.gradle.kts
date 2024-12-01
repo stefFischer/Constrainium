@@ -1,8 +1,8 @@
 plugins {
-    id("java")
+    id("java-library")
 }
 
-group = "org.example"
+group = "at.sfischer"
 version = "1.0-SNAPSHOT"
 
 repositories {
