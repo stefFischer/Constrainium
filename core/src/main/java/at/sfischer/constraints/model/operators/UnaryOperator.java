@@ -24,4 +24,8 @@ public abstract class UnaryOperator implements Operator {
     public int hashCode() {
         return Objects.hash(operand);
     }
+
+    public Node getOperand() {
+        return operand;
+    }
 }

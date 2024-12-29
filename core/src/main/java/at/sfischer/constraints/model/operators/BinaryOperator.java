@@ -18,6 +18,14 @@ public abstract class BinaryOperator implements Operator {
         this.right = right;
     }
 
+    public Node getOperand1() {
+        return left;
+    }
+
+    public Node getOperand2() {
+        return right;
+    }
+
     @Override
     public boolean validate() {
         if(this.left == null || this.right == null){
