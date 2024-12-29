@@ -8,6 +8,10 @@ public interface Node {
 
     Type getReturnType();
 
+    /**
+     *
+     * @return the result of the evaluation.
+     */
     Node evaluate();
 
     boolean validate();
