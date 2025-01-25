@@ -19,6 +19,7 @@ public record Constraint(Node term) {
     public <T> ConstraintResults applyData(DataCollection<T> data) {
         DataCollection<T> validConstraintData = data.clone();
         DataCollection<T> missingEvidenceConstraintData = data.emptyDataCollection();
+        DataCollection<T> inapplicableConstraintData = data.emptyDataCollection();
         AtomicBoolean evaluatedTrue = new AtomicBoolean(false);
 
         Set<String> variableNames = new HashSet<>();
@@ -37,8 +38,8 @@ public record Constraint(Node term) {
                     validConstraintData.removeDataEntry(dataObject);
                 }
             } else {
-                // TODO: Do not panic when a constraint does not apply for data, but instead store a counter for this and use it as an additional statistic to derive a likelihood for a constraint to be true.
-                throw new IllegalArgumentException("Could not apply data (" + values + ") to constraint, remaining: " + result.getClass().getName());
+                validConstraintData.removeDataEntry(dataObject);
+                inapplicableConstraintData.addDataEntry(dataObject);
             }
         });
 
@@ -47,6 +48,6 @@ public record Constraint(Node term) {
             validConstraintData.addAll(missingEvidenceConstraintData);
         }
 
-        return new ConstraintResults(this, data, validConstraintData);
+        return new ConstraintResults(this, data, validConstraintData, inapplicableConstraintData);
     }
 }
