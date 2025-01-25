@@ -21,3 +21,33 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.withType<Test> {
+    // Show detailed test results in the console
+    testLogging {
+        events("passed", "skipped", "failed") // Log passed, skipped, and failed tests
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL // Show full stack traces for failures
+        showStandardStreams = true // Log standard output and error streams of tests
+    }
+
+    // Customize the summary displayed after tests run
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) {}
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+            if (suite.parent == null) { // This ensures the summary is only printed once at the end
+                println("""
+                    ----------------------------------------
+                    Test results:
+                    Executed: ${result.testCount}
+                    Successful: ${result.successfulTestCount}
+                    Failed: ${result.failedTestCount}
+                    Skipped: ${result.skippedTestCount}
+                    ----------------------------------------
+                """.trimIndent())
+            }
+        }
+
+        override fun beforeTest(testDescriptor: TestDescriptor) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+    })
+}
