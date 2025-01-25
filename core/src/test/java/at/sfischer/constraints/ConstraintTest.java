@@ -82,12 +82,12 @@ public class ConstraintTest {
 				"{size:3, isEmpty:false}"
 		);
 
-		Exception exception = assertThrows(IllegalArgumentException.class, () -> constraint.applyData(data));
+		ConstraintResults expected = new ConstraintResults(constraint, data, new SimpleDataCollection(), data);
+		ConstraintResults actual = constraint.applyData(data);
 
-		String expectedMessage = "Could not apply data ";
-		String actualMessage = exception.getMessage();
-
-		assertTrue(actualMessage.startsWith(expectedMessage));
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
 	}
 
 	@Test
