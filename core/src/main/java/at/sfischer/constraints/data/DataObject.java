@@ -64,6 +64,10 @@ public class DataObject {
         return dataValues.get(name);
     }
 
+    public Set<String> getFieldNames() {
+        return this.dataValues.keySet();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
