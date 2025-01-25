@@ -1,56 +1,62 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
+import org.javatuples.Triplet;
 
 import java.util.*;
 
-public class SimpleDataSchema implements DataSchema {
+public class SimpleDataSchema extends DataSchema {
 
-    private final Map<String, DataSchemaEntry> schema;
+    private final Map<String, DataSchemaEntry<SimpleDataSchema>> schema;
+
+    @Override
+    protected Collection<DataSchemaEntry<?>> getDataSchemaEntries() {
+        return new HashSet<>(schema.values());
+    }
 
     public SimpleDataSchema() {
         this.schema = new HashMap<>();
     }
 
-    public DataSchemaEntry booleanEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, TypeEnum.BOOLEAN, mandatory, null));
+    public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.BOOLEAN, mandatory, null));
     }
 
-    public DataSchemaEntry numberEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, TypeEnum.NUMBER, mandatory, null));
+    public DataSchemaEntry<SimpleDataSchema> numberEntry(String name, boolean mandatory){
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.NUMBER, mandatory, null));
     }
 
-    public DataSchemaEntry stringEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, TypeEnum.STRING, mandatory, null));
+    public DataSchemaEntry<SimpleDataSchema> stringEntry(String name, boolean mandatory){
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.STRING, mandatory, null));
     }
 
-    public DataSchemaEntry objectEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
+    public DataSchemaEntry<SimpleDataSchema> objectEntry(String name, boolean mandatory){
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
     }
 
-    public DataSchemaEntry arrayEntryFor(Type elementType, String name, boolean mandatory){
+    public DataSchemaEntry<SimpleDataSchema> arrayEntryFor(Type elementType, String name, boolean mandatory){
         ArrayType entryType =  new ArrayType(elementType);
         Type elementsType = internalElementType(entryType);
         if(elementsType == TypeEnum.COMPLEXTYPE){
-            return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, entryType, mandatory, new SimpleDataSchema()));
+            return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, new SimpleDataSchema()));
         }
 
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry(name, entryType, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, null));
     }
 
-    public DataSchemaEntry booleanArrayEntry(String name, boolean mandatory){
+    public DataSchemaEntry<SimpleDataSchema> booleanArrayEntry(String name, boolean mandatory){
         return arrayEntryFor(TypeEnum.BOOLEAN, name, mandatory);
     }
 
-    public DataSchemaEntry numberArrayEntry(String name, boolean mandatory){
+    public DataSchemaEntry<SimpleDataSchema> numberArrayEntry(String name, boolean mandatory){
         return arrayEntryFor(TypeEnum.NUMBER, name, mandatory);
     }
 
-    public DataSchemaEntry stringArrayEntry(String name, boolean mandatory){
+    public DataSchemaEntry<SimpleDataSchema> stringArrayEntry(String name, boolean mandatory){
         return arrayEntryFor(TypeEnum.STRING, name, mandatory);
     }
 
-    public DataSchemaEntry objectArrayEntry(String name, boolean mandatory){
+    public DataSchemaEntry<SimpleDataSchema> objectArrayEntry(String name, boolean mandatory){
         return arrayEntryFor(TypeEnum.COMPLEXTYPE, name, mandatory);
     }
 
@@ -68,7 +74,7 @@ public class SimpleDataSchema implements DataSchema {
     public void unify(SimpleDataSchema otherSchema){
         otherSchema.schema.forEach((k, v) -> {
             if(this.schema.containsKey(k)){
-                DataSchemaEntry entry = this.schema.get(k);
+                DataSchemaEntry<SimpleDataSchema> entry = this.schema.get(k);
                 if(!entry.type.equals(v.type)){
                     throw new IllegalStateException("Types for field \"" + k + "\" are not consistent: \"" + entry.type + "\" + != \"" + v.type + "\"");
                 }
@@ -77,13 +83,13 @@ public class SimpleDataSchema implements DataSchema {
                     entry.dataSchema.unify(v.dataSchema);
                 }
             } else {
-                this.schema.put(k, new DataSchemaEntry(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
             }
         });
 
         this.schema.forEach((k, v) -> {
             if(!otherSchema.schema.containsKey(k)){
-                this.schema.put(k, new DataSchemaEntry(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
             }
         });
     }
@@ -101,39 +107,21 @@ public class SimpleDataSchema implements DataSchema {
         return Objects.hash(schema);
     }
 
-    public static class DataSchemaEntry {
-        public final String name;
+    @Override
+    public List<Node> applyDataToTerms(Node term, Map<Variable, Type> variableTypes) {
+        List<Triplet<Node, Set<Variable>, Set<Node>>> termsToAssign = new LinkedList<>();
+        termsToAssign.add(new Triplet<>(term, new HashSet<>(variableTypes.keySet()), new HashSet<>()));
+        DataSchema.findAssignableFields(termsToAssign, variableTypes, this.getDataSchemaEntries(), variableNodeProvider);
 
-        public final Type type;
-
-        public final boolean mandatory;
-
-        public final SimpleDataSchema dataSchema;
-
-        public DataSchemaEntry(String name, Type type, boolean mandatory, SimpleDataSchema dataSchema) {
-            this.name = name;
-            this.type = type;
-            this.mandatory = mandatory;
-            this.dataSchema = dataSchema;
+        List<Node> terms = new LinkedList<>();
+        for (Triplet<Node, Set<Variable>, Set<Node>> triplet : termsToAssign) {
+            // Check if all variables have been assigned a field.
+            if(triplet.getValue1().isEmpty()){
+                terms.add(triplet.getValue0());
+            }
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            DataSchemaEntry that = (DataSchemaEntry) o;
-            return mandatory == that.mandatory && Objects.equals(name, that.name) && Objects.equals(type, that.type) && Objects.equals(dataSchema, that.dataSchema);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, type, mandatory, dataSchema);
-        }
-
-        @Override
-        public String toString() {
-            return name + ": " + type + " (" + (mandatory ? "mandatory" : "optional") + ")";
-        }
+        return terms;
     }
 
     public static SimpleDataSchema deriveFromData(DataObject dao){
@@ -146,7 +134,7 @@ public class SimpleDataSchema implements DataSchema {
         return schema;
     }
 
-    private DataSchemaEntry createEntry(String fieldName, DataValue<?> value){
+    private DataSchemaEntry<SimpleDataSchema> createEntry(String fieldName, DataValue<?> value){
         if(value.getType() instanceof TypeEnum) {
             switch ((TypeEnum) value.getType()){
                 case NUMBER:
@@ -159,7 +147,7 @@ public class SimpleDataSchema implements DataSchema {
                     DataObject nestedDao = (DataObject) value.getValue();
                     SimpleDataSchema nestedSchema = deriveFromData(nestedDao);
 
-                    DataSchemaEntry entry = objectEntry(fieldName, true);
+                    DataSchemaEntry<SimpleDataSchema> entry = objectEntry(fieldName, true);
                     entry.dataSchema.addAll(nestedSchema);
 
                     return entry;
@@ -186,7 +174,7 @@ public class SimpleDataSchema implements DataSchema {
                             }
                         }
 
-                        DataSchemaEntry entry = arrayEntryFor(elementType, fieldName, true);
+                        DataSchemaEntry<SimpleDataSchema> entry = arrayEntryFor(elementType, fieldName, true);
                         entry.dataSchema.addAll(nestedSchema);
 
                         return entry;

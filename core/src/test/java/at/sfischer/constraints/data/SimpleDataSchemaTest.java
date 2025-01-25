@@ -29,7 +29,7 @@ public class SimpleDataSchemaTest {
 		expected.numberEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
 
-		SimpleDataSchema.DataSchemaEntry entry = expected.objectEntry("object", true);
+		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.stringEntry("value",true);
 
@@ -73,7 +73,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -88,7 +88,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.numberEntry("number",false);
 
@@ -104,7 +104,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
+		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -119,7 +119,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
+		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.numberEntry("number",false);
 
