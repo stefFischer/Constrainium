@@ -112,7 +112,8 @@ public abstract class DataSchema {
         Set<Triplet<Node, Set<Variable>, Set<Node>>> replacedTerms = new HashSet<>();
         for (Map<Variable, Node> variableAssignment : variableAssignments) {
             for (Triplet<Node, Set<Variable>, Set<Node>> term : terms) {
-                Node replacementTerm = term.getValue0().setVariableValues(variableAssignment);
+                Node clonedTerm = term.getValue0().cloneNode();
+                Node replacementTerm = clonedTerm.setVariableValues(variableAssignment);
                 Set<Variable> replacedVariables = new HashSet<>(term.getValue1());
                 replacedVariables.removeAll(variableAssignment.keySet());
                 Set<Node> insertedNodes = new HashSet<>(term.getValue2());
@@ -121,7 +122,8 @@ public abstract class DataSchema {
             }
 
             for (Triplet<Node, Set<Variable>, Set<Node>> term : internalReplacedTerms) {
-                Node replacementTerm = term.getValue0().setVariableValues(variableAssignment);
+                Node clonedTerm = term.getValue0().cloneNode();
+                Node replacementTerm = clonedTerm.setVariableValues(variableAssignment);
                 Set<Variable> replacedVariables = new HashSet<>(term.getValue1());
                 replacedVariables.removeAll(variableAssignment.keySet());
                 Set<Node> insertedNodes = new HashSet<>(term.getValue2());

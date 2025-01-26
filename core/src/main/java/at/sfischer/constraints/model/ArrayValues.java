@@ -38,6 +38,11 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
     }
 
     @Override
+    public Node cloneNode() {
+        return new ArrayValues<>(this.elementType, Arrays.copyOf(getValue(), getValue().length));
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
