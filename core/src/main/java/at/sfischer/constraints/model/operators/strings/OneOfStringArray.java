@@ -55,6 +55,12 @@ public class OneOfStringArray extends Function {
     }
 
     @Override
+    public Node cloneNode() {
+        //noinspection unchecked
+        return new OneOfStringArray(getParameter(0).cloneNode(), (ArrayValues<ArrayValues<StringLiteral>>) getParameter(2).cloneNode());
+    }
+
+    @Override
     public List<Node> getChildren() {
         return List.of(getParameter(0), getParameter(1), getParameter(2));
     }

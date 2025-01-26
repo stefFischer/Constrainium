@@ -17,4 +17,9 @@ public class BooleanLiteral extends Value<Boolean> {
     public Type getReturnType() {
         return TypeEnum.BOOLEAN;
     }
+
+    @Override
+    public Node cloneNode() {
+        return new BooleanLiteral(value);
+    }
 }

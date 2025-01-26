@@ -55,6 +55,12 @@ public class OneOfNumberArray extends Function {
     }
 
     @Override
+    public Node cloneNode() {
+        //noinspection unchecked
+        return new OneOfNumberArray(getParameter(0).cloneNode(), (ArrayValues<ArrayValues<NumberLiteral>>) getParameter(2).cloneNode());
+    }
+
+    @Override
     public List<Node> getChildren() {
         return List.of(getParameter(0), getParameter(1), getParameter(2));
     }
