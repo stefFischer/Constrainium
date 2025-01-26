@@ -10,6 +10,8 @@ import java.util.*;
 
 public abstract class DataCollection<T> {
 
+    public abstract DataSchema deriveSchema();
+
     public abstract boolean applyDataToTerms(List<Node> terms, Map<Variable, Type> variableTypes);
 
     public abstract int numberOfDataEntries();

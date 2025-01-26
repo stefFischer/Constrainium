@@ -15,6 +15,20 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
         this.dataCollection = new LinkedList<>();
     }
 
+    @Override
+    public DataSchema deriveSchema() {
+        SimpleDataSchema schema = null;
+        for (DataObject dataObject : dataCollection) {
+            if(schema == null){
+                schema = SimpleDataSchema.deriveFromData(dataObject);
+            } else {
+                schema.unify(SimpleDataSchema.deriveFromData(dataObject));
+            }
+        }
+
+        return schema;
+    }
+
     public List<DataObject> getDataCollection() {
         return dataCollection;
     }
