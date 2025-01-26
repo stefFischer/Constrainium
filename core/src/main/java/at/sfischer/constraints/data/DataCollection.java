@@ -10,6 +10,8 @@ import java.util.*;
 
 public abstract class DataCollection<T> {
 
+    public abstract DataSchema deriveSchema();
+
     public abstract boolean applyDataToTerms(List<Node> terms, Map<Variable, Type> variableTypes);
 
     public abstract int numberOfDataEntries();
@@ -122,14 +124,16 @@ public abstract class DataCollection<T> {
         Set<Pair<Node, Set<Variable>>> replacedTerms = new HashSet<>();
         for (Map<Variable, Node> variableAssignment : variableAssignments) {
             for (Pair<Node, Set<Variable>> term : terms) {
-                Node replacementTerm = term.getValue0().setVariableValues(variableAssignment);
+                Node clonedTerm = term.getValue0().cloneNode();
+                Node replacementTerm = clonedTerm.setVariableValues(variableAssignment);
                 Set<Variable> replacedVariables = new HashSet<>(term.getValue1());
                 replacedVariables.addAll(variableAssignment.keySet());
                 replacedTerms.add(new Pair<>(replacementTerm, replacedVariables));
             }
 
             for (Pair<Node, Set<Variable>> term : internalReplacedTerms) {
-                Node replacementTerm = term.getValue0().setVariableValues(variableAssignment);
+                Node clonedTerm = term.getValue0().cloneNode();
+                Node replacementTerm = clonedTerm.setVariableValues(variableAssignment);
                 Set<Variable> replacedVariables = new HashSet<>(term.getValue1());
                 replacedVariables.addAll(variableAssignment.keySet());
                 replacedTerms.add(new Pair<>(replacementTerm, replacedVariables));

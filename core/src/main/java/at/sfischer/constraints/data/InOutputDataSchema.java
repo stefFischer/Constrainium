@@ -51,4 +51,17 @@ public class InOutputDataSchema<T extends DataSchema> extends DataSchema {
 
         return terms;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InOutputDataSchema<?> schema = (InOutputDataSchema<?>) o;
+        return Objects.equals(inputSchema, schema.inputSchema) && Objects.equals(outputSchema, schema.outputSchema);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(inputSchema, outputSchema);
+    }
 }

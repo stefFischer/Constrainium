@@ -16,6 +16,26 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     @Override
+    public DataSchema deriveSchema() {
+        SimpleDataSchema inputSchema = null;
+        SimpleDataSchema outputSchema = null;
+        for (Pair<DataObject, DataObject> pair : dataCollection) {
+            if(inputSchema == null){
+                inputSchema = SimpleDataSchema.deriveFromData(pair.getValue0());
+            } else {
+                inputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue0()));
+            }
+            if(outputSchema == null){
+                outputSchema = SimpleDataSchema.deriveFromData(pair.getValue1());
+            } else {
+                outputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue1()));
+            }
+        }
+
+        return new InOutputDataSchema<>(inputSchema, outputSchema);
+    }
+
+    @Override
     public int size() {
         return this.dataCollection.size();
     }
