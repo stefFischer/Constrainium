@@ -8,28 +8,12 @@ public class Variable implements Node {
 
     private String name;
 
-    private String replacementName;
-
     public Variable(String name) {
         this.name = name;
-        this.replacementName = null;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setReplacementName(String name) {
-        this.replacementName = name;
-    }
-
-    public void replaceName(){
-        if(this.replacementName == null){
-            return;
-        }
-
-        this.name = this.replacementName;
-        this.replacementName = null;
     }
 
     @Override
