@@ -76,7 +76,7 @@ public class SimpleDataSchema extends DataSchema {
             if(this.schema.containsKey(k)){
                 DataSchemaEntry<SimpleDataSchema> entry = this.schema.get(k);
                 if(!entry.type.equals(v.type)){
-                    throw new IllegalStateException("Types for field \"" + k + "\" are not consistent: \"" + entry.type + "\" + != \"" + v.type + "\"");
+                    throw new IllegalStateException("Types for field \"" + k + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
                 }
 
                 if(entry.dataSchema != null){

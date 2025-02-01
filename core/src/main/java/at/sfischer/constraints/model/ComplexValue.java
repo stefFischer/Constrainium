@@ -12,4 +12,9 @@ public class ComplexValue extends Value<DataObject> {
     public Type getReturnType() {
         return TypeEnum.COMPLEXTYPE;
     }
+
+    @Override
+    public Node cloneNode() {
+        return new ComplexValue(value);
+    }
 }

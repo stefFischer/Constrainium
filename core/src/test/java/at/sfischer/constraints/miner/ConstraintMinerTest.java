@@ -4,19 +4,15 @@ import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.SimpleDataCollection;
-import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.NumberLiteral;
-import at.sfischer.constraints.model.StringLiteral;
-import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.Exists;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.logic.OrOperator;
-import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
-import at.sfischer.constraints.model.operators.numbers.LessThanOperator;
-import at.sfischer.constraints.model.operators.numbers.LessThanOrEqualOperator;
+import at.sfischer.constraints.model.operators.numbers.*;
 import at.sfischer.constraints.model.operators.objects.Reference;
+import at.sfischer.constraints.model.operators.strings.OneOfString;
 import at.sfischer.constraints.model.operators.strings.StringEquals;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
@@ -371,5 +367,143 @@ public class ConstraintMinerTest {
 		Set<Constraint> actual = miner.getPossibleConstraints(terms);
 
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void mineOneOfConstraintsTest(){
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:\"ONE\", string:\"Hello\"}",
+				"{value:\"TWO\", string:\"World\"}",
+				"{value:\"THREE\", string:\"!\"}"
+		);
+
+		Set<Node> terms = new HashSet<>();
+		terms.add(new OneOfString(new Variable("a"), new NumberLiteral(3)));
+
+		Set<Constraint> expected = new HashSet<>();
+		Constraint constraint1 = new Constraint(new OneOfString(new Variable("value"), new NumberLiteral(3)));
+		expected.add(constraint1);
+		Constraint constraint2 = new Constraint(new OneOfString(new Variable("string"), new NumberLiteral(3)));
+		expected.add(constraint2);
+
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
+
+		for (Constraint constraint : actual) {
+			ConstraintResults results = constraint.applyData(data);
+			assertEquals(0, results.numberOfViolations());
+			assertEquals(3, results.numberOfValidDataEntries());
+		}
+
+		Set<Constraint> expected2 = new HashSet<>();
+		Constraint constraint3 = new Constraint(new OneOfString(new Variable("value"), new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{new StringLiteral("ONE"), new StringLiteral("TWO"), new StringLiteral("THREE")})));
+		expected2.add(constraint3);
+		Constraint constraint4 = new Constraint(new OneOfString(new Variable("string"), new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{new StringLiteral("Hello"), new StringLiteral("World"), new StringLiteral("!")})));
+		expected2.add(constraint4);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected2);
+	}
+
+	@Test
+	public void mineOneOfNumberConstraintsTest(){
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1, number:100}",
+				"{value:2, number:101}",
+				"{value:3, number:102}"
+		);
+
+		Set<Node> terms = new HashSet<>();
+		terms.add(new OneOfNumber(new Variable("a"), new NumberLiteral(3)));
+
+		Set<Constraint> expected = new HashSet<>();
+		Constraint constraint1 = new Constraint(new OneOfNumber(new Variable("value"), new NumberLiteral(3)));
+		expected.add(constraint1);
+		Constraint constraint2 = new Constraint(new OneOfNumber(new Variable("number"), new NumberLiteral(3)));
+		expected.add(constraint2);
+
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
+
+		for (Constraint constraint : actual) {
+			ConstraintResults results = constraint.applyData(data);
+			assertEquals(0, results.numberOfViolations());
+			assertEquals(3, results.numberOfValidDataEntries());
+		}
+
+		Set<Constraint> expected2 = new HashSet<>();
+		Constraint constraint3 = new Constraint(new OneOfNumber(new Variable("value"), new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{new NumberLiteral(1), new NumberLiteral(2), new NumberLiteral(3)})));
+		expected2.add(constraint3);
+		Constraint constraint4 = new Constraint(new OneOfNumber(new Variable("number"), new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{new NumberLiteral(100), new NumberLiteral(101), new NumberLiteral(102)})));
+		expected2.add(constraint4);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected2);
+	}
+
+	@Test
+	public void mineLowerBoundConstraintsTest(){
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1, number:2}",
+				"{value:2, number:4}",
+				"{value:3, number:5}",
+				"{value:1, number:2}",
+				"{value:5, number:7}",
+				"{value:4, number:6}",
+				"{value:1, number:2}",
+				"{value:2, number:3}"
+		);
+
+		Set<Node> terms = new HashSet<>();
+		terms.add(new LowerBoundOperator(new Variable("a")));
+
+		Set<Constraint> expected = new HashSet<>();
+		Constraint constraint1 = new Constraint(new LowerBoundOperator(new Variable("value")));
+		expected.add(constraint1);
+		Constraint constraint2 = new Constraint(new LowerBoundOperator(new Variable("number")));
+		expected.add(constraint2);
+
+		ConstraintMiner miner = new ConstraintMinerFromData(data);
+		Set<Constraint> actual = miner.getPossibleConstraints(terms);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected);
+
+		for (Constraint constraint : actual) {
+			ConstraintResults results = constraint.applyData(data);
+			assertEquals(0, results.numberOfViolations());
+			assertEquals(8, results.numberOfValidDataEntries());
+		}
+
+		Set<Constraint> expected2 = new HashSet<>();
+		Constraint constraint3 = new Constraint(new LowerBoundOperator(new Variable("value"),
+				new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{new NumberLiteral(-1), new NumberLiteral(0), new NumberLiteral(1)}),
+				new NumberLiteral(3),
+				new NumberLiteral(3),
+				new NumberLiteral(5),
+				new NumberLiteral(8)));
+		expected2.add(constraint3);
+		Constraint constraint4 = new Constraint(new LowerBoundOperator(new Variable("number"),
+				new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{new NumberLiteral(-1), new NumberLiteral(0), new NumberLiteral(1), new NumberLiteral(2)}),
+				new NumberLiteral(3),
+				new NumberLiteral(3),
+				new NumberLiteral(5),
+				new NumberLiteral(8)));
+		expected2.add(constraint4);
+
+		assertThat(actual).
+				usingRecursiveComparison().
+				isEqualTo(expected2);
 	}
 }

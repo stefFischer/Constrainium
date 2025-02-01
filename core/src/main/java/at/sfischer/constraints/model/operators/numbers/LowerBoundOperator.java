@@ -29,7 +29,7 @@ public class LowerBoundOperator extends Function {
         this(value, bounds, minValuesAtBound, new NumberLiteral(0), minValues, new NumberLiteral(0));
     }
 
-    private LowerBoundOperator(Node value, ArrayValues<NumberLiteral> bounds, NumberLiteral minValuesAtBound, NumberLiteral valuesAtBoundCounter, NumberLiteral minValues, NumberLiteral valuesCounter) {
+    public LowerBoundOperator(Node value, ArrayValues<NumberLiteral> bounds, NumberLiteral minValuesAtBound, NumberLiteral valuesAtBoundCounter, NumberLiteral minValues, NumberLiteral valuesCounter) {
         super(FUNCTION_NAME, value, bounds, minValuesAtBound, valuesAtBoundCounter, minValues, valuesCounter);
         Arrays.sort(bounds.getValue(), (o1, o2) -> {
             double diff = o1.getValue().doubleValue() - o2.getValue().doubleValue();
@@ -125,6 +125,19 @@ public class LowerBoundOperator extends Function {
     public Node setVariableValues(Map<Variable, Node> values) {
         //noinspection unchecked
         return new LowerBoundOperator(getParameter(0).setVariableValues(values), (ArrayValues<NumberLiteral>) getParameter(1), ((NumberLiteral) getParameter(2)), ((NumberLiteral) getParameter(3)), ((NumberLiteral) getParameter(4)), ((NumberLiteral) getParameter(5)));
+    }
+
+    @Override
+    public Node cloneNode() {
+        //noinspection unchecked
+        return new LowerBoundOperator(
+                getParameter(0).cloneNode(),
+                (ArrayValues<NumberLiteral>) getParameter(1).cloneNode(),
+                ((NumberLiteral) getParameter(2).cloneNode()),
+                ((NumberLiteral) getParameter(3).cloneNode()),
+                ((NumberLiteral) getParameter(4).cloneNode()),
+                ((NumberLiteral) getParameter(5).cloneNode())
+        );
     }
 
     @Override

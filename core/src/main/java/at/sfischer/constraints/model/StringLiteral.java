@@ -10,4 +10,9 @@ public class StringLiteral extends Value<String> {
     public Type getReturnType() {
         return TypeEnum.STRING;
     }
+
+    @Override
+    public Node cloneNode() {
+        return new StringLiteral(value);
+    }
 }
