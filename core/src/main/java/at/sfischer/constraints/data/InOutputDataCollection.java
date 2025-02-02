@@ -16,7 +16,7 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     @Override
-    public DataSchema deriveSchema() {
+    public InOutputDataSchema<SimpleDataSchema> deriveSchema() {
         SimpleDataSchema inputSchema = null;
         SimpleDataSchema outputSchema = null;
         for (Pair<DataObject, DataObject> pair : dataCollection) {

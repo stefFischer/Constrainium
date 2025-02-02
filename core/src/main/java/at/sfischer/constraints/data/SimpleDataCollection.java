@@ -16,7 +16,7 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     }
 
     @Override
-    public DataSchema deriveSchema() {
+    public SimpleDataSchema deriveSchema() {
         SimpleDataSchema schema = null;
         for (DataObject dataObject : dataCollection) {
             if(schema == null){
