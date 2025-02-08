@@ -2,6 +2,7 @@ package at.sfischer.constraints.model.operators.numbers;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.model.MoreStatisticalEvidenceNeeded;
 import at.sfischer.constraints.model.Node;
@@ -111,10 +112,10 @@ public class LowerBoundOperatorTest {
 		LowerBoundOperator l = new LowerBoundOperator(value);
 		Constraint constraint = new Constraint(l);
 
-		ConstraintResults results = constraint.applyData(data);
+		ConstraintResults<DataObject> results = constraint.applyData(data);
 
-		assertEquals(0.2, results.applicationRate());
+		assertEquals(0.7, results.applicationRate());
 		assertTrue(results.foundCounterExample());
-		assertEquals(8, results.numberOfViolations());
+		assertEquals(3, results.numberOfViolations());
 	}
 }

@@ -44,6 +44,11 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     }
 
     @Override
+    public void clear() {
+        dataCollection.clear();
+    }
+
+    @Override
     public int numberOfDataEntries(){
         return this.dataCollection.size();
     }

@@ -1,5 +1,6 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -22,6 +23,12 @@ public abstract class DataSchema {
     protected abstract Collection<DataSchemaEntry<?>> getDataSchemaEntries();
 
     public abstract List<Node> applyDataToTerms(Node term, Map<Variable, Type> variableTypes);
+
+    public abstract <T extends DataSchema> DataSchemaEntry<T> getParentEntry();
+
+    public abstract <T extends DataSchema> void setParentEntry(DataSchemaEntry<T> parentEntry);
+
+    public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
 
     /**
      *
@@ -95,7 +102,7 @@ public abstract class DataSchema {
                 } else if (((ArrayType) schemaEntry.type).elementType() instanceof ArrayType) {
                     List<Triplet<Node, Set<Variable>, Set<Node>>> internalTerms = new LinkedList<>(terms);
                     Collection<DataSchemaEntry<?>> internalSchema = new LinkedList<>();
-                    internalSchema.add(new DataSchemaEntry<>(schemaEntry.name, ((ArrayType) schemaEntry.type).elementType(), schemaEntry.mandatory, schemaEntry.dataSchema));
+                    internalSchema.add(new DataSchemaEntry<>(null, schemaEntry.name, ((ArrayType) schemaEntry.type).elementType(), schemaEntry.mandatory, schemaEntry.dataSchema));
                     findAssignableFields(internalTerms, variableTypes, internalSchema, arrayElementProvider);
                     for (Triplet<Node, Set<Variable>, Set<Node>> term : internalTerms) {
                         Node value = fieldNodeProvider.generateNode(new Pair<>(schemaEntry.name, schemaEntry.type));
@@ -139,38 +146,123 @@ public abstract class DataSchema {
         terms.addAll(replacedTerms);
     }
 
-    public static class DataSchemaEntry<T extends DataSchema> {
-        public final String name;
+    public static void fillSchemaWithConstraints(Node term, Collection<DataSchemaEntry<?>> schema) {
+        fillSchemaWithConstraints(term, schema, 0);
+    }
 
-        public final Type type;
+    private static void fillSchemaWithConstraints(Node term, Collection<DataSchemaEntry<?>> schema, int recursiveCount) {
+        Map<Variable, Type> placeholderTypes = term.inferVariableTypes();
+        Map<Variable, List<DataSchemaEntry<?>>> matchingEntries = new HashMap<>();
 
-        public final boolean mandatory;
-
-        public final T dataSchema;
-
-        public DataSchemaEntry(String name, Type type, boolean mandatory, T dataSchema) {
-            this.name = name;
-            this.type = type;
-            this.mandatory = mandatory;
-            this.dataSchema = dataSchema;
+        // Find all matching schema entries for each placeholder
+        for (Map.Entry<Variable, Type> placeholder : placeholderTypes.entrySet()) {
+            List<DataSchemaEntry<?>> matches = findMatchingEntries(schema, placeholder.getKey(), placeholder.getValue(), term, recursiveCount);
+            matchingEntries.put(placeholder.getKey(), matches);
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            DataSchemaEntry<?> that = (DataSchemaEntry<?>) o;
-            return mandatory == that.mandatory && Objects.equals(name, that.name) && Objects.equals(type, that.type) && Objects.equals(dataSchema, that.dataSchema);
+        // TODO For combinations of in and output I will need to call this multiple times and allow here to make all possible sub assignments.
+        //  But I need to do this before inserting the constraints into schema entry.
+        // Generate all possible combinations of schema entries that fit the placeholders
+        List<Map<Variable, DataSchemaEntry<?>>> allCombinations = generateUniqueCombinations(matchingEntries);
+
+        // For each combination, fill the term and attach it to the first DataSchemaEntry
+        for (Map<Variable, DataSchemaEntry<?>> combination : allCombinations) {
+            Map<Variable, Node> replacement = new HashMap<>();
+            combination.forEach((k, v) -> replacement.put(k, new DataReference(v)));
+
+            Node filledTerm = term.setVariableValues(replacement);
+
+            // Determine the first DataSchemaEntry used in the combination
+            DataSchemaEntry<?> primaryEntry = findHighestEntry(combination.values());
+
+            // Add the filled term to the potentialConstraints of the primary entry
+            primaryEntry.potentialConstraints.add(new Constraint(filledTerm));
+        }
+    }
+
+    private static List<DataSchemaEntry<?>> findMatchingEntries(Collection<DataSchemaEntry<?>> schema, Variable variable, Type valueType, Node term, int recursiveCount) {
+        List<DataSchemaEntry<?>> matches = new ArrayList<>();
+        for (DataSchemaEntry<?> entry : schema) {
+            if (valueType.canAssignTo(entry.type)) {
+                matches.add(entry);
+            } else if(entry.type instanceof ArrayType){
+                if (valueType.canAssignTo(((ArrayType) entry.type).elementType())) {
+                    if(recursiveCount <= 0) {
+                        Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
+                        fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
+                    }
+                    continue;
+                } else if(((ArrayType) entry.type).elementType() == TypeEnum.COMPLEXTYPE){
+                    if(recursiveCount <= 0) {
+                        // Find values inside complex value that can be inserted into the term.
+                        List<DataSchemaEntry<?>> innerMatches = findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount);
+                        for (DataSchemaEntry<?> innerMatch : innerMatches) {
+                            Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
+                            fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
+                        }
+                    }
+                    continue;
+                }
+            }
+            if (entry.dataSchema != null) {
+                matches.addAll(findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount));
+            }
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, type, mandatory, dataSchema);
+        return matches;
+    }
+
+    private static List<Map<Variable, DataSchemaEntry<?>>> generateUniqueCombinations(Map<Variable, List<DataSchemaEntry<?>>> matchingEntries) {
+        List<Map<Variable, DataSchemaEntry<?>>> results = new ArrayList<>();
+        generateUniqueCombinationsRecursive(matchingEntries, new ArrayList<>(matchingEntries.keySet()), 0, new HashMap<>(), new HashSet<>(), results);
+        return results;
+    }
+
+    private static void generateUniqueCombinationsRecursive(Map<Variable, List<DataSchemaEntry<?>>> matchingEntries,
+                                                            List<Variable> placeholders, int index,
+                                                            Map<Variable, DataSchemaEntry<?>> currentCombination,
+                                                            Set<DataSchemaEntry<?>> usedEntries,
+                                                            List<Map<Variable, DataSchemaEntry<?>>> results) {
+        if (index == placeholders.size()) {
+            results.add(new HashMap<>(currentCombination));
+            return;
         }
 
-        @Override
-        public String toString() {
-            return name + ": " + type + " (" + (mandatory ? "mandatory" : "optional") + ")";
+        Variable placeholder = placeholders.get(index);
+        for (DataSchemaEntry<?> entry : matchingEntries.get(placeholder)) {
+            if (usedEntries.contains(entry)) continue;  // Skip if already used.
+
+            currentCombination.put(placeholder, entry);
+            usedEntries.add(entry);
+
+            generateUniqueCombinationsRecursive(matchingEntries, placeholders, index + 1, currentCombination, usedEntries, results);
+
+            currentCombination.remove(placeholder);
+            usedEntries.remove(entry);  // Backtrack.
         }
+    }
+
+    public static DataSchemaEntry<?> findHighestEntry(Collection<DataSchemaEntry<?>> entries) {
+        if(entries == null || entries.isEmpty()){
+            return null;
+        }
+
+        return entries.stream()
+                .min(Comparator.comparingInt(DataSchema::getDepth))
+                .orElse(null);
+    }
+
+    private static int getDepth(DataSchemaEntry<?> entry) {
+        int depth = 0;
+        if(entry == null){
+            return depth;
+        }
+
+        entry = entry.getParentSchemaEntry();
+        while (entry != null) {
+            entry = entry.getParentSchemaEntry();
+            depth++;
+        }
+        return depth;
     }
 }

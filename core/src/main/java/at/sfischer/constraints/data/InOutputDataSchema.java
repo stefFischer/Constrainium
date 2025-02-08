@@ -7,15 +7,32 @@ import org.javatuples.Triplet;
 
 import java.util.*;
 
-public class InOutputDataSchema<T extends DataSchema> extends DataSchema {
+public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
-    private final T inputSchema;
+    private final SCHEMA inputSchema;
 
-    private final T outputSchema;
+    private final SCHEMA outputSchema;
 
-    public InOutputDataSchema(T inputSchema, T outputSchema) {
+    public InOutputDataSchema(SCHEMA inputSchema, SCHEMA outputSchema) {
         this.inputSchema = inputSchema;
         this.outputSchema = outputSchema;
+    }
+
+    @Override
+    public <DS extends DataSchema> DataSchemaEntry<DS> getParentEntry() {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public <DS extends DataSchema> void setParentEntry(DataSchemaEntry<DS> parentEntry) {
+        // TODO
+    }
+
+    @Override
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
+        // TODO
+        return null;
     }
 
     @Override

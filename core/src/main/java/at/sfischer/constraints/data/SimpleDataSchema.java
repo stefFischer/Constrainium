@@ -1,11 +1,15 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.*;
 import org.javatuples.Triplet;
 
 import java.util.*;
 
 public class SimpleDataSchema extends DataSchema {
+
+    private DataSchemaEntry<SimpleDataSchema> parentEntry = null;
 
     private final Map<String, DataSchemaEntry<SimpleDataSchema>> schema;
 
@@ -19,29 +23,29 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.BOOLEAN, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.BOOLEAN, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> numberEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.NUMBER, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.NUMBER, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> stringEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.STRING, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.STRING, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> objectEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
     }
 
     public DataSchemaEntry<SimpleDataSchema> arrayEntryFor(Type elementType, String name, boolean mandatory){
         ArrayType entryType =  new ArrayType(elementType);
         Type elementsType = internalElementType(entryType);
         if(elementsType == TypeEnum.COMPLEXTYPE){
-            return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, new SimpleDataSchema()));
+            return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, entryType, mandatory, new SimpleDataSchema()));
         }
 
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, entryType, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> booleanArrayEntry(String name, boolean mandatory){
@@ -83,13 +87,13 @@ public class SimpleDataSchema extends DataSchema {
                     entry.dataSchema.unify(v.dataSchema);
                 }
             } else {
-                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(this, v.name, v.type, false, v.dataSchema));
             }
         });
 
         this.schema.forEach((k, v) -> {
             if(!otherSchema.schema.containsKey(k)){
-                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(this, v.name, v.type, false, v.dataSchema));
             }
         });
     }
@@ -122,6 +126,103 @@ public class SimpleDataSchema extends DataSchema {
         }
 
         return terms;
+    }
+
+    @Override
+    public  <T extends DataSchema> DataSchemaEntry<T> getParentEntry() {
+        //noinspection unchecked
+        return (DataSchemaEntry<T>) parentEntry;
+    }
+
+    @Override
+    public <T extends DataSchema> void setParentEntry(DataSchemaEntry<T> parentEntry) {
+        //noinspection unchecked
+        this.parentEntry = (DataSchemaEntry<SimpleDataSchema>) parentEntry;
+    }
+
+    @Override
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
+        EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
+        data.visitDataEntries((values, dataEntry) -> {
+            if(!(dataEntry instanceof DataObject)){
+                return;
+            }
+
+            evaluateDataObject((DataObject)dataEntry, dataEntry, data, evaluationResults);
+        });
+
+        return evaluationResults;
+    }
+
+    public <DS extends DataSchema, T> void evaluateDataObject(DataObject dao, T dataEntry, DataCollection<T> data, EvaluationResults<DS, T> evaluationResults){
+        Map<Variable, Node> values = new HashMap<>();
+
+        Map<DataSchemaEntry<SimpleDataSchema>, Set<Constraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<SimpleDataSchema>, Set<Constraint>> potentialConstraints = new HashMap<>();
+
+        evaluateDataObject(dao, dataEntry, values, constraints, potentialConstraints, evaluationResults);
+
+        constraints.forEach((k, v) -> {
+            if(v == null || v.isEmpty()){
+                return;
+            }
+
+            for (Constraint constraint : v) {
+                @SuppressWarnings("unchecked")
+                ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults((DataSchemaEntry<DS>) k, constraint, data);
+                constraint.applyData(values, dataEntry, constraintResults);
+            }
+        });
+
+        potentialConstraints.forEach((k, v) -> {
+            if(v == null || v.isEmpty()){
+                return;
+            }
+
+            for (Constraint constraint : v) {
+                @SuppressWarnings("unchecked")
+                ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults((DataSchemaEntry<DS>) k, constraint, data);
+                constraint.applyData(values, dataEntry, constraintResults);
+            }
+        });
+    }
+
+    private <DS extends DataSchema, T> void evaluateDataObject(
+            DataObject dao, T dataEntry,
+            Map<Variable, Node> values,
+            Map<DataSchemaEntry<SimpleDataSchema>,
+            Set<Constraint>> constraints,
+            Map<DataSchemaEntry<SimpleDataSchema>,
+            Set<Constraint>> potentialConstraints,
+            EvaluationResults<DS, T> evaluationResults
+    ){
+        for (DataSchemaEntry<SimpleDataSchema> entry : this.schema.values()) {
+            DataValue<?> value = dao.getDataValue(entry.name);
+            if(value == null){
+                if(entry.mandatory){
+                    //noinspection unchecked
+                    evaluationResults.addResult((EvaluationResult<DS,T>)new MissingMandatoryValue<>(entry, dataEntry));
+                }
+                continue;
+            }
+
+            if(!value.getType().canAssignTo(entry.type)){
+                //noinspection unchecked
+                evaluationResults.addResult((EvaluationResult<DS,T>)new IncompatibleTypes<>(entry, dataEntry, value.getType()));
+            }
+
+            if(entry.type == TypeEnum.COMPLEXTYPE){
+                entry.dataSchema.evaluateDataObject((DataObject) value.getValue(), dataEntry, values, constraints, potentialConstraints, evaluationResults);
+//            } if(entry.type instanceof ArrayType){
+
+            } else {
+                Value<?> literal = value.getLiteralValue();
+                values.put(new DataReference(entry), literal);
+            }
+
+            constraints.put(entry, entry.constraints);
+            potentialConstraints.put(entry, entry.potentialConstraints);
+        }
     }
 
     public static SimpleDataSchema deriveFromData(DataObject dao){
@@ -216,7 +317,7 @@ public class SimpleDataSchema extends DataSchema {
         StringBuilder sb = new StringBuilder();
         schema.forEach((k, v) -> {
             sb.append(indent);
-            sb.append(v.toString());
+            sb.append(v.toString(indent, "\t"));
             sb.append("\n");
 
             if(v.dataSchema != null){

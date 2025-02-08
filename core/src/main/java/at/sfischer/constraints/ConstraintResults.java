@@ -7,16 +7,25 @@ import at.sfischer.constraints.data.DataCollection;
  * @param data                Data on which the constraint was evaluated on.
  * @param validConstraintData Data for which the constraint evaluates to true.
  */
-public record ConstraintResults(Constraint constraint, DataCollection<?> data, DataCollection<?> validConstraintData, DataCollection<?> inapplicableConstraintData) {
-    public ConstraintResults(Constraint constraint, DataCollection<?> data, DataCollection<?> validConstraintData) {
+public record ConstraintResults<T>(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
+    public ConstraintResults(Constraint constraint, DataCollection<T> data) {
+        this(constraint, data, data.emptyDataCollection());
+    }
+
+    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData) {
         this(constraint, data, validConstraintData, data.emptyDataCollection());
     }
 
-    public ConstraintResults(Constraint constraint, DataCollection<?> data, DataCollection<?> validConstraintData, DataCollection<?> inapplicableConstraintData) {
+    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData) {
+        this(constraint, data, validConstraintData, inapplicableConstraintData, data.emptyDataCollection());
+    }
+
+    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
         this.constraint = constraint;
         this.data = data;
         this.validConstraintData = validConstraintData;
         this.inapplicableConstraintData = inapplicableConstraintData;
+        this.missingEvidenceConstraintData = missingEvidenceConstraintData;
     }
 
     public boolean foundCounterExample() {

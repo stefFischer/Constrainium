@@ -16,6 +16,10 @@ public abstract class DataCollection<T> {
 
     public abstract int numberOfDataEntries();
 
+    public void visitDataEntries(DataEntryVisitor<T> visitor){
+        visitDataEntries(new HashSet<>(), visitor);
+    }
+
     public abstract void visitDataEntries(Set<String> fieldNames, DataEntryVisitor<T> visitor);
 
     public void addAll(DataCollection<T> collection){
@@ -25,6 +29,8 @@ public abstract class DataCollection<T> {
     public abstract void addDataEntry(T dataEntry);
 
     public abstract void removeDataEntry(T dataEntry);
+
+    public abstract void clear();
 
     public abstract DataCollection<T> emptyDataCollection();
 

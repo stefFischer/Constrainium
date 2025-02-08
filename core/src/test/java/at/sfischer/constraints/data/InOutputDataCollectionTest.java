@@ -18,7 +18,7 @@ public class InOutputDataCollectionTest {
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
         outputSchema.numberEntry("size", true);
-        SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+        DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
         entry.dataSchema.numberEntry("number",true);
 
         InOutputDataSchema<SimpleDataSchema> expected = new InOutputDataSchema<>(inputSchema, outputSchema);
@@ -41,7 +41,7 @@ public class InOutputDataCollectionTest {
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
         outputSchema.numberEntry("size", true);
-        SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", false);
+        DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", false);
         entry.dataSchema.numberEntry("number",true);
 
         InOutputDataSchema<SimpleDataSchema> expected = new InOutputDataSchema<>(inputSchema, outputSchema);

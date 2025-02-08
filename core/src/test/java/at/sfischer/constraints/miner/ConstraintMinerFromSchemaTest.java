@@ -2,10 +2,7 @@ package at.sfischer.constraints.miner;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
-import at.sfischer.constraints.data.DataSchema;
-import at.sfischer.constraints.data.InOutputDataSchema;
-import at.sfischer.constraints.data.SimpleDataCollection;
-import at.sfischer.constraints.data.SimpleDataSchema;
+import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.Exists;
@@ -48,7 +45,7 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsTest2() {
 		SimpleDataSchema schema = new SimpleDataSchema();
 		schema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		Set<Node> terms = new HashSet<>();
@@ -70,7 +67,7 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsTest3() {
 		SimpleDataSchema schema = new SimpleDataSchema();
 		schema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 		schema.numberArrayEntry("array", true);
 
@@ -93,9 +90,9 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsTest4() {
 		SimpleDataSchema schema = new SimpleDataSchema();
 		schema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> arrayEntry = schema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = schema.objectArrayEntry("array", true);
 		arrayEntry.dataSchema.numberEntry("number",true);
 
 		Set<Node> terms = new HashSet<>();
@@ -120,8 +117,8 @@ public class ConstraintMinerFromSchemaTest {
 	@Test
 	public void getPossibleConstraintsTestNestedObjectArrays() {
 		SimpleDataSchema schema = new SimpleDataSchema();
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = schema.objectArrayEntry("object", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> arrayEntry = entry.dataSchema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectArrayEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = entry.dataSchema.objectArrayEntry("array", true);
 		arrayEntry.dataSchema.numberEntry("number",true);
 
 		Set<Node> terms = new HashSet<>();
@@ -180,7 +177,7 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsNoMatchingConstraintTest2() {
 		SimpleDataSchema schema = new SimpleDataSchema();
 		schema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		Set<Node> terms = new HashSet<>();
@@ -219,7 +216,7 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsTest5() {
 		SimpleDataSchema inputSchema = new SimpleDataSchema();
 		inputSchema.numberEntry("add", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = inputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = inputSchema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();
@@ -255,7 +252,7 @@ public class ConstraintMinerFromSchemaTest {
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();
 		outputSchema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
@@ -287,7 +284,7 @@ public class ConstraintMinerFromSchemaTest {
 		inputSchema.numberEntry("size", true);
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> arrayEntry = outputSchema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = outputSchema.objectArrayEntry("array", true);
 		arrayEntry.dataSchema.numberEntry("number",true);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
@@ -316,7 +313,7 @@ public class ConstraintMinerFromSchemaTest {
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();
 		outputSchema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
@@ -336,7 +333,7 @@ public class ConstraintMinerFromSchemaTest {
 	public void getPossibleConstraintsNoMatchingOutputTest1() {
 		SimpleDataSchema inputSchema = new SimpleDataSchema();
 		inputSchema.numberEntry("size", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = inputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = inputSchema.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();

@@ -16,7 +16,7 @@ public class SimpleDataCollectionTest {
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		DataSchema actual = data.deriveSchema();
@@ -35,7 +35,7 @@ public class SimpleDataCollectionTest {
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", false);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", false);
 		entry.dataSchema.numberEntry("number",true);
 
 		DataSchema actual = data.deriveSchema();
@@ -54,7 +54,7 @@ public class SimpleDataCollectionTest {
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
-		SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", false);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", false);
 		entry.dataSchema.numberEntry("number",true);
 
 		IllegalStateException thrown = assertThrows(

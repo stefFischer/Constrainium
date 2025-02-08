@@ -108,6 +108,11 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     @Override
+    public void clear() {
+        dataCollection.clear();
+    }
+
+    @Override
     public DataCollection<Pair<DataObject, DataObject>> emptyDataCollection() {
         return new InOutputDataCollection();
     }
