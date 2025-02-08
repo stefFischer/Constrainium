@@ -15,6 +15,10 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         this.dataCollection = new LinkedList<>();
     }
 
+    public List<Pair<DataObject, DataObject>> getDataCollection() {
+        return dataCollection;
+    }
+
     @Override
     public InOutputDataSchema<SimpleDataSchema> deriveSchema() {
         SimpleDataSchema inputSchema = null;
@@ -105,6 +109,11 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     @Override
     public void removeDataEntry(Pair<DataObject, DataObject> dataEntry) {
         dataCollection.remove(dataEntry);
+    }
+
+    @Override
+    public void clear() {
+        dataCollection.clear();
     }
 
     @Override

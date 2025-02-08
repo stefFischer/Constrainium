@@ -1,0 +1,119 @@
+package at.sfischer.constraints.data;
+
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.model.Type;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class DataSchemaEntry<T extends DataSchema> {
+    public final String name;
+
+    public final Type type;
+
+    public final boolean mandatory;
+
+    public final T dataSchema;
+
+    // Constraints that hae been confirmed.
+    public final Set<Constraint> constraints;
+
+    // Constraints that could be possible but still need confirmation.
+    public final Set<Constraint> potentialConstraints;
+
+    public final T parentSchema;
+
+    public DataSchemaEntry(T parentSchema, String name, Type type, boolean mandatory, T dataSchema) {
+        this.parentSchema = parentSchema;
+        this.name = name;
+        this.type = type;
+        this.mandatory = mandatory;
+        this.dataSchema = dataSchema;
+        if(this.dataSchema != null){
+            this.dataSchema.setParentEntry(this);
+        }
+        this.constraints = new HashSet<>();
+        this.potentialConstraints = new HashSet<>();
+    }
+
+    public String getQualifiedName(){
+        StringBuilder sb = new StringBuilder(this.name);
+        DataSchemaEntry<T> parent = this.getParentSchemaEntry();
+        while (parent != null) {
+            sb.insert(0, ".");
+            sb.insert(0, parent.name);
+            parent = parent.getParentSchemaEntry();
+        }
+
+        return sb.toString();
+    }
+
+    public DataSchemaEntry<T> getParentSchemaEntry() {
+        if(this.parentSchema == null){
+            return null;
+        }
+
+        return this.parentSchema.getParentEntry();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        DataSchemaEntry<?> that = (DataSchemaEntry<?>) o;
+        return Objects.equals(name, that.name) && Objects.equals(getQualifiedName(), that.getQualifiedName()) && Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, getQualifiedName(), type);
+    }
+
+    @Override
+    public String toString() {
+        return toString("", "\t");
+    }
+
+    public String toString(String indent, String indentIncrease) {
+        StringBuilder sb = new StringBuilder(indent);
+        sb.append(name).append(": ").append(type).append(" (").append(mandatory ? "mandatory" : "optional").append(")");
+        if(!constraints.isEmpty()) {
+            sb.append("\n");
+            sb.append(indent);
+            sb.append(indentIncrease);
+            sb.append("- constraints:");
+            sb.append("\n");
+            AtomicBoolean first = new AtomicBoolean(true);
+            constraints.forEach(c -> {
+                if (!first.get()) {
+                    sb.append("\n");
+                }
+                first.set(false);
+                sb.append(indent);
+                sb.append(indentIncrease);
+                sb.append(indentIncrease);
+                sb.append(c);
+            });
+        }
+        if(!potentialConstraints.isEmpty()) {
+            sb.append("\n");
+            sb.append(indent);
+            sb.append(indentIncrease);
+            sb.append("- potentialConstraints:");
+            sb.append("\n");
+            AtomicBoolean first = new AtomicBoolean(true);
+            potentialConstraints.forEach(c -> {
+                if (!first.get()) {
+                    sb.append("\n");
+                }
+                first.set(false);
+                sb.append(indent);
+                sb.append(indentIncrease);
+                sb.append(indentIncrease);
+                sb.append(c);
+            });
+        }
+        return sb.toString();
+    }
+}

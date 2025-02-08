@@ -1,16 +1,24 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ForAll;
+import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Triplet;
 
 import java.util.*;
 
 public class SimpleDataSchema extends DataSchema {
 
+    private DataSchemaEntry<SimpleDataSchema> parentEntry = null;
+
     private final Map<String, DataSchemaEntry<SimpleDataSchema>> schema;
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected Collection<DataSchemaEntry<?>> getDataSchemaEntries() {
+    protected Collection<DataSchemaEntry<SimpleDataSchema>> getDataSchemaEntries() {
         return new HashSet<>(schema.values());
     }
 
@@ -19,29 +27,29 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.BOOLEAN, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.BOOLEAN, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> numberEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.NUMBER, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.NUMBER, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> stringEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.STRING, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.STRING, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> objectEntry(String name, boolean mandatory){
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.COMPLEXTYPE, mandatory, new SimpleDataSchema()));
     }
 
     public DataSchemaEntry<SimpleDataSchema> arrayEntryFor(Type elementType, String name, boolean mandatory){
         ArrayType entryType =  new ArrayType(elementType);
         Type elementsType = internalElementType(entryType);
         if(elementsType == TypeEnum.COMPLEXTYPE){
-            return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, new SimpleDataSchema()));
+            return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, entryType, mandatory, new SimpleDataSchema()));
         }
 
-        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(name, entryType, mandatory, null));
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, entryType, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> booleanArrayEntry(String name, boolean mandatory){
@@ -83,13 +91,13 @@ public class SimpleDataSchema extends DataSchema {
                     entry.dataSchema.unify(v.dataSchema);
                 }
             } else {
-                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(this, v.name, v.type, false, v.dataSchema));
             }
         });
 
         this.schema.forEach((k, v) -> {
             if(!otherSchema.schema.containsKey(k)){
-                this.schema.put(k, new DataSchemaEntry<>(v.name, v.type, false, v.dataSchema));
+                this.schema.put(k, new DataSchemaEntry<>(this, v.name, v.type, false, v.dataSchema));
             }
         });
     }
@@ -122,6 +130,120 @@ public class SimpleDataSchema extends DataSchema {
         }
 
         return terms;
+    }
+
+    @Override
+    public  <T extends DataSchema> DataSchemaEntry<T> getParentEntry() {
+        //noinspection unchecked
+        return (DataSchemaEntry<T>) parentEntry;
+    }
+
+    @Override
+    public <T extends DataSchema> void setParentEntry(DataSchemaEntry<T> parentEntry) {
+        //noinspection unchecked
+        this.parentEntry = (DataSchemaEntry<SimpleDataSchema>) parentEntry;
+    }
+
+    @Override
+    public void fillSchemaWithConstraints(Node term) {
+        fillSchemaWithConstraints(term, this.getDataSchemaEntries(), 0);
+    }
+
+    private <DS extends DataSchema> void fillSchemaWithConstraints(Node term, Collection<DataSchemaEntry<DS>> schema, int recursiveCount) {
+        Map<Variable, Type> placeholderTypes = term.inferVariableTypes();
+        Map<Variable, List<DataSchemaEntry<DS>>> matchingEntries = new HashMap<>();
+
+        // Find all matching schema entries for each placeholder
+        for (Map.Entry<Variable, Type> placeholder : placeholderTypes.entrySet()) {
+            List<DataSchemaEntry<DS>> matches = findMatchingEntries(schema, placeholder.getKey(), placeholder.getValue(), term, recursiveCount);
+            matchingEntries.put(placeholder.getKey(), matches);
+        }
+
+        // Generate all possible combinations of schema entries that fit the placeholders
+        List<Map<Variable, DataSchemaEntry<DS>>> allCombinations = DataSchema.generateUniqueCombinations(matchingEntries);
+        DataSchema.fillSchemaWithConstraint(term, allCombinations, new HighestEntrySelector<>());
+    }
+
+    private <DS extends DataSchema> List<DataSchemaEntry<DS>> findMatchingEntries(Collection<DataSchemaEntry<DS>> schema, Variable variable, Type valueType, Node term, int recursiveCount) {
+        List<DataSchemaEntry<DS>> matches = new ArrayList<>();
+        for (DataSchemaEntry<DS> entry : schema) {
+            if (valueType.canAssignTo(entry.type)) {
+                matches.add(entry);
+            } else if(entry.type instanceof ArrayType){
+                if (valueType.canAssignTo(((ArrayType) entry.type).elementType())) {
+                    if(recursiveCount <= 0) {
+                        Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
+                        fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
+                    }
+                    continue;
+                } else if(((ArrayType) entry.type).elementType() == TypeEnum.COMPLEXTYPE){
+                    if(recursiveCount <= 0) {
+                        // Find values inside complex value that can be inserted into the term.
+                        List<DataSchemaEntry<DS>> innerMatches = findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount);
+                        for (DataSchemaEntry<DS> innerMatch : innerMatches) {
+                            Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
+                            fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
+                        }
+                    }
+                    continue;
+                }
+            }
+            if (entry.dataSchema != null) {
+                matches.addAll(findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount));
+            }
+        }
+
+        return matches;
+    }
+
+    @Override
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
+        EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
+        data.visitDataEntries((values, dataEntry) -> {
+            if(!(dataEntry instanceof DataObject)){
+                return;
+            }
+
+            evaluateDataObject((DataObject)dataEntry, dataEntry, data, evaluationResults);
+        });
+
+        return evaluationResults;
+    }
+
+    public <DS extends DataSchema, T> void evaluateDataObject(DataObject dao, T dataEntry, DataCollection<T> data, EvaluationResults<DS, T> evaluationResults){
+        Map<Variable, Node> values = new HashMap<>();
+
+        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
+
+        Collection<DataSchemaEntry<DS>> schemaEntries = new HashSet<>();
+        for (DataSchemaEntry<SimpleDataSchema> dataSchemaEntry : this.getDataSchemaEntries()) {
+            //noinspection unchecked
+            schemaEntries.add((DataSchemaEntry<DS>) dataSchemaEntry);
+        }
+        evaluateDataObject(schemaEntries, dao, dataEntry, values, constraints, potentialConstraints, evaluationResults);
+
+        constraints.forEach((k, v) -> {
+            if(v == null || v.isEmpty()){
+                return;
+            }
+
+            for (Constraint constraint : v) {
+                ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
+                constraint.applyData(values, dataEntry, constraintResults);
+            }
+        });
+
+        potentialConstraints.forEach((k, v) -> {
+            if(v == null || v.isEmpty()){
+                return;
+            }
+
+            for (Constraint constraint : v) {
+                ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
+                constraint.applyData(values, dataEntry, constraintResults);
+            }
+        });
     }
 
     public static SimpleDataSchema deriveFromData(DataObject dao){
@@ -216,7 +338,7 @@ public class SimpleDataSchema extends DataSchema {
         StringBuilder sb = new StringBuilder();
         schema.forEach((k, v) -> {
             sb.append(indent);
-            sb.append(v.toString());
+            sb.append(v.toString(indent, "\t"));
             sb.append("\n");
 
             if(v.dataSchema != null){

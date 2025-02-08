@@ -3,9 +3,10 @@ package at.sfischer.constraints;
 import at.sfischer.constraints.data.DataCollection;
 import at.sfischer.constraints.model.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public record Constraint(Node term) {
 
@@ -16,38 +17,44 @@ public record Constraint(Node term) {
 
     }
 
-    public <T> ConstraintResults applyData(DataCollection<T> data) {
-        DataCollection<T> validConstraintData = data.clone();
+    public <T> ConstraintResults<T> applyData(DataCollection<T> data) {
+        DataCollection<T> validConstraintData = data.emptyDataCollection();
         DataCollection<T> missingEvidenceConstraintData = data.emptyDataCollection();
         DataCollection<T> inapplicableConstraintData = data.emptyDataCollection();
-        AtomicBoolean evaluatedTrue = new AtomicBoolean(false);
+
+        ConstraintResults<T> results = new ConstraintResults<>(this, data, validConstraintData, inapplicableConstraintData, missingEvidenceConstraintData);
 
         Set<String> variableNames = new HashSet<>();
         term.visitNodes((VariableVisitor) variable -> variableNames.add(variable.getName()));
-        data.visitDataEntries(variableNames, (values, dataObject) -> {
-            Node valueSetTerm = term.setVariableNameValues(values);
-            Node result = valueSetTerm.evaluate();
-            if (result instanceof MoreStatisticalEvidenceNeeded) {
-                // Store data, if the constraint is violated by enough data we remove them. If it is never violated these should be in validConstraintData.
-                validConstraintData.removeDataEntry(dataObject);
-                missingEvidenceConstraintData.addDataEntry(dataObject);
-            } else if (result instanceof BooleanLiteral) {
-                if (((BooleanLiteral) result).getValue()) {
-                    evaluatedTrue.set(true);
-                } else {
-                    validConstraintData.removeDataEntry(dataObject);
-                }
-            } else {
-                validConstraintData.removeDataEntry(dataObject);
-                inapplicableConstraintData.addDataEntry(dataObject);
-            }
+        data.visitDataEntries(variableNames, (values, dataEntry) -> {
+            applyNamedData(values, dataEntry, results);
         });
 
-        // If the constraint was never violated store all in valid data.
-        if(evaluatedTrue.get() && validConstraintData.size() + missingEvidenceConstraintData.size() == data.size()){
-            validConstraintData.addAll(missingEvidenceConstraintData);
+        return results;
+    }
+
+    public <T> void applyNamedData(Map<String, Node> values, T dataEntry, ConstraintResults<T> results) {
+        Map<Variable, Node> variableValues = new HashMap<>();
+        for (Map.Entry<String, Node> entry : values.entrySet()) {
+            variableValues.put(new Variable(entry.getKey()), entry.getValue());
         }
 
-        return new ConstraintResults(this, data, validConstraintData, inapplicableConstraintData);
+        applyData(variableValues, dataEntry, results);
+    }
+
+    public <T> void applyData(Map<Variable, Node> values, T dataEntry, ConstraintResults<T> results) {
+        Node valueSetTerm = term.setVariableValues(values);
+        Node result = valueSetTerm.evaluate();
+        if (result instanceof MoreStatisticalEvidenceNeeded) {
+            results.missingEvidenceConstraintData().addDataEntry(dataEntry);
+        } else if (result instanceof BooleanLiteral) {
+            if (((BooleanLiteral) result).getValue()) {
+                results.validConstraintData().addDataEntry(dataEntry);
+                results.validConstraintData().addAll(results.missingEvidenceConstraintData());
+                results.missingEvidenceConstraintData().clear();
+            }
+        } else {
+            results.inapplicableConstraintData().addDataEntry(dataEntry);
+        }
     }
 }

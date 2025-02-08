@@ -1,8 +1,15 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.ArrayType;
+import at.sfischer.constraints.model.DataReference;
+import at.sfischer.constraints.model.NumberLiteral;
 import at.sfischer.constraints.model.TypeEnum;
-import org.junit.jupiter.api.*;
+import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
+import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleDataSchemaTest {
@@ -29,7 +36,7 @@ public class SimpleDataSchemaTest {
 		expected.numberEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
 
-		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.stringEntry("value",true);
 
@@ -73,7 +80,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -88,7 +95,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.numberEntry("number",false);
 
@@ -104,7 +111,7 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
 		entry.dataSchema.numberEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -119,12 +126,130 @@ public class SimpleDataSchemaTest {
 
 		SimpleDataSchema expected = new SimpleDataSchema();
 		expected.numberEntry("size", true);
-		DataSchema.DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
 		entry.dataSchema.numberEntry("id",true);
 		entry.dataSchema.numberEntry("number",false);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void evaluateNothingWrongTest() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		schema.numberEntry("size", true);
+		schema.booleanEntry("isEmpty", true);
+
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		entry.dataSchema.numberEntry("id",true);
+		entry.dataSchema.stringEntry("value",true);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{id:0, value:\"string\"}}",
+				"{size:1, isEmpty:false, object:{id:0, value:\"string\"}}",
+				"{size:3, isEmpty:false, object:{id:0, value:\"string\"}}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> expected = new EvaluationResults<>();
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void evaluateMissingMandatoryValueTest() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		schema.numberEntry("size", true);
+		schema.booleanEntry("isEmpty", true);
+
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		entry.dataSchema.numberEntry("id",true);
+		DataSchemaEntry<SimpleDataSchema> valueEntry = entry.dataSchema.stringEntry("value",true);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{id:0, value:\"string\"}}",
+				"{size:1, isEmpty:false, object:{id:0}}",
+				"{size:3, isEmpty:false, object:{id:0, value:\"string\"}}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> expected = new EvaluationResults<>();
+		expected.addResult(new MissingMandatoryValue<>(valueEntry, data.getDataCollection().get(1)));
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void evaluateWrongTypeTest() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		schema.numberEntry("size", true);
+		schema.booleanEntry("isEmpty", true);
+
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		entry.dataSchema.numberEntry("id",true);
+		DataSchemaEntry<SimpleDataSchema> valueEntry = entry.dataSchema.stringEntry("value",true);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{id:0, value:\"string\"}}",
+				"{size:1, isEmpty:false, object:{id:0, value:false}}}",
+				"{size:3, isEmpty:false, object:{id:0, value:\"string\"}}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> expected = new EvaluationResults<>();
+		expected.addResult(new IncompatibleTypes<>(valueEntry, data.getDataCollection().get(1), TypeEnum.BOOLEAN));
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void evaluateNothingWrongWithConstraintsTest() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> sizeEntry = schema.numberEntry("size", true);
+		Constraint sizeConstraint = new Constraint(new GreaterThanOrEqualOperator(new DataReference(sizeEntry), new NumberLiteral(0)));
+		sizeEntry.constraints.add(sizeConstraint);
+		schema.booleanEntry("isEmpty", true);
+
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		entry.dataSchema.numberEntry("id",true);
+		entry.dataSchema.stringEntry("value",true);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{id:0, value:\"string\"}}",
+				"{size:1, isEmpty:false, object:{id:0, value:\"string\"}}",
+				"{size:3, isEmpty:false, object:{id:0, value:\"string\"}}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+		ConstraintResults<DataObject> results = actual.getConstraintResults(sizeEntry, sizeConstraint, data);
+
+		assertEquals(1.0, results.applicationRate());
+		assertFalse(results.foundCounterExample());
+	}
+
+	@Test
+	public void evaluateViolatedConstraintsTest() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> sizeEntry = schema.numberEntry("size", true);
+		Constraint sizeConstraint = new Constraint(new GreaterThanOperator(new DataReference(sizeEntry), new NumberLiteral(0)));
+		sizeEntry.constraints.add(sizeConstraint);
+		schema.booleanEntry("isEmpty", true);
+
+		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
+		entry.dataSchema.numberEntry("id",true);
+		entry.dataSchema.stringEntry("value",true);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{id:0, value:\"string\"}}",
+				"{size:1, isEmpty:false, object:{id:0, value:\"string\"}}",
+				"{size:3, isEmpty:false, object:{id:0, value:\"string\"}}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+		ConstraintResults<DataObject> results = actual.getConstraintResults(sizeEntry, sizeConstraint, data);
+
+		assertEquals(2.0/3.0, results.applicationRate());
+		assertTrue(results.foundCounterExample());
 	}
 }
