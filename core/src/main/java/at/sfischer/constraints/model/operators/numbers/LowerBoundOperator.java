@@ -105,7 +105,7 @@ public class LowerBoundOperator extends Function {
         for (int i = 0; i < newBounds.length; i++) {
             newBounds[i] = new NumberLiteral(bounds[i]);
         }
-        // Update bounds to empty array with the bounds that still could apply.
+        // Update bounds to array with the bounds that still could apply.
         //noinspection unchecked
         ArrayValues<NumberLiteral> boundsParameter = (ArrayValues<NumberLiteral>) getParameter(1);
         boundsParameter.setValue(newBounds);
