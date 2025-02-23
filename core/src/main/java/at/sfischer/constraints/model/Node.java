@@ -33,6 +33,12 @@ public interface Node {
         return setVariableValues(variableValues);
     }
 
+    default Node setVariableValue(Variable variable, Node value){
+        Map<Variable, Node> variableValues = new HashMap<>();
+        variableValues.put(variable, value);
+        return setVariableValues(variableValues);
+    }
+
     Node setVariableValues(Map<Variable, Node> values);
 
     default Node cloneNode(){

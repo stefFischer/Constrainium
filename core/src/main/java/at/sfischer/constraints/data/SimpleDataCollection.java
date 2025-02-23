@@ -16,7 +16,7 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     }
 
     @Override
-    public DataSchema deriveSchema() {
+    public SimpleDataSchema deriveSchema() {
         SimpleDataSchema schema = null;
         for (DataObject dataObject : dataCollection) {
             if(schema == null){
@@ -41,6 +41,11 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     @Override
     public void removeDataEntry(DataObject dataObject) {
         dataCollection.remove(dataObject);
+    }
+
+    @Override
+    public void clear() {
+        dataCollection.clear();
     }
 
     @Override

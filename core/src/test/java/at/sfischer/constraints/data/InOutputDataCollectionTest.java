@@ -1,8 +1,9 @@
 package at.sfischer.constraints.data;
 
 import org.javatuples.Pair;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InOutputDataCollectionTest {
 	@Test
@@ -18,7 +19,7 @@ public class InOutputDataCollectionTest {
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
         outputSchema.numberEntry("size", true);
-        SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+        DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
         entry.dataSchema.numberEntry("number",true);
 
         InOutputDataSchema<SimpleDataSchema> expected = new InOutputDataSchema<>(inputSchema, outputSchema);
@@ -41,7 +42,7 @@ public class InOutputDataCollectionTest {
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
         outputSchema.numberEntry("size", true);
-        SimpleDataSchema.DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", false);
+        DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", false);
         entry.dataSchema.numberEntry("number",true);
 
         InOutputDataSchema<SimpleDataSchema> expected = new InOutputDataSchema<>(inputSchema, outputSchema);
