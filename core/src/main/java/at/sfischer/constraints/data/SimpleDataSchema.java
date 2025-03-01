@@ -68,14 +68,15 @@ public class SimpleDataSchema extends DataSchema {
         return arrayEntryFor(TypeEnum.COMPLEXTYPE, name, mandatory);
     }
 
-
-
     private void addAll(SimpleDataSchema otherSchema) {
         if(otherSchema == null){
             return;
         }
 
         schema.putAll(otherSchema.schema);
+        otherSchema.schema.forEach((k, v) -> {
+            v.parentSchema = this;
+        });
     }
 
 

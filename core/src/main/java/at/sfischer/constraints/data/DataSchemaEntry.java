@@ -23,7 +23,7 @@ public class DataSchemaEntry<T extends DataSchema> {
     // Constraints that could be possible but still need confirmation.
     public final Set<Constraint> potentialConstraints;
 
-    public final T parentSchema;
+    protected T parentSchema;
 
     public DataSchemaEntry(T parentSchema, String name, Type type, boolean mandatory, T dataSchema) {
         this.parentSchema = parentSchema;
@@ -62,12 +62,12 @@ public class DataSchemaEntry<T extends DataSchema> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         DataSchemaEntry<?> that = (DataSchemaEntry<?>) o;
-        return Objects.equals(name, that.name) && Objects.equals(getQualifiedName(), that.getQualifiedName()) && Objects.equals(type, that.type);
+        return mandatory == that.mandatory && Objects.equals(name, that.name) && Objects.equals(getQualifiedName(), that.getQualifiedName()) && Objects.equals(type, that.type) && Objects.equals(dataSchema, that.dataSchema);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, getQualifiedName(), type);
+        return Objects.hash(name, getQualifiedName(), type, mandatory, dataSchema);
     }
 
     @Override
@@ -78,6 +78,7 @@ public class DataSchemaEntry<T extends DataSchema> {
     public String toString(String indent, String indentIncrease) {
         StringBuilder sb = new StringBuilder(indent);
         sb.append(name).append(": ").append(type).append(" (").append(mandatory ? "mandatory" : "optional").append(")");
+        sb.append(" [").append(getQualifiedName()).append("]");
         if(!constraints.isEmpty()) {
             sb.append("\n");
             sb.append(indent);
