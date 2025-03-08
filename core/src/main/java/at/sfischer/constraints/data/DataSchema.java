@@ -1,6 +1,9 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.miner.AndConstraintPolicy;
+import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -35,6 +38,25 @@ public abstract class DataSchema {
     public abstract void fillSchemaWithConstraints(Node term);
 
     public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
+
+    protected abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints);
+
+    // TODO Think of a better name for this method.
+    public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy... policies){
+        applyConstraintRetentionPolicy(evaluationResults, new AndConstraintPolicy(policies));
+    }
+
+    public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy policy){
+        evaluationResults.getPotentialConstraintResults().forEach((k, v) -> {
+            for (ConstraintResults<T> constraintResults : v) {
+                Constraint constraint = k.getPotentionConstraint(constraintResults.constraint());
+                k.potentialConstraints.remove(constraint);
+                if(policy.includeConstraint(constraintResults)){
+                    k.constraints.add(constraint);
+                }
+            }
+        });
+    }
 
     /**
      *
