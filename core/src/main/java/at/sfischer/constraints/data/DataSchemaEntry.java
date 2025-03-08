@@ -58,6 +58,16 @@ public class DataSchemaEntry<T extends DataSchema> {
         return this.parentSchema.getParentEntry();
     }
 
+    public Constraint getPotentionConstraint(Constraint constraint){
+        for (Constraint potentialConstraint : potentialConstraints) {
+            if(potentialConstraint.equals(constraint)){
+                return potentialConstraint;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -79,6 +89,7 @@ public class DataSchemaEntry<T extends DataSchema> {
         StringBuilder sb = new StringBuilder(indent);
         sb.append(name).append(": ").append(type).append(" (").append(mandatory ? "mandatory" : "optional").append(")");
         sb.append(" [").append(getQualifiedName()).append("]");
+        sb.append(System.identityHashCode(this));
         if(!constraints.isEmpty()) {
             sb.append("\n");
             sb.append(indent);

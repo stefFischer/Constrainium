@@ -1,6 +1,9 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.miner.AndConstraintPolicy;
+import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -35,6 +38,25 @@ public abstract class DataSchema {
     public abstract void fillSchemaWithConstraints(Node term);
 
     public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
+
+    protected abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints);
+
+    // TODO Think of a better name for this method.
+    public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy... policies){
+        applyConstraintRetentionPolicy(evaluationResults, new AndConstraintPolicy(policies));
+    }
+
+    public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy policy){
+        evaluationResults.getPotentialConstraintResults().forEach((k, v) -> {
+            for (ConstraintResults<T> constraintResults : v) {
+                Constraint constraint = k.getPotentionConstraint(constraintResults.constraint());
+                k.potentialConstraints.remove(constraint);
+                if(policy.includeConstraint(constraintResults)){
+                    k.constraints.add(constraint);
+                }
+            }
+        });
+    }
 
     /**
      *
@@ -336,9 +358,7 @@ public abstract class DataSchema {
             Collection<DataSchemaEntry<DS>> schemaEntries,
             DataObject dao,
             T dataEntry,
-            Map<Variable, Node> values,
-            Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
-            Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints,
+            Map<Variable, List<Node>> values,
             EvaluationResults<DS, T> evaluationResults
     ){
         for (DataSchemaEntry<DS> entry : schemaEntries) {
@@ -354,15 +374,34 @@ public abstract class DataSchema {
                 evaluationResults.addResult(new IncompatibleTypes<>(entry, dataEntry, value.getType()));
             }
 
-            if(entry.type == TypeEnum.COMPLEXTYPE){
-                entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), (DataObject) value.getValue(), dataEntry, values, constraints, potentialConstraints, evaluationResults);
+            if(entry.type instanceof ArrayType){
+                Type internalElementType = internalElementType((ArrayType) entry.type);
+                if(internalElementType == TypeEnum.COMPLEXTYPE){
+                    DataObject[] val = (DataObject[])value.getValue();
+                    for (DataObject dataObject : val) {
+                        entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), dataObject, dataEntry, values, evaluationResults);
+                    }
+                }
+
+                Value<?> literal = value.getLiteralValue();
+                List<Node> valuesList = values.computeIfAbsent(new DataReference(entry), k -> new LinkedList<>());
+                valuesList.add(literal);
+
+            } else if(entry.type == TypeEnum.COMPLEXTYPE){
+                entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), (DataObject) value.getValue(), dataEntry, values, evaluationResults);
             } else {
                 Value<?> literal = value.getLiteralValue();
-                values.put(new DataReference(entry), literal);
+                List<Node> valuesList = values.computeIfAbsent(new DataReference(entry), k -> new LinkedList<>());
+                valuesList.add(literal);
             }
-
-            constraints.put(entry, entry.constraints);
-            potentialConstraints.put(entry, entry.potentialConstraints);
         }
+    }
+
+    static Type internalElementType(ArrayType arrayType){
+        if(arrayType.elementType() instanceof ArrayType) {
+            return internalElementType((ArrayType) arrayType.elementType());
+        }
+
+        return arrayType.elementType();
     }
 }

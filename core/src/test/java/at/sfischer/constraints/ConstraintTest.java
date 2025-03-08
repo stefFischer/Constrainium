@@ -44,7 +44,7 @@ public class ConstraintTest {
 				"{size:3, isEmpty:false, object:{number:7}}"
 		);
 
-		ConstraintResults expected = new ConstraintResults(constraint, data, new SimpleDataCollection());
+		ConstraintResults expected = new ConstraintResults(constraint, data, data.emptyDataCollection(), data, data.emptyDataCollection(), data.emptyDataCollection());
 		ConstraintResults actual = constraint.applyData(data);
 
 		assertThat(actual).
@@ -64,8 +64,11 @@ public class ConstraintTest {
 				"{size:1, isEmpty:false, object:{number:3}}",
 				"{size:3, isEmpty:false, object:{number:7}}"
 		);
+		SimpleDataCollection expectedInvalidData = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{number:2}}"
+		);
 
-		ConstraintResults expected = new ConstraintResults(constraint, data, expectedAppliedData);
+		ConstraintResults expected = new ConstraintResults(constraint, data, expectedAppliedData, expectedInvalidData, data.emptyDataCollection(), data.emptyDataCollection());
 		ConstraintResults actual = constraint.applyData(data);
 
 		assertThat(actual).
@@ -102,8 +105,11 @@ public class ConstraintTest {
 				"{size:0, object:{number:2}, array:[1,2,3,4]}",
 				"{size:1, object:{number:3}, array:[5,6,7,9]}"
 		);
+		SimpleDataCollection expectedInvalidData = SimpleDataCollection.parseData(
+				"{size:3, object:{number:7}, array:[10,1,2,3]}"
+		);
 
-		ConstraintResults expected = new ConstraintResults(constraint, data, expectedAppliedData);
+		ConstraintResults expected = new ConstraintResults(constraint, data, expectedAppliedData, expectedInvalidData, data.emptyDataCollection(), data.emptyDataCollection());
 		ConstraintResults actual = constraint.applyData(data);
 
 		assertThat(actual).

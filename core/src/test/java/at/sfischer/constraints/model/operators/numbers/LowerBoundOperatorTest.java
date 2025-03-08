@@ -89,8 +89,8 @@ public class LowerBoundOperatorTest {
 		ConstraintResults results = constraint.applyData(data);
 
 		assertEquals(0.0, results.applicationRate());
-		assertTrue(results.foundCounterExample());
-		assertEquals(7, results.numberOfViolations());
+		assertFalse(results.foundCounterExample());
+		assertEquals(7, results.missingEvidenceConstraintData().numberOfDataEntries());
 	}
 
 	@Test

@@ -7,7 +7,13 @@ import at.sfischer.constraints.data.DataCollection;
  * @param data                Data on which the constraint was evaluated on.
  * @param validConstraintData Data for which the constraint evaluates to true.
  */
-public record ConstraintResults<T>(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
+public record ConstraintResults<T>(
+        Constraint constraint,
+        DataCollection<T> data,
+        DataCollection<T> validConstraintData,
+        DataCollection<T> invalidConstraintData,
+        DataCollection<T> inapplicableConstraintData,
+        DataCollection<T> missingEvidenceConstraintData) {
     public ConstraintResults(Constraint constraint, DataCollection<T> data) {
         this(constraint, data, data.emptyDataCollection());
     }
@@ -21,9 +27,14 @@ public record ConstraintResults<T>(Constraint constraint, DataCollection<T> data
     }
 
     public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
+        this(constraint, data, validConstraintData, data.emptyDataCollection(), inapplicableConstraintData, missingEvidenceConstraintData);
+    }
+
+    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> invalidConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
         this.constraint = constraint;
         this.data = data;
         this.validConstraintData = validConstraintData;
+        this.invalidConstraintData = invalidConstraintData;
         this.inapplicableConstraintData = inapplicableConstraintData;
         this.missingEvidenceConstraintData = missingEvidenceConstraintData;
     }
@@ -33,7 +44,7 @@ public record ConstraintResults<T>(Constraint constraint, DataCollection<T> data
     }
 
     public int numberOfViolations() {
-        return data.numberOfDataEntries() - validConstraintData.numberOfDataEntries() - numberOfInapplicableEntries();
+        return invalidConstraintData.numberOfDataEntries();
     }
 
     public int numberOfValidDataEntries(){
@@ -66,6 +77,7 @@ public record ConstraintResults<T>(Constraint constraint, DataCollection<T> data
                 "constraint=" + constraint +
                 ", data=" + data.size() +
                 ", validConstraintData=" + validConstraintData.size() +
+                ", invalidConstraintData=" + invalidConstraintData.size() +
                 ", inapplicableConstraintData=" + numberOfInapplicableEntries() +
                 '}';
     }
