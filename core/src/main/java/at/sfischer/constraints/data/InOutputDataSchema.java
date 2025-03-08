@@ -92,28 +92,42 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
     }
 
     @Override
+    protected <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
+        this.outputSchema.collectAllConstraints(constraints, potentialConstraints);
+        this.inputSchema.collectAllConstraints(constraints, potentialConstraints);
+    }
+
+    @Override
     public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
+
+        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
+        collectAllConstraints(constraints, potentialConstraints);
         data.visitDataEntries((values, dataEntry) -> {
             if(!(dataEntry instanceof Pair)){
                 return;
             }
 
             //noinspection unchecked
-            evaluateDataObject((Pair<DataObject, DataObject>)dataEntry, dataEntry, data, evaluationResults);
+            evaluateDataObject((Pair<DataObject, DataObject>)dataEntry, dataEntry, data, evaluationResults, constraints, potentialConstraints);
         });
 
         return evaluationResults;
     }
 
-    public <DS extends DataSchema, T> void evaluateDataObject(Pair<DataObject, DataObject> dao, T dataEntry, DataCollection<T> data, EvaluationResults<DS, T> evaluationResults){
-        Map<Variable, Node> values = new HashMap<>();
+    public <DS extends DataSchema, T> void evaluateDataObject(
+            Pair<DataObject, DataObject> dao,
+            T dataEntry,
+            DataCollection<T> data,
+            EvaluationResults<DS, T> evaluationResults,
+            Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
+            Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
+    ){
+        Map<Variable, List<Node>> values = new HashMap<>();
 
-        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
-        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
-
-        evaluateDataObject(inputSchema.getDataSchemaEntries(), dao.getValue0(), dataEntry, values, constraints, potentialConstraints, evaluationResults);
-        evaluateDataObject(outputSchema.getDataSchemaEntries(), dao.getValue1(), dataEntry, values, constraints, potentialConstraints, evaluationResults);
+        evaluateDataObject(inputSchema.getDataSchemaEntries(), dao.getValue0(), dataEntry, values, evaluationResults);
+        evaluateDataObject(outputSchema.getDataSchemaEntries(), dao.getValue1(), dataEntry, values, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){
@@ -122,7 +136,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
             for (Constraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
-                constraint.applyData(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(values, dataEntry, constraintResults);
             }
         });
 
@@ -133,7 +147,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
             for (Constraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
-                constraint.applyData(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(values, dataEntry, constraintResults);
             }
         });
     }

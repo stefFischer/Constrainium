@@ -198,31 +198,52 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     @Override
+    protected <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
+        for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
+            //noinspection unchecked
+            constraints.put((DataSchemaEntry<DS>)entry, entry.constraints);
+            //noinspection unchecked
+            potentialConstraints.put((DataSchemaEntry<DS>)entry, entry.potentialConstraints);
+
+            if(entry.dataSchema != null) {
+                entry.dataSchema.collectAllConstraints(constraints, potentialConstraints);
+            }
+        }
+    }
+
+    @Override
     public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
+
+        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
+        collectAllConstraints(constraints, potentialConstraints);
         data.visitDataEntries((values, dataEntry) -> {
             if(!(dataEntry instanceof DataObject)){
                 return;
             }
 
-            evaluateDataObject((DataObject)dataEntry, dataEntry, data, evaluationResults);
+            evaluateDataObject((DataObject)dataEntry, dataEntry, data, evaluationResults, constraints, potentialConstraints);
         });
 
         return evaluationResults;
     }
 
-    public <DS extends DataSchema, T> void evaluateDataObject(DataObject dao, T dataEntry, DataCollection<T> data, EvaluationResults<DS, T> evaluationResults){
-        Map<Variable, Node> values = new HashMap<>();
-
-        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
-        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
-
+    public <DS extends DataSchema, T> void evaluateDataObject(
+            DataObject dao,
+            T dataEntry,
+            DataCollection<T> data,
+            EvaluationResults<DS, T> evaluationResults,
+            Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
+            Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
+    ){
+        Map<Variable, List<Node>> values = new HashMap<>();
         Collection<DataSchemaEntry<DS>> schemaEntries = new HashSet<>();
         for (DataSchemaEntry<SimpleDataSchema> dataSchemaEntry : this.getDataSchemaEntries()) {
             //noinspection unchecked
             schemaEntries.add((DataSchemaEntry<DS>) dataSchemaEntry);
         }
-        evaluateDataObject(schemaEntries, dao, dataEntry, values, constraints, potentialConstraints, evaluationResults);
+        evaluateDataObject(schemaEntries, dao, dataEntry, values, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){
@@ -231,7 +252,7 @@ public class SimpleDataSchema extends DataSchema {
 
             for (Constraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
-                constraint.applyData(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(values, dataEntry, constraintResults);
             }
         });
 
@@ -242,7 +263,7 @@ public class SimpleDataSchema extends DataSchema {
 
             for (Constraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
-                constraint.applyData(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(values, dataEntry, constraintResults);
             }
         });
     }
@@ -308,14 +329,6 @@ public class SimpleDataSchema extends DataSchema {
         }
 
         throw new IllegalStateException("Unexpected value: " + value.getType());
-    }
-
-    private static Type internalElementType(ArrayType arrayType){
-        if(arrayType.elementType() instanceof ArrayType) {
-            return internalElementType((ArrayType) arrayType.elementType());
-        }
-
-        return arrayType.elementType();
     }
 
     private static List<DataObject> internalElements(DataValue<?> value){
