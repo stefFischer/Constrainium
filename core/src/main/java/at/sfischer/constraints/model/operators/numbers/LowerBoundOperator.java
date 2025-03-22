@@ -6,6 +6,7 @@ import at.sfischer.constraints.model.operators.Function;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class LowerBoundOperator extends Function {
 
@@ -153,5 +154,21 @@ public class LowerBoundOperator extends Function {
     @Override
     public Type getReturnType() {
         return TypeEnum.BOOLEAN;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Function function = (Function) o;
+        return Objects.equals(getName(), function.getName())
+                && Objects.equals(getParameter(0), function.getParameter(0))
+                && Objects.equals(getParameter(2), function.getParameter(2))
+                && Objects.equals(getParameter(4), function.getParameter(4));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getParameter(0), getParameter(2), getParameter(4));
     }
 }

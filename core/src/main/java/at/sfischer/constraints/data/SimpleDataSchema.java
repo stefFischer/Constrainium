@@ -5,7 +5,6 @@ import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
-import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Triplet;
 
 import java.util.*;
@@ -179,16 +178,6 @@ public class SimpleDataSchema extends DataSchema {
                     if(recursiveCount <= 0) {
                         Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
                         fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
-                    }
-                    continue;
-                } else if(((ArrayType) entry.type).elementType() == TypeEnum.COMPLEXTYPE){
-                    if(recursiveCount <= 0) {
-                        // Find values inside complex value that can be inserted into the term.
-                        List<DataSchemaEntry<DS>> innerMatches = findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount);
-                        for (DataSchemaEntry<DS> innerMatch : innerMatches) {
-                            Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
-                            fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
-                        }
                     }
                     continue;
                 }
