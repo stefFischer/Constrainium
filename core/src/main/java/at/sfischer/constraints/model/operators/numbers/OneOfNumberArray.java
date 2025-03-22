@@ -6,6 +6,7 @@ import at.sfischer.constraints.model.operators.Function;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class OneOfNumberArray extends Function {
 
@@ -73,5 +74,20 @@ public class OneOfNumberArray extends Function {
     @Override
     public Type getReturnType() {
         return TypeEnum.BOOLEAN;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Function function = (Function) o;
+        return Objects.equals(getName(), function.getName())
+                && Objects.equals(getParameter(0), function.getParameter(0))
+                && Objects.equals(getParameter(1), function.getParameter(1));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getParameter(0), getParameter(1));
     }
 }

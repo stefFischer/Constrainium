@@ -15,6 +15,18 @@ public record Constraint(Node term) {
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Constraint that = (Constraint) o;
+        return Objects.equals(term, that.term);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(term);
+    }
+
     public <T> ConstraintResults<T> applyData(DataCollection<T> data) {
         DataCollection<T> validConstraintData = data.emptyDataCollection();
         DataCollection<T> missingEvidenceConstraintData = data.emptyDataCollection();

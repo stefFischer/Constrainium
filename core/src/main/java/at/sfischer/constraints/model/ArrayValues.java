@@ -53,7 +53,7 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), elementType);
+        return Objects.hash(elementType, Arrays.hashCode(this.getValue()));
     }
 
     public static ArrayValues<?> createArrayValuesFromList(List<Node> literals){
