@@ -67,7 +67,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             } else if(entry.type instanceof ArrayType){
                 if (valueType.canAssignTo(((ArrayType) entry.type).elementType())) {
                     if(recursiveCount <= 0) {
-                        Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
+                        Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
                         fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, schema, otherSchema, recursiveCount + 1);
                     }
                     continue;
@@ -76,7 +76,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
                         // Find values inside complex value that can be inserted into the term.
                         List<DataSchemaEntry<DS>> innerMatches = findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), otherSchema, variable, valueType, term, recursiveCount);
                         for (DataSchemaEntry<DS> innerMatch : innerMatches) {
-                            Node replacedTerm = new ForAll(variable, term.setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
+                            Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
                             fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, schema, otherSchema, recursiveCount + 1);
                         }
                     }
