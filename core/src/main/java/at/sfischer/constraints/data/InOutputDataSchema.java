@@ -2,10 +2,12 @@ package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
-import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.ArrayType;
+import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
-import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
 
@@ -69,16 +71,6 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
                     if(recursiveCount <= 0) {
                         Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
                         fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, schema, otherSchema, recursiveCount + 1);
-                    }
-                    continue;
-                } else if(((ArrayType) entry.type).elementType() == TypeEnum.COMPLEXTYPE){
-                    if(recursiveCount <= 0) {
-                        // Find values inside complex value that can be inserted into the term.
-                        List<DataSchemaEntry<DS>> innerMatches = findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), otherSchema, variable, valueType, term, recursiveCount);
-                        for (DataSchemaEntry<DS> innerMatch : innerMatches) {
-                            Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(innerMatch.getQualifiedName().substring(entry.getQualifiedName().length() + 1)))));
-                            fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, schema, otherSchema, recursiveCount + 1);
-                        }
                     }
                     continue;
                 }

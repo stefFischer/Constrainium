@@ -101,20 +101,18 @@ public class DataSchemaTest {
 		DataSchemaEntry<SimpleDataSchema> size = schema.numberEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> array = schema.objectArrayEntry("array", true);
 
-		array.dataSchema.numberEntry("value",true);
+		DataSchemaEntry<SimpleDataSchema> arrayValue = array.dataSchema.numberEntry("value",true);
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
 		schema.fillSchemaWithConstraints(term);
 
-		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("value")))));
-		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("value")), new DataReference(size))));
+		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new DataReference(arrayValue)));
+		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(arrayValue), new DataReference(size)));
 
-		assertEquals(1, size.potentialConstraints.size());
-		assertEquals(constraint1, size.potentialConstraints.iterator().next());
-
-		assertEquals(1, array.potentialConstraints.size());
-		assertEquals(constraint2, array.potentialConstraints.iterator().next());
+		assertEquals(2, size.potentialConstraints.size());
+		assertTrue(size.potentialConstraints.contains(constraint1));
+		assertTrue(size.potentialConstraints.contains(constraint2));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
 				"{size:1, array:[{value: 1}]}",
@@ -130,7 +128,7 @@ public class DataSchemaTest {
 		assertEquals(1.0, constraintResults1.applicationRate());
 		assertFalse(constraintResults1.foundCounterExample());
 
-		ConstraintResults<DataObject> constraintResults2 = results.getPotentialConstraintResults(array, constraint2, data);
+		ConstraintResults<DataObject> constraintResults2 = results.getPotentialConstraintResults(size, constraint2, data);
 		assertEquals(1.0/3.0, constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
 	}
@@ -239,7 +237,7 @@ public class DataSchemaTest {
 
 		SimpleDataSchema outputSchema = new SimpleDataSchema();
 		DataSchemaEntry<SimpleDataSchema> array = outputSchema.objectArrayEntry("array", true);
-		array.dataSchema.numberEntry("number",true);
+		DataSchemaEntry<SimpleDataSchema> arrayNumber = array.dataSchema.numberEntry("number",true);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
 
@@ -247,12 +245,12 @@ public class DataSchemaTest {
 
 		schema.fillSchemaWithConstraints(term);
 
-		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")))));
-		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new DataReference(size))));
+		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new DataReference(arrayNumber)));
+		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(arrayNumber), new DataReference(size)));
 
-		assertEquals(2, array.potentialConstraints.size());
-		assertTrue(array.potentialConstraints.contains(constraint1));
-		assertTrue(array.potentialConstraints.contains(constraint2));
+		assertEquals(2, arrayNumber.potentialConstraints.size());
+		assertTrue(arrayNumber.potentialConstraints.contains(constraint1));
+		assertTrue(arrayNumber.potentialConstraints.contains(constraint2));
 
 		InOutputDataCollection data = InOutputDataCollection.parseData(
 				new Pair<>("{size:1}", "{array:[{number:1}]}"),
@@ -264,11 +262,11 @@ public class DataSchemaTest {
 
 		assertEquals(0, results.getEvaluationResults().size());
 
-		ConstraintResults<Pair<DataObject, DataObject>> constraintResults1 = results.getPotentialConstraintResults(array, constraint1, data);
+		ConstraintResults<Pair<DataObject, DataObject>> constraintResults1 = results.getPotentialConstraintResults(arrayNumber, constraint1, data);
 		assertEquals(1.0, constraintResults1.applicationRate());
 		assertFalse(constraintResults1.foundCounterExample());
 
-		ConstraintResults<Pair<DataObject, DataObject>> constraintResults2 = results.getPotentialConstraintResults(array, constraint2, data);
+		ConstraintResults<Pair<DataObject, DataObject>> constraintResults2 = results.getPotentialConstraintResults(arrayNumber, constraint2, data);
 		assertEquals(1.0/3.0, constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
 
