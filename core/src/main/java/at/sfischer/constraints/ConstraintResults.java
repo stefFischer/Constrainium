@@ -79,6 +79,7 @@ public record ConstraintResults<T>(
                 ", validConstraintData=" + validConstraintData.size() +
                 ", invalidConstraintData=" + invalidConstraintData.size() +
                 ", inapplicableConstraintData=" + numberOfInapplicableEntries() +
+                ", missingEvidenceConstraintData=" + missingEvidenceConstraintData.size() +
                 '}';
     }
 }
