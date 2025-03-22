@@ -86,7 +86,7 @@ public class DataSchemaEntry<T extends DataSchema> {
     }
 
     public String toString(String indent, String indentIncrease) {
-        StringBuilder sb = new StringBuilder(indent);
+        StringBuilder sb = new StringBuilder();
         sb.append(name).append(": ").append(type).append(" (").append(mandatory ? "mandatory" : "optional").append(")");
         sb.append(" [").append(getQualifiedName()).append("]");
         sb.append(System.identityHashCode(this));
