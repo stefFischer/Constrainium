@@ -122,7 +122,7 @@ public abstract class DataSchema {
                     findAssignableFields(internalTerms, variableTypes, schemaEntry.dataSchema.getDataSchemaEntries(), arrayDereferenceProvider);
                     for (Triplet<Node, Set<Variable>, Set<Node>> term : internalTerms) {
                         Node value = fieldNodeProvider.generateNode(new Pair<>(schemaEntry.name, schemaEntry.type));
-                        Node replacementTerm = new ForAll(value, term.getValue0());
+                        Node replacementTerm = new ForAll(value, term.getValue0().cloneNode());
                         Set<Node> insertedNodes = new HashSet<>();
                         insertedNodes.add(value);
                         internalReplacedTerms.add(new Triplet<>(replacementTerm, term.getValue1(), insertedNodes));
@@ -134,7 +134,7 @@ public abstract class DataSchema {
                     findAssignableFields(internalTerms, variableTypes, internalSchema, arrayElementProvider);
                     for (Triplet<Node, Set<Variable>, Set<Node>> term : internalTerms) {
                         Node value = fieldNodeProvider.generateNode(new Pair<>(schemaEntry.name, schemaEntry.type));
-                        Node replacementTerm = new ForAll(value, term.getValue0());
+                        Node replacementTerm = new ForAll(value, term.getValue0().cloneNode());
                         Set<Node> insertedNodes = new HashSet<>();
                         insertedNodes.add(value);
                         internalReplacedTerms.add(new Triplet<>(replacementTerm, term.getValue1(), insertedNodes));
@@ -203,7 +203,7 @@ public abstract class DataSchema {
             Map<Variable, Node> replacement = new HashMap<>();
             combination.forEach((k, v) -> replacement.put(k, new DataReference(v)));
 
-            Node filledTerm = term.setVariableValues(replacement);
+            Node filledTerm = term.cloneNode().setVariableValues(replacement);
 
             // Determine the first DataSchemaEntry used in the combination
             DataSchemaEntry<?> primaryEntry = selector.selectEntry(combination.values());
