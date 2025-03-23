@@ -191,7 +191,7 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     @Override
-    protected <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
+    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
         for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
             //noinspection unchecked
             constraints.put((DataSchemaEntry<DS>)entry, entry.constraints);
