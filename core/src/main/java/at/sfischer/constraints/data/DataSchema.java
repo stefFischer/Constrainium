@@ -39,7 +39,7 @@ public abstract class DataSchema {
 
     public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
 
-    protected abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints);
+    public abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints);
 
     // TODO Think of a better name for this method.
     public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy... policies){

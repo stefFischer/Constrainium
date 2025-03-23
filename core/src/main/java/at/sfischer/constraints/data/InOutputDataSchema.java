@@ -84,7 +84,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
     }
 
     @Override
-    protected <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
+    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
         this.outputSchema.collectAllConstraints(constraints, potentialConstraints);
         this.inputSchema.collectAllConstraints(constraints, potentialConstraints);
     }

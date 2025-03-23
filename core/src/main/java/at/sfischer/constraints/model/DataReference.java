@@ -14,6 +14,10 @@ public class DataReference extends Variable {
         this.dataSchemaEntry = dataSchemaEntry;
     }
 
+    public DataSchemaEntry<?> getDataSchemaEntry() {
+        return dataSchemaEntry;
+    }
+
     @Override
     public boolean validate() {
         return this.dataSchemaEntry != null;
