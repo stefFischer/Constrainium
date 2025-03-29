@@ -2,6 +2,7 @@ package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.Value;
 import at.sfischer.constraints.model.Variable;
 import org.javatuples.Pair;
 
@@ -69,6 +70,21 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     @Override
     public int size() {
         return this.dataCollection.size();
+    }
+
+    @Override
+    public List<List<Value<?>>> getAllValues(String valueReference) {
+        List<List<Value<?>>> allValues = new LinkedList<>();
+        for (DataObject dataObject : getDataCollection()) {
+            List<Value<?>> values = dataObject.getValues(valueReference);
+            if(values == null){
+                continue;
+            }
+
+            allValues.add(values);
+        }
+
+        return allValues;
     }
 
     protected Map<String, Type> getDataTypes(){

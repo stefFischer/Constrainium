@@ -1,9 +1,6 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.ArrayType;
-import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.Type;
-import at.sfischer.constraints.model.TypeEnum;
+import at.sfischer.constraints.model.*;
 import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -62,6 +59,48 @@ public class DataObject {
 
     public DataValue<?> getDataValue(String name){
         return dataValues.get(name);
+    }
+
+    public List<Value<?>> getValues(String name){
+        int firstDotIndex = name.indexOf('.');
+        String dataValueName = name;
+        String rest = null;
+        if (firstDotIndex != -1) {
+            dataValueName = name.substring(0, firstDotIndex);
+            rest = name.substring(firstDotIndex + 1);
+        }
+
+        DataValue<?> value = dataValues.get(dataValueName);
+        if(value == null){
+            return null;
+        }
+
+        List<Value<?>> values = new LinkedList<>();
+        if(rest == null){
+            values.add(value.getLiteralValue());
+            return values;
+        }
+
+        Type valueType = value.getType();
+        if(valueType == TypeEnum.COMPLEXTYPE){
+            DataObject val = (DataObject)value.getValue();
+            return val.getValues(rest);
+        } else if(valueType instanceof ArrayType && ((ArrayType)valueType).elementType() == TypeEnum.COMPLEXTYPE){
+            DataObject[] vals = (DataObject[])value.getValue();
+            for (DataObject val : vals) {
+                List<Value<?>> nestedValues = val.getValues(rest);
+                if(nestedValues != null){
+                    values.addAll(nestedValues);
+                }
+            }
+            if(values.isEmpty()){
+                return null;
+            }
+
+            return values;
+        }
+
+        return null;
     }
 
     public Set<String> getFieldNames() {

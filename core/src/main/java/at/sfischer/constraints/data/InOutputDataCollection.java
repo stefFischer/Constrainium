@@ -2,6 +2,7 @@ package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Type;
+import at.sfischer.constraints.model.Value;
 import at.sfischer.constraints.model.Variable;
 import org.javatuples.Pair;
 
@@ -42,6 +43,24 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     @Override
     public int size() {
         return this.dataCollection.size();
+    }
+
+    @Override
+    public List<List<Value<?>>> getAllValues(String valueReference) {
+        List<List<Value<?>>> allValues = new LinkedList<>();
+        for (Pair<DataObject, DataObject> pair : getDataCollection()) {
+            List<Value<?>> values = pair.getValue0().getValues(valueReference);
+            if(values == null){
+                values = pair.getValue1().getValues(valueReference);
+                if(values == null){
+                    continue;
+                }
+            }
+
+            allValues.add(values);
+        }
+
+        return allValues;
     }
 
     private void findAssignableInputFields(List<Pair<Node, Set<Variable>>> terms, Map<Variable, Type> variableTypes){
