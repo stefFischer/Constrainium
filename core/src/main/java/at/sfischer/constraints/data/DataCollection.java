@@ -38,6 +38,8 @@ public abstract class DataCollection<T> {
 
     public abstract int size();
 
+    public abstract List<List<Value<?>>> getAllValues(String valueReference);
+
     protected interface FieldNodeProvider{
         Node generateNode(Pair<String, DataValue<?>> field);
     }
