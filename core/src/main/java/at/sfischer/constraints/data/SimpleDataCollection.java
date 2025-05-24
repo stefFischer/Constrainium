@@ -87,6 +87,17 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
         return allValues;
     }
 
+    @Override
+    public List<Map<Variable, Node>> getAllValueCombinations(Set<Variable> variables) {
+        List<Map<Variable, Node>> valueCombinations = new LinkedList<>();
+        Map<Utils.Path, Utils.Group> groups = Utils.groupByCollapsedHierarchy(variables);
+        for (DataObject dataObject : getDataCollection()) {
+            List<Map<Variable, Node>> dataValues = Utils.collectValueCombinations(dataObject, groups);
+            valueCombinations.addAll(dataValues);
+        }
+        return valueCombinations;
+    }
+
     protected Map<String, Type> getDataTypes(){
         return getDataTypes(this.dataCollection);
     }

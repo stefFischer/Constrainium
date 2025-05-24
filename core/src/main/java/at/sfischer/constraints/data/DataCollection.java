@@ -40,6 +40,8 @@ public abstract class DataCollection<T> {
 
     public abstract List<List<Value<?>>> getAllValues(String valueReference);
 
+    public abstract List<Map<Variable, Node>> getAllValueCombinations(Set<Variable> variables);
+
     protected interface FieldNodeProvider{
         Node generateNode(Pair<String, DataValue<?>> field);
     }

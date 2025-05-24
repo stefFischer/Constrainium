@@ -13,6 +13,8 @@ import org.javatuples.Triplet;
 
 import java.util.*;
 
+import static at.sfischer.constraints.data.Utils.*;
+
 public abstract class DataSchema {
 
     protected interface FieldNodeProvider{
@@ -358,7 +360,6 @@ public abstract class DataSchema {
             Collection<DataSchemaEntry<DS>> schemaEntries,
             DataObject dao,
             T dataEntry,
-            Map<Variable, List<Node>> values,
             EvaluationResults<DS, T> evaluationResults
     ){
         for (DataSchemaEntry<DS> entry : schemaEntries) {
@@ -379,20 +380,11 @@ public abstract class DataSchema {
                 if(internalElementType == TypeEnum.COMPLEXTYPE){
                     DataObject[] val = (DataObject[])value.getValue();
                     for (DataObject dataObject : val) {
-                        entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), dataObject, dataEntry, values, evaluationResults);
+                        entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), dataObject, dataEntry, evaluationResults);
                     }
                 }
-
-                Value<?> literal = value.getLiteralValue();
-                List<Node> valuesList = values.computeIfAbsent(new DataReference(entry), k -> new LinkedList<>());
-                valuesList.add(literal);
-
             } else if(entry.type == TypeEnum.COMPLEXTYPE){
-                entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), (DataObject) value.getValue(), dataEntry, values, evaluationResults);
-            } else {
-                Value<?> literal = value.getLiteralValue();
-                List<Node> valuesList = values.computeIfAbsent(new DataReference(entry), k -> new LinkedList<>());
-                valuesList.add(literal);
+                entry.dataSchema.evaluateDataObject(entry.dataSchema.getDataSchemaEntries(), (DataObject) value.getValue(), dataEntry, evaluationResults);
             }
         }
     }

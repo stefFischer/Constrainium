@@ -93,6 +93,16 @@ public record Constraint(Node term) {
             this.inapplicable = this.inapplicable || result.inapplicable;
             this.moreStatisticalEvidenceNeeded = this.moreStatisticalEvidenceNeeded || result.moreStatisticalEvidenceNeeded;
         }
+
+        @Override
+        public String toString() {
+            return "ApplicationResult{" +
+                    "valid=" + valid +
+                    ", invalid=" + invalid +
+                    ", inapplicable=" + inapplicable +
+                    ", moreStatisticalEvidenceNeeded=" + moreStatisticalEvidenceNeeded +
+                    '}';
+        }
     }
 
     private static ApplicationResult applyDataRecursive(
@@ -141,6 +151,56 @@ public record Constraint(Node term) {
         }
 
         return result;
+    }
+
+    public <T> void applyDataCombinations(List<Map<Variable, Node>> valueCombinations, T dataEntry, ConstraintResults<T> results) {
+        ApplicationResult result = applyData(term, valueCombinations);
+        if (result.invalid) {
+            results.invalidConstraintData().addDataEntry(dataEntry);
+        } else if (result.valid) {
+            results.validConstraintData().addDataEntry(dataEntry);
+
+            // Move data from missingEvidenceConstraintData into validConstraintData, because this result suggests we have enough evidence now.
+            results.validConstraintData().addAll(results.missingEvidenceConstraintData());
+            results.missingEvidenceConstraintData().clear();
+        } else if (result.inapplicable) { // TODO Maybe we should make it configurable to decide the behavior here? If valid or inapplicable should be preferred if we have multiple value combinations and in some not all values are set.
+            results.inapplicableConstraintData().addDataEntry(dataEntry);
+        } else if (result.moreStatisticalEvidenceNeeded) {
+            results.missingEvidenceConstraintData().addDataEntry(dataEntry);
+
+            // TODO Maybe we should move all validConstraintData into missingEvidenceConstraintData here? In case we had enough evidence for one lower bound but then a lower data occurred and we don't have enough evidence for that lower bound yet.
+        }
+    }
+
+    private static ApplicationResult applyData(
+            Node term,
+            List<Map<Variable, Node>> valueCombinations
+    ){
+        ApplicationResult applicationResult = new ApplicationResult();
+        if(valueCombinations.isEmpty()){
+            applicationResult.inapplicable = true;
+        }
+        for (Map<Variable, Node> valueCombination : valueCombinations) {
+            Node newTerm = term.setVariableValues(valueCombination);
+            Node result = newTerm.evaluate();
+            if (result instanceof MoreStatisticalEvidenceNeeded) {
+                // More evidence needed.
+                applicationResult.moreStatisticalEvidenceNeeded = true;
+            } else if (result instanceof BooleanLiteral) {
+                // Valid of invalid.
+                if(((BooleanLiteral) result).getValue()){
+                    applicationResult.valid = true;
+                } else {
+                    applicationResult.invalid = true;
+                    break;
+                }
+            } else {
+                // Inapplicable.
+                applicationResult.inapplicable = true;
+            }
+        }
+
+        return applicationResult;
     }
 
     public <T> void applyData(Map<Variable, Node> values, T dataEntry, ConstraintResults<T> results) {
