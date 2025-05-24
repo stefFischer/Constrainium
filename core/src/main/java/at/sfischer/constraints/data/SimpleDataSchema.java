@@ -230,13 +230,12 @@ public class SimpleDataSchema extends DataSchema {
             Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
             Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
     ){
-        Map<Variable, List<Node>> values = new HashMap<>();
         Collection<DataSchemaEntry<DS>> schemaEntries = new HashSet<>();
         for (DataSchemaEntry<SimpleDataSchema> dataSchemaEntry : this.getDataSchemaEntries()) {
             //noinspection unchecked
             schemaEntries.add((DataSchemaEntry<DS>) dataSchemaEntry);
         }
-        evaluateDataObject(schemaEntries, dao, dataEntry, values, evaluationResults);
+        evaluateDataObject(schemaEntries, dao, dataEntry, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){
@@ -244,8 +243,11 @@ public class SimpleDataSchema extends DataSchema {
             }
 
             for (Constraint constraint : v) {
+                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
+                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(dao, constraintVariables);
+
                 ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
             }
         });
 
@@ -255,8 +257,11 @@ public class SimpleDataSchema extends DataSchema {
             }
 
             for (Constraint constraint : v) {
+                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
+                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(dao, constraintVariables);
+
                 ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
             }
         });
     }

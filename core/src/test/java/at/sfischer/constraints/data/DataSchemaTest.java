@@ -4,13 +4,11 @@ import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.DataReference;
 import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.StringLiteral;
 import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
-import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -39,10 +37,10 @@ public class DataSchemaTest {
 		assertTrue(size.potentialConstraints.contains(constraint2));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
-				"{size:0, isEmpty:true, object:{id:10, value:\"string\"}}",
-				"{size:1, isEmpty:false, object:{id:11, value:\"string\"}}",
-				"{size:3, isEmpty:false, object:{id:12, value:\"string\"}}"
-		);
+		  "{size:0, isEmpty:true, object:{id:10, value:\"string\"}}",
+		  "{size:1, isEmpty:false, object:{id:11, value:\"string\"}}",
+		  "{size:3, isEmpty:false, object:{id:12, value:\"string\"}}");
+
 
 		EvaluationResults<SimpleDataSchema, DataObject> results = schema.evaluate(data);
 
@@ -77,10 +75,10 @@ public class DataSchemaTest {
 		assertEquals(constraint2, array.potentialConstraints.iterator().next());
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
-				"{size:1, array:[1]}",
-				"{size:2, array:[1, 2]}",
-				"{size:3, array:[1, 2, 3]}"
-		);
+		  "{size:1, array:[1]}",
+		  "{size:2, array:[1, 2]}",
+		  "{size:3, array:[1, 2, 3]}");
+
 
 		EvaluationResults<SimpleDataSchema, DataObject> results = schema.evaluate(data);
 
@@ -91,7 +89,7 @@ public class DataSchemaTest {
 		assertFalse(constraintResults1.foundCounterExample());
 
 		ConstraintResults<DataObject> constraintResults2 = results.getPotentialConstraintResults(array, constraint2, data);
-		assertEquals(1.0/3.0, constraintResults2.applicationRate());
+		assertEquals(1.0 / 3.0,constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
 	}
 
@@ -115,10 +113,10 @@ public class DataSchemaTest {
 		assertTrue(size.potentialConstraints.contains(constraint2));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
-				"{size:1, array:[{value: 1}]}",
-				"{size:2, array:[{value: 1}, {value: 2}]}",
-				"{size:3, array:[{value: 1}, {value: 2}, {value: 3}]}"
-		);
+		  "{size:1, array:[{value: 1}]}",
+		  "{size:2, array:[{value: 1}, {value: 2}]}",
+		  "{size:3, array:[{value: 1}, {value: 2}, {value: 3}]}");
+
 
 		EvaluationResults<SimpleDataSchema, DataObject> results = schema.evaluate(data);
 
@@ -129,7 +127,7 @@ public class DataSchemaTest {
 		assertFalse(constraintResults1.foundCounterExample());
 
 		ConstraintResults<DataObject> constraintResults2 = results.getPotentialConstraintResults(size, constraint2, data);
-		assertEquals(1.0/3.0, constraintResults2.applicationRate());
+		assertEquals(1.0 / 3.0,constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
 	}
 
@@ -163,10 +161,10 @@ public class DataSchemaTest {
 		assertTrue(size.potentialConstraints.contains(constraint4));
 
 		InOutputDataCollection data = InOutputDataCollection.parseData(
-				new Pair<>("{add:0}", "{size:1, object:{number:0}}"),
-				new Pair<>("{add:1}", "{size:1, object:{number:1}}"),
-				new Pair<>("{add:2}", "{size:1, object:{number:2}}")
-		);
+		  new Pair<>("{add:0}", "{size:1, object:{number:0}}"),
+		  new Pair<>("{add:1}", "{size:1, object:{number:1}}"),
+		  new Pair<>("{add:2}", "{size:1, object:{number:2}}"));
+
 
 		EvaluationResults<SimpleDataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(data);
 
@@ -181,11 +179,11 @@ public class DataSchemaTest {
 		assertFalse(constraintResults2.foundCounterExample());
 
 		ConstraintResults<Pair<DataObject, DataObject>> constraintResults3 = results.getPotentialConstraintResults(size, constraint3, data);
-		assertEquals(2.0/3.0, constraintResults3.applicationRate());
+		assertEquals(2.0 / 3.0,constraintResults3.applicationRate());
 		assertTrue(constraintResults3.foundCounterExample());
 
 		ConstraintResults<Pair<DataObject, DataObject>> constraintResults4 = results.getPotentialConstraintResults(size, constraint4, data);
-		assertEquals(2.0/3.0, constraintResults4.applicationRate());
+		assertEquals(2.0 / 3.0,constraintResults4.applicationRate());
 		assertTrue(constraintResults4.foundCounterExample());
 	}
 
@@ -211,10 +209,10 @@ public class DataSchemaTest {
 		assertTrue(array.potentialConstraints.contains(constraint2));
 
 		InOutputDataCollection data = InOutputDataCollection.parseData(
-				new Pair<>("{size:1}", "{array:[1]}"),
-				new Pair<>("{size:2}", "{array:[1,2]}"),
-				new Pair<>("{size:3}", "{array:[1,2,3]}")
-		);
+		  new Pair<>("{size:1}", "{array:[1]}"),
+		  new Pair<>("{size:2}", "{array:[1,2]}"),
+		  new Pair<>("{size:3}", "{array:[1,2,3]}"));
+
 
 		EvaluationResults<SimpleDataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(data);
 
@@ -225,7 +223,7 @@ public class DataSchemaTest {
 		assertFalse(constraintResults1.foundCounterExample());
 
 		ConstraintResults<Pair<DataObject, DataObject>> constraintResults2 = results.getPotentialConstraintResults(array, constraint2, data);
-		assertEquals(1.0/3.0, constraintResults2.applicationRate());
+		assertEquals(1.0 / 3.0,constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
 
 	}
@@ -253,10 +251,10 @@ public class DataSchemaTest {
 		assertTrue(arrayNumber.potentialConstraints.contains(constraint2));
 
 		InOutputDataCollection data = InOutputDataCollection.parseData(
-				new Pair<>("{size:1}", "{array:[{number:1}]}"),
-				new Pair<>("{size:2}", "{array:[{number:1},{number:2}]}"),
-				new Pair<>("{size:3}", "{array:[{number:1},{number:2},{number:3}]}")
-		);
+		  new Pair<>("{size:1}", "{array:[{number:1}]}"),
+		  new Pair<>("{size:2}", "{array:[{number:1},{number:2}]}"),
+		  new Pair<>("{size:3}", "{array:[{number:1},{number:2},{number:3}]}"));
+
 
 		EvaluationResults<SimpleDataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(data);
 
@@ -267,8 +265,7 @@ public class DataSchemaTest {
 		assertFalse(constraintResults1.foundCounterExample());
 
 		ConstraintResults<Pair<DataObject, DataObject>> constraintResults2 = results.getPotentialConstraintResults(arrayNumber, constraint2, data);
-		assertEquals(1.0/3.0, constraintResults2.applicationRate());
+		assertEquals(1.0 / 3.0,constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
-
 	}
 }

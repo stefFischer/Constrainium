@@ -63,6 +63,18 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         return allValues;
     }
 
+    @Override
+    public List<Map<Variable, Node>> getAllValueCombinations(Set<Variable> variables) {
+        List<Map<Variable, Node>> valueCombinations = new LinkedList<>();
+        for (Pair<DataObject, DataObject> pair : getDataCollection()) {
+            List<Map<Variable, Node>> dataValues0 = Utils.collectValueCombinations(pair.getValue0(), variables);
+            List<Map<Variable, Node>> dataValues1 = Utils.collectValueCombinations(pair.getValue1(), variables);
+            Utils.addValueCombinations(dataValues0, dataValues1);
+            valueCombinations.addAll(dataValues0);
+        }
+        return valueCombinations;
+    }
+
     private void findAssignableInputFields(List<Pair<Node, Set<Variable>>> terms, Map<Variable, Type> variableTypes){
         Set<DataObject> inputDataCollection = new HashSet<>();
         this.dataCollection.forEach(data -> inputDataCollection.add(data.getValue0()));

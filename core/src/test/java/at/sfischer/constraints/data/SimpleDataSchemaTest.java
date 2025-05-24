@@ -252,4 +252,58 @@ public class SimpleDataSchemaTest {
 		assertEquals(2.0/3.0, results.applicationRate());
 		assertTrue(results.foundCounterExample());
 	}
+
+
+	@Test
+	public void evaluateMultipleObjectArrays() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = schema.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+
+		DataSchemaEntry<SimpleDataSchema> objectEntry = arrayEntry.dataSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> idEntry = objectEntry.dataSchema.numberEntry("id", true);
+		DataSchemaEntry<SimpleDataSchema> numberEntry = objectEntry.dataSchema.numberEntry("number", true);
+
+		Constraint idConstraint = new Constraint(new GreaterThanOperator(new DataReference(idEntry), new DataReference(numberEntry)));
+		idEntry.constraints.add(idConstraint);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{array:[{object:{id:1,number:0}}, {object:{id:3,number:2}}]}",
+				"{array:[{object:{id:2,number:1}}, {object:{id:2,number:0}}]}",
+				"{array:[{object:{id:1,number:0}}, {object:{id:4,number:1}}]}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+		ConstraintResults<DataObject> results = actual.getConstraintResults(idEntry, idConstraint, data);
+
+		assertTrue(actual.getEvaluationResults().isEmpty());
+		assertEquals(1.0, results.applicationRate());
+		assertFalse(results.foundCounterExample());
+	}
+
+	@Test
+	public void evaluateDirectObjectArrays() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = schema.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
+
+		DataSchemaEntry<SimpleDataSchema> idEntry = arrayEntry.dataSchema.numberEntry("id", true);
+		DataSchemaEntry<SimpleDataSchema> numberEntry = arrayEntry.dataSchema.numberEntry("number", true);
+
+		Constraint idConstraint = new Constraint(new GreaterThanOperator(new DataReference(idEntry), new DataReference(numberEntry)));
+		idEntry.constraints.add(idConstraint);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{array:[{id:1,number:0}, {id:3,number:2}]}",
+				"{array:[{id:2,number:1}, {id:2,number:0}]}",
+				"{array:[{id:1,number:0}, {id:4,number:1}]}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+		ConstraintResults<DataObject> results = actual.getConstraintResults(idEntry, idConstraint, data);
+
+		assertTrue(actual.getEvaluationResults().isEmpty());
+		assertEquals(1.0, results.applicationRate());
+		assertFalse(results.foundCounterExample());
+	}
 }

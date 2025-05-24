@@ -116,10 +116,8 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
             Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
     ){
-        Map<Variable, List<Node>> values = new HashMap<>();
-
-        evaluateDataObject(inputSchema.getDataSchemaEntries(), dao.getValue0(), dataEntry, values, evaluationResults);
-        evaluateDataObject(outputSchema.getDataSchemaEntries(), dao.getValue1(), dataEntry, values, evaluationResults);
+        evaluateDataObject(inputSchema.getDataSchemaEntries(), dao.getValue0(), dataEntry, evaluationResults);
+        evaluateDataObject(outputSchema.getDataSchemaEntries(), dao.getValue1(), dataEntry, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){
@@ -127,8 +125,15 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             }
 
             for (Constraint constraint : v) {
+                DataObject combinedDao = new DataObject();
+                combinedDao.putDataValues(dao.getValue0());
+                combinedDao.putDataValues(dao.getValue1());
+
+                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
+                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(combinedDao, constraintVariables);
+
                 ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
             }
         });
 
@@ -138,8 +143,15 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             }
 
             for (Constraint constraint : v) {
+                DataObject combinedDao = new DataObject();
+                combinedDao.putDataValues(dao.getValue0());
+                combinedDao.putDataValues(dao.getValue1());
+
+                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
+                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(combinedDao, constraintVariables);
+
                 ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(values, dataEntry, constraintResults);
+                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
             }
         });
     }

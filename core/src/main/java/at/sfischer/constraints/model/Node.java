@@ -90,6 +90,12 @@ public interface Node {
         }
     }
 
+    default Set<Variable> findInvolvedVariables(){
+        Set<Variable> variables = new HashSet<>();
+        visitNodes((VariableVisitor) variables::add);
+        return variables;
+    }
+
     default Map<Variable, Type> inferVariableTypes(){
         return inferVariableTypes(new HashSet<>());
     }

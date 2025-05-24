@@ -8,6 +8,8 @@ import org.json.JSONTokener;
 
 import java.util.*;
 
+import static at.sfischer.constraints.data.Utils.*;
+
 public class DataObject {
 
     private final Map<String, DataValue<?>> dataValues;
@@ -57,6 +59,10 @@ public class DataObject {
         dataValues.put(name, value);
     }
 
+    public void putDataValues(DataObject object) {
+        dataValues.putAll(object.dataValues);
+    }
+
     public DataValue<?> getDataValue(String name){
         return dataValues.get(name);
     }
@@ -98,6 +104,42 @@ public class DataObject {
             }
 
             return values;
+        }
+
+        return null;
+    }
+
+    public List<Value<?>> getValues(Path path) {
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+
+        String currentSegment = path.segment(0);
+        DataValue<?> value = dataValues.get(currentSegment);
+        if (value == null) {
+            return null;
+        }
+
+        if (path.size() == 1) {
+            return List.of(value.getLiteralValue());
+        }
+
+        Path remainingPath = new Path(path.segments().subList(1, path.size()));
+        List<Value<?>> values = new LinkedList<>();
+
+        Type valueType = value.getType();
+        if (valueType == TypeEnum.COMPLEXTYPE) {
+            DataObject nested = (DataObject) value.getValue();
+            return nested.getValues(remainingPath);
+        } else if(valueType instanceof ArrayType && ((ArrayType)valueType).elementType() == TypeEnum.COMPLEXTYPE){
+            DataObject[] nestedArray = (DataObject[]) value.getValue();
+            for (DataObject nested : nestedArray) {
+                List<Value<?>> nestedValues = nested.getValues(remainingPath);
+                if (nestedValues != null) {
+                    values.addAll(nestedValues);
+                }
+            }
+            return values.isEmpty() ? null : values;
         }
 
         return null;
