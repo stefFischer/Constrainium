@@ -17,13 +17,13 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     }
 
     @Override
-    public SimpleDataSchema deriveSchema() {
+    public SimpleDataSchema deriveSchema(TypePromotionPolicy typePromotionPolicy) {
         SimpleDataSchema schema = null;
         for (DataObject dataObject : dataCollection) {
             if(schema == null){
                 schema = SimpleDataSchema.deriveFromData(dataObject);
             } else {
-                schema.unify(SimpleDataSchema.deriveFromData(dataObject));
+                schema.unify(SimpleDataSchema.deriveFromData(dataObject), typePromotionPolicy);
             }
         }
 

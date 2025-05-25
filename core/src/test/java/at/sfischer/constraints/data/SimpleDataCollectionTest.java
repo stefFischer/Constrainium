@@ -51,17 +51,49 @@ public class SimpleDataCollectionTest {
 				"{size:3, isEmpty:false, object:{number:7}}"
 		);
 
-		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
-		expected.booleanEntry("isEmpty", true);
-		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", false);
-		entry.dataSchema.numberEntry("number",true);
-
 		IllegalStateException thrown = assertThrows(
 				IllegalStateException.class,
                 data::deriveSchema
 		);
 
 		assertTrue(thrown.getMessage().startsWith("Types for field \"isEmpty\" are not consistent:"));
+	}
+
+	@Test
+	public void deriveSchemaInconsistentTypesPromotionPolicyBooleanToString() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{number:2}}",
+				"{size:1, isEmpty:\"NO\", object:{number:3}}",
+				"{size:3, isEmpty:false, object:{number:7}}"
+		);
+
+		SimpleDataSchema expected = new SimpleDataSchema();
+		expected.numberEntry("size", true);
+		expected.stringEntry("isEmpty", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
+		entry.dataSchema.numberEntry("number",true);
+
+		DataSchema actual = data.deriveSchema(new DefaultTypePromotionPolicy());
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void deriveSchemaInconsistentTypesPromotionPolicyNumberToString() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{size:0, isEmpty:true, object:{number:2}}",
+				"{size:1, isEmpty:true, object:{number:\"3\"}}",
+				"{size:3, isEmpty:false, object:{number:7}}"
+		);
+
+		SimpleDataSchema expected = new SimpleDataSchema();
+		expected.numberEntry("size", true);
+		expected.booleanEntry("isEmpty", true);
+		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
+		entry.dataSchema.stringEntry("number",true);
+
+		DataSchema actual = data.deriveSchema(new DefaultTypePromotionPolicy());
+
+		assertEquals(expected, actual);
 	}
 }

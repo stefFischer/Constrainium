@@ -82,17 +82,25 @@ public class SimpleDataSchema extends DataSchema {
         });
     }
 
-
-    public void unify(SimpleDataSchema otherSchema){
+    public void unify(SimpleDataSchema otherSchema, TypePromotionPolicy typePromotionPolicy){
         otherSchema.schema.forEach((k, v) -> {
             if(this.schema.containsKey(k)){
                 DataSchemaEntry<SimpleDataSchema> entry = this.schema.get(k);
                 if(!entry.type.equals(v.type)){
-                    throw new IllegalStateException("Types for field \"" + k + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                    if(typePromotionPolicy == null){
+                        throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                    }
+
+                    Type newType= typePromotionPolicy.promote(entry.type, v.type);
+                    if(newType == null){
+                        throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                    }
+
+                    entry.type = newType;
                 }
 
                 if(entry.dataSchema != null){
-                    entry.dataSchema.unify(v.dataSchema);
+                    entry.dataSchema.unify(v.dataSchema, typePromotionPolicy);
                 }
             } else {
                 this.schema.put(k, new DataSchemaEntry<>(this, v.name, v.type, false, v.dataSchema));
@@ -312,7 +320,7 @@ public class SimpleDataSchema extends DataSchema {
                             if(nestedSchema == null){
                                 nestedSchema = schema;
                             } else {
-                                nestedSchema.unify(schema);
+                                nestedSchema.unify(schema, null);
                             }
                         }
 
