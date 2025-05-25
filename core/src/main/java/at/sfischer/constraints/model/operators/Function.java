@@ -99,6 +99,12 @@ public abstract class Function implements Operator {
         if(arg instanceof StringLiteral){
             return ((StringLiteral) arg).getValue();
         }
+        if(arg instanceof NumberLiteral){
+            return ((NumberLiteral) arg).getValue() + "";
+        }
+        if(arg instanceof BooleanLiteral){
+            return ((BooleanLiteral) arg).getValue() + "";
+        }
 
         return null;
     }

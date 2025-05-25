@@ -10,7 +10,11 @@ import java.util.*;
 
 public abstract class DataCollection<T> {
 
-    public abstract DataSchema deriveSchema();
+    public DataSchema deriveSchema(){
+        return deriveSchema(null);
+    }
+
+    public abstract DataSchema deriveSchema(TypePromotionPolicy typePromotionPolicy);
 
     public abstract boolean applyDataToTerms(List<Node> terms, Map<Variable, Type> variableTypes);
 

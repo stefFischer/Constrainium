@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DataSchemaEntry<T extends DataSchema> {
     public final String name;
 
-    public final Type type;
+    public Type type;
 
     public final boolean mandatory;
 

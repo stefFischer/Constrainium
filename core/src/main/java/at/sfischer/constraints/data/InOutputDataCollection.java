@@ -21,19 +21,19 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     @Override
-    public InOutputDataSchema<SimpleDataSchema> deriveSchema() {
+    public InOutputDataSchema<SimpleDataSchema> deriveSchema(TypePromotionPolicy typePromotionPolicy) {
         SimpleDataSchema inputSchema = null;
         SimpleDataSchema outputSchema = null;
         for (Pair<DataObject, DataObject> pair : dataCollection) {
             if(inputSchema == null){
                 inputSchema = SimpleDataSchema.deriveFromData(pair.getValue0());
             } else {
-                inputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue0()));
+                inputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue0()), typePromotionPolicy);
             }
             if(outputSchema == null){
                 outputSchema = SimpleDataSchema.deriveFromData(pair.getValue1());
             } else {
-                outputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue1()));
+                outputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue1()), typePromotionPolicy);
             }
         }
 
