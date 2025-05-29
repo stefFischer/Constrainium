@@ -28,4 +28,9 @@ public abstract class UnaryOperator implements Operator {
     public Node getOperand() {
         return operand;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(operand: " + operand + ")";
+    }
 }
