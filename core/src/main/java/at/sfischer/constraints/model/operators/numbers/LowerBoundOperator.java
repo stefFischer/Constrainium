@@ -44,6 +44,15 @@ public class LowerBoundOperator extends Function {
         });
     }
 
+    public Number getBound(){
+        Number[] bounds = this.getNumberArrayArgument(1);
+        if(bounds.length == 0){
+            return null;
+        }
+
+        return bounds[bounds.length - 1];
+    }
+
     @Override
     public Node evaluate() {
         Number value = this.getNumberArgument(0);
