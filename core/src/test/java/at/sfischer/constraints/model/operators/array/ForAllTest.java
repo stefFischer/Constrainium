@@ -1,6 +1,8 @@
 package at.sfischer.constraints.model.operators.array;
 
-import at.sfischer.constraints.data.DataObject;
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.numbers.EqualOperator;
@@ -11,8 +13,8 @@ import at.sfischer.constraints.model.operators.strings.OneOfString;
 import at.sfischer.constraints.model.operators.strings.StringLength;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ForAllTest {
 	@Test
@@ -207,5 +209,39 @@ public class ForAllTest {
 
 		assertInstanceOf(BooleanLiteral.class,result);
 		assertEquals(true, ((BooleanLiteral)result).getValue());
+	}
+
+	@Test
+	public void testDerivingMultiple() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+
+		DataSchemaEntry<SimpleDataSchema> array1Entry = schema.stringArrayEntry("array1", true);
+		DataSchemaEntry<SimpleDataSchema> array2Entry = schema.stringArrayEntry("array2", true);
+
+		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(3)));
+		schema.fillSchemaWithConstraints(term);
+
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{array1:[\"ONE\", \"TWO\"], array2:[\"one\", \"two\"]}",
+				"{array1:[\"THREE\", \"TWO\"], array2:[\"three\", \"four\"]}",
+				"{array1:[\"ONE\", \"THREE\"], array2:[\"one\", \"three\"]}"
+		);
+
+		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
+		assertTrue(actual.getEvaluationResults().isEmpty());
+
+		assertEquals(1, array1Entry.potentialConstraints.size());
+		assertEquals(1, array2Entry.potentialConstraints.size());
+
+		Constraint array1Constraint = array1Entry.potentialConstraints.iterator().next();
+		Constraint array2Constraint = array2Entry.potentialConstraints.iterator().next();
+
+		ConstraintResults<DataObject> results1 = actual.getPotentialConstraintResults(array1Entry, array1Constraint, data);
+		assertEquals(1.0, results1.applicationRate());
+		assertFalse(results1.foundCounterExample());
+
+		ConstraintResults<DataObject> results2 = actual.getPotentialConstraintResults(array2Entry, array2Constraint, data);
+		assertEquals(2.0/3.0, results2.applicationRate());
+		assertTrue(results2.foundCounterExample());
 	}
 }

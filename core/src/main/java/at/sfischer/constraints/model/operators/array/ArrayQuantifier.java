@@ -54,6 +54,13 @@ public abstract class ArrayQuantifier extends Function {
         return createArrayQuantifier(newArray, newCondition);
     }
 
+    @Override
+    public Node cloneNode() {
+        Node array = getParameter(0);
+        Node condition = getParameter(1);
+        return createArrayQuantifier(array.cloneNode(), condition.cloneNode());
+    }
+
     protected abstract ArrayQuantifier createArrayQuantifier(Node array, Node condition);
 
     @Override
