@@ -126,6 +126,11 @@ public abstract class Function implements Operator {
             return (ArrayValues<?>)arg;
         }
 
+        if(arg instanceof Value<?>){
+            Value<?>[] values = new Value[]{(Value<?>)arg};
+            return new ArrayValues<>(arg.getReturnType(), values);
+        }
+
         return null;
     }
 
@@ -141,6 +146,11 @@ public abstract class Function implements Operator {
 
     protected String[] getStringArrayArgument(int i){
         Node arg = getParameter(i).evaluate();
+        if(arg instanceof StringLiteral){
+            StringLiteral[] value = new StringLiteral[]{(StringLiteral)arg};
+            arg = new ArrayValues<>(TypeEnum.STRING, value);
+        }
+
         setParameter(i, arg);
         if(arg instanceof ArrayValues<?>){
             if(((ArrayValues<?>) arg).getElementType() == TypeEnum.STRING){
@@ -164,6 +174,11 @@ public abstract class Function implements Operator {
 
     protected Number[] getNumberArrayArgument(int i){
         Node arg = getParameter(i).evaluate();
+        if(arg instanceof NumberLiteral){
+            NumberLiteral[] value = new NumberLiteral[]{(NumberLiteral)arg};
+            arg = new ArrayValues<>(TypeEnum.NUMBER, value);
+        }
+
         setParameter(i, arg);
         if(arg instanceof ArrayValues<?>){
             if(((ArrayValues<?>) arg).getElementType() == TypeEnum.NUMBER){
