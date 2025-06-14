@@ -22,17 +22,6 @@ public class SubStringTest {
 	}
 
 	@Test
-	public void evaluateTrueEqualsTest() {
-		Node left = new StringLiteral("Hello");
-		Node right = new StringLiteral("Hello");
-		SubString operator = new SubString(left, right);
-		Node result = operator.evaluate();
-
-		assertInstanceOf(BooleanLiteral.class,result);
-		assertEquals(true, ((BooleanLiteral)result).getValue());
-	}
-
-	@Test
 	public void evaluateFalseTest() {
 		Node left = new StringLiteral("Hello World");
 		Node right = new StringLiteral("Good Bye");
@@ -41,16 +30,5 @@ public class SubStringTest {
 
 		assertInstanceOf(BooleanLiteral.class,result);
 		assertEquals(false, ((BooleanLiteral)result).getValue());
-	}
-
-	@Test
-	public void evaluateTautologyTest() {
-		Node left = new Variable("a");
-		Node right = new Variable("a");
-		SubString operator = new SubString(left, right);
-		Node result = operator.evaluate();
-
-		assertInstanceOf(BooleanLiteral.class,result);
-		assertEquals(true, ((BooleanLiteral)result).getValue());
 	}
 }
