@@ -19,13 +19,17 @@ public class SubString extends Function {
         String first = this.getStringArgument(0);
         String second = this.getStringArgument(1);
 
-        if(first != null && second != null){
-            boolean result = first.contains(second);
-            return BooleanLiteral.getBooleanLiteral(result);
+        if(first == null || second == null){
+            return this;
         }
 
-        if(getParameter(0).equals(getParameter(1))){
-            return BooleanLiteral.TRUE;
+        if(first.isEmpty() || first.equals(second)){
+            return BooleanLiteral.FALSE;
+        }
+
+        if(!second.isEmpty()){
+            boolean result = first.contains(second);
+            return BooleanLiteral.getBooleanLiteral(result);
         }
 
         return this;
