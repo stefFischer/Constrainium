@@ -119,7 +119,7 @@ public abstract class Function implements Operator {
         return null;
     }
 
-    protected ArrayValues<?> getArrayArgument(int i){
+    public ArrayValues<?> getArrayArgument(int i){
         Node arg = getParameter(i).evaluate();
         setParameter(i, arg);
         if(arg instanceof ArrayValues<?>){
