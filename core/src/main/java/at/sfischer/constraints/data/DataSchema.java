@@ -13,8 +13,6 @@ import org.javatuples.Triplet;
 
 import java.util.*;
 
-import static at.sfischer.constraints.data.Utils.*;
-
 public abstract class DataSchema {
 
     protected interface FieldNodeProvider{
@@ -38,6 +36,46 @@ public abstract class DataSchema {
     }
 
     public abstract void fillSchemaWithConstraints(Node term);
+
+    public void fillSchemaWithConstraints(Node term, Set<Node> replacementTerms){
+        fillSchemaWithConstraints(term);
+
+        Set<Node> termsToReplace = new HashSet<>();
+        termsToReplace.add(term);
+
+        boolean keepReplacing = !replacementTerms.isEmpty();
+        while (keepReplacing){
+            Set<Node> newTerms = new HashSet<>();
+            for (Node termToReplace : termsToReplace) {
+                Map<Variable, Type> placeholderTypes = termToReplace.inferVariableTypes();
+                for (Map.Entry<Variable, Type> placeholder : placeholderTypes.entrySet()) {
+                    Type typeToReplace = placeholder.getValue();
+                    for (Node replacementTerm : replacementTerms) {
+                        if (replacementTerm.getReturnType().canAssignTo(typeToReplace)) {
+                            Set<Variable> vars = replacementTerm.findInvolvedVariables();
+                            Set<Variable> existingVariablesToAvoid = termToReplace.findInvolvedVariables();
+
+                            Node replacement = replacementTerm;
+                            for (Variable var : vars) {
+                                Variable newVariable = Variable.generateFreshVariable(existingVariablesToAvoid);
+                                replacement = replacement.setVariableValue(var, newVariable);
+                                existingVariablesToAvoid.add(newVariable);
+                            }
+
+                            Node newTerm = termToReplace.setVariableValue(placeholder.getKey(), replacement);
+                            newTerms.add(newTerm);
+
+                            fillSchemaWithConstraints(newTerm);
+                        }
+                    }
+                }
+            }
+
+            int lastSize = termsToReplace.size();
+            termsToReplace.addAll(newTerms);
+            keepReplacing = termsToReplace.size() > lastSize;
+        }
+    }
 
     public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
 
