@@ -3,6 +3,8 @@ package at.sfischer.constraints.model;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Variable implements Node {
 
@@ -62,5 +64,17 @@ public class Variable implements Node {
     @Override
     public String toString() {
         return "Variable{name: " + name + '}';
+    }
+
+    public static Variable generateFreshVariable(Set<Variable> avoid) {
+        Set<String> existingNames = avoid.stream().map(Variable::getName).collect(Collectors.toSet());
+
+        int index = 1;
+        String candidate;
+        do {
+            candidate = "v" + index++;
+        } while (existingNames.contains(candidate));
+
+        return new Variable(candidate);
     }
 }

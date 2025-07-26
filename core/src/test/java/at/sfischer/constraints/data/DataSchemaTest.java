@@ -5,12 +5,15 @@ import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.model.DataReference;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.operators.array.ArrayLength;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -267,5 +270,25 @@ public class DataSchemaTest {
 		ConstraintResults<Pair<DataObject, DataObject>> constraintResults2 = results.getPotentialConstraintResults(arrayNumber, constraint2, data);
 		assertEquals(1.0 / 3.0,constraintResults2.applicationRate());
 		assertTrue(constraintResults2.foundCounterExample());
+	}
+
+	@Test
+	public void testFillSchemaWithConstraintsWithReplacementTerm() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> array = schema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> size = schema.numberEntry("size", true);
+
+		ArrayLength replacement = new ArrayLength(new Variable("array"));
+
+		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
+
+		schema.fillSchemaWithConstraints(term, Set.of(replacement));
+
+		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new ArrayLength(new DataReference(array))));
+		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new ArrayLength(new DataReference(array)), new DataReference(size)));
+
+		assertEquals(2, size.potentialConstraints.size());
+		assertTrue(size.potentialConstraints.contains(constraint1));
+		assertTrue(size.potentialConstraints.contains(constraint2));
 	}
 }
