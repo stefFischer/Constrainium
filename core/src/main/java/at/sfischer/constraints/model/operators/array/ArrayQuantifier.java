@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class ArrayQuantifier extends Function {
-    public static final String ELEMENT_NAME = "ARRAY.ELEMENT";
+    public static final String ELEMENT_NAME = "ARRAY_ELEMENT";
 
     protected Type arrayElementType = TypeEnum.ANY;
 
