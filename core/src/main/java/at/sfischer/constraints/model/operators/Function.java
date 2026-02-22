@@ -1,6 +1,7 @@
 package at.sfischer.constraints.model.operators;
 
 import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,27 +27,27 @@ public abstract class Function implements Operator {
     }
 
     @Override
-    public boolean validate() {
+    public void validate(ValidationContext context) {
         List<Type> parameterTypes = parameterTypes();
         if(this.parameters == null || this.parameters.size() != parameterTypes.size()){
-            return false;
+            context.error(this, "Wrong number of parameters.");
+            return;
         }
 
         for (int i = 0; i < this.parameters.size(); i++) {
             Node parameter = this.parameters.get(i);
-            if(!parameter.validate()){
-                return false;
-            }
+            parameter.validate(context);
 
             Type parameterType = parameterTypes.get(i);
             if(parameterType instanceof ArrayType){
                 if(!(parameter.getReturnType() instanceof ArrayType)){
-                    return false;
+                    context.error(this, "Wrong parameter type at index " + i + ". " + parameterType + " != " + parameter.getReturnType());
+                    continue;
                 }
 
                 boolean isValidType = ((ArrayType) parameterType).elementType() == TypeEnum.ANY || ((ArrayType) parameter.getReturnType()).elementType() == ((ArrayType) parameterType).elementType() || ((ArrayType) parameter.getReturnType()).elementType() == TypeEnum.ANY;
                 if(!isValidType){
-                    return false;
+                    context.error(this, "Array element type does not match parameter element type at index " + i + ". " + ((ArrayType) parameterType).elementType() + " != " + ((ArrayType) parameter.getReturnType()).elementType());
                 }
 
                 continue;
@@ -54,11 +55,9 @@ public abstract class Function implements Operator {
 
             boolean isValidType = parameterType == TypeEnum.ANY || parameter.getReturnType() == parameterType || parameter.getReturnType() == TypeEnum.ANY;
             if(!isValidType){
-                return false;
+                context.error(this, "Wrong parameter type at index " + i + ". " + parameterType + " != " + parameter.getReturnType());
             }
         }
-
-        return true;
     }
 
     @Override

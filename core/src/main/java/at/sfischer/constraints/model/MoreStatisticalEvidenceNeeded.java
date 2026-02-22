@@ -1,5 +1,7 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.validation.ValidationContext;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +20,7 @@ public class MoreStatisticalEvidenceNeeded implements EvaluationResultNode {
     }
 
     @Override
-    public boolean validate() {
-        return true;
+    public void validate(ValidationContext context) {
     }
 
     @Override

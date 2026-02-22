@@ -1,6 +1,7 @@
 package at.sfischer.constraints.model;
 
 import at.sfischer.constraints.model.operators.Operator;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.*;
 
@@ -14,7 +15,7 @@ public interface Node {
      */
     Node evaluate();
 
-    boolean validate();
+    void validate(ValidationContext context);
 
     List<Node> getChildren();
 
