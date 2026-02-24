@@ -4,6 +4,7 @@ import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Type;
 import at.sfischer.constraints.model.TypeEnum;
 import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.*;
 
@@ -35,8 +36,7 @@ public class NodePatternMatcher {
         }
 
         @Override
-        public boolean validate() {
-            return true;
+        public void validate(ValidationContext context) {
         }
 
         @Override

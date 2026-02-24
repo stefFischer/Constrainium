@@ -5,6 +5,7 @@ import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Type;
 import at.sfischer.constraints.model.TypeEnum;
 import at.sfischer.constraints.model.operators.UnaryOperator;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.List;
 
@@ -20,12 +21,16 @@ public abstract class LogicalUnaryOperator extends UnaryOperator {
     }
 
     @Override
-    public boolean validate() {
+    public void validate(ValidationContext context) {
         if(this.operand == null){
-            return false;
+            context.error(this,"Missing operand.");
+            return;
         }
 
-        return (this.operand.getReturnType() == TypeEnum.BOOLEAN || this.operand.getReturnType() == TypeEnum.ANY);
+        this.operand.validate(context);
+
+        if (!(this.operand.getReturnType() == TypeEnum.BOOLEAN || this.operand.getReturnType() == TypeEnum.ANY))
+            context.error(this,"Invalid operand type.");
     }
 
     protected Boolean getBoolean() {

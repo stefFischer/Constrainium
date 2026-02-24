@@ -1,6 +1,7 @@
 package at.sfischer.constraints.model;
 
 import at.sfischer.constraints.data.DataSchemaEntry;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.Map;
 import java.util.Objects;
@@ -19,8 +20,9 @@ public class DataReference extends Variable {
     }
 
     @Override
-    public boolean validate() {
-        return this.dataSchemaEntry != null;
+    public void validate(ValidationContext context) {
+        if(this.dataSchemaEntry == null)
+            context.error(this,"Reference to data schema entry cannot be null.");
     }
 
     @Override

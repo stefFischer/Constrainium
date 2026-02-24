@@ -19,16 +19,6 @@ public abstract class LogicalBinaryOperator extends BinaryOperator {
         return TypeEnum.BOOLEAN;
     }
 
-    @Override
-    public boolean validate() {
-        if(this.left == null || this.right == null){
-            return false;
-        }
-
-        return (this.left.getReturnType() == TypeEnum.BOOLEAN || this.left.getReturnType() == TypeEnum.ANY)
-                && (this.right.getReturnType() == TypeEnum.BOOLEAN || this.left.getReturnType() == TypeEnum.ANY);
-    }
-
     protected Boolean getLeftBoolean(){
         Node left = this.left.evaluate();
         this.left = left;

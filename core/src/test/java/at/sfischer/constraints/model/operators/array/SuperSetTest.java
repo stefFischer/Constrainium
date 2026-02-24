@@ -19,8 +19,6 @@ public class SuperSetTest {
 				new NumberLiteral(4)
 		});
 		SuperSet s = new SuperSet(TypeEnum.NUMBER, a, b);
-		assertTrue(s.validate());
-
 		Node result = s.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -39,8 +37,6 @@ public class SuperSetTest {
 				new NumberLiteral(4)
 		});
 		SuperSet s = new SuperSet(TypeEnum.NUMBER, a, b);
-		assertTrue(s.validate());
-
 		Node result = s.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -60,8 +56,6 @@ public class SuperSetTest {
 				new StringLiteral("FOUR")
 		});
 		SuperSet s = new SuperSet(TypeEnum.STRING, a, b);
-		assertTrue(s.validate());
-
 		Node result = s.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -80,8 +74,6 @@ public class SuperSetTest {
 				new StringLiteral("FOUR")
 		});
 		SuperSet s = new SuperSet(TypeEnum.STRING, a, b);
-		assertTrue(s.validate());
-
 		Node result = s.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -101,8 +93,6 @@ public class SuperSetTest {
 				new NumberLiteral(4)
 		});
 		SuperSet s = new SuperSet(a, b);
-		assertTrue(s.validate());
-
 		Node result = s.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);

@@ -1,5 +1,7 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.validation.ValidationContext;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,8 +31,9 @@ public class Variable implements Node {
     }
 
     @Override
-    public boolean validate() {
-        return this.name != null;
+    public void validate(ValidationContext context){
+        if(this.name == null)
+            context.error(this, "Variable name cannot be null.");
     }
 
     @Override

@@ -2,6 +2,7 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.Function;
+import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,21 +18,32 @@ public abstract class ArrayQuantifier extends Function {
     }
 
     @Override
-    public boolean validate() {
-        if(!super.validate()){
-            return false;
-        }
+    public void validate(ValidationContext context) {
+        // Infer type to set element type correctly.
+        inferVariableTypes();
+
+        super.validate(context);
 
         Node array = getParameter(0).evaluate();
+        if(array.getReturnType() == TypeEnum.ANY){
+            return;
+        }
         if(!(array instanceof ArrayValues<?>)){
-            return false;
+            return;
         }
 
-        Type elementType = ((ArrayValues<?>) array).getElementType();
         Node condition = getParameter(1);
+        if(condition == null){
+            context.error(this, "Array quantifier condition cannot be null.");
+            return;
+        }
+
         Map<Variable, Type> variableTypes = condition.inferVariableTypes();
         Type elementVariableType = variableTypes.get(new Variable(ELEMENT_NAME));
-        return elementType.equals(elementVariableType);
+        if(elementVariableType == null){
+            context.error(this, "Array quantifier condition needs to use the array elements 'ELEMENT_NAME' variable.");
+            return;
+        }
     }
 
     @Override
@@ -78,7 +90,10 @@ public abstract class ArrayQuantifier extends Function {
         Node array = getParameter(0);
         Node condition = getParameter(1);
         Map<Variable, Type> conditionTypeMap = super.inferVariableTypes(array);
-        arrayElementType = conditionTypeMap.remove(new Variable(ELEMENT_NAME));
+        Type elType = conditionTypeMap.remove(new Variable(ELEMENT_NAME));
+        if(elType != null){
+            arrayElementType = elType;
+        }
         conditionTypeMap = super.inferVariableTypes(array);
         conditionTypeMap.remove(new Variable(ELEMENT_NAME));
 

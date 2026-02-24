@@ -10,7 +10,9 @@ import at.sfischer.constraints.model.operators.numbers.OneOfNumber;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import at.sfischer.constraints.model.operators.strings.IsUrl;
 import at.sfischer.constraints.model.operators.strings.OneOfString;
+import at.sfischer.constraints.model.operators.strings.StringEquals;
 import at.sfischer.constraints.model.operators.strings.StringLength;
+import at.sfischer.constraints.model.validation.ValidationContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,9 +27,61 @@ public class ForAllTest {
 		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
 		ForAll f = new ForAll(array, condition);
 		boolean expected = true;
-		boolean actual = f.validate();
+
+		ValidationContext context = new ValidationContext();
+		f.validate(context);
+		boolean actual = context.isValid();
 
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void validateMissingElementReference() {
+		Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
+				new NumberLiteral(1)
+		});
+		Node condition = new NotOperator(new EqualOperator(new Variable("a"), new NumberLiteral(0)));
+		ForAll f = new ForAll(array, condition);
+		boolean expected = false;
+
+		ValidationContext context = new ValidationContext();
+		f.validate(context);
+		boolean actual = context.isValid();
+
+		assertEquals(expected, actual);
+		assertEquals(1, context.getMessages().size());
+	}
+
+	@Test
+	public void validateElementTypeMissmatch() {
+		Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
+				new NumberLiteral(1)
+		});
+		Node condition = new NotOperator(new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("string")));
+		ForAll f = new ForAll(array, condition);
+		boolean expected = false;
+
+		ValidationContext context = new ValidationContext();
+		f.validate(context);
+		boolean actual = context.isValid();
+
+		assertEquals(expected, actual);
+		assertEquals(1, context.getMessages().size());
+	}
+
+	@Test
+	public void validateNotAnArray() {
+		Node array = new NumberLiteral(1);
+		Node condition = new NotOperator(new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("string")));
+		ForAll f = new ForAll(array, condition);
+		boolean expected = false;
+
+		ValidationContext context = new ValidationContext();
+		f.validate(context);
+		boolean actual = context.isValid();
+
+		assertEquals(expected, actual);
+		assertEquals(1, context.getMessages().size());
 	}
 
 	@Test

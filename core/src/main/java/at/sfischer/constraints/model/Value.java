@@ -1,5 +1,7 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.validation.ValidationContext;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +29,9 @@ public abstract class Value<T> implements Node {
     }
 
     @Override
-    public boolean validate() {
-        return getValue() != null;
+    public void validate(ValidationContext context) {
+        if(getValue() == null)
+            context.error(this, "Value cannot be null.");
     }
 
     @Override

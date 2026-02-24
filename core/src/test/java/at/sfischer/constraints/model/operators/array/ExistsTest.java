@@ -4,6 +4,7 @@ import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.numbers.EqualOperator;
 import at.sfischer.constraints.model.operators.strings.StringEquals;
+import at.sfischer.constraints.model.validation.ValidationContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +19,10 @@ public class ExistsTest {
 		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
 		Exists f = new Exists(array, condition);
 		boolean expected = true;
-		boolean actual = f.validate();
+
+		ValidationContext context = new ValidationContext();
+		f.validate(context);
+		boolean actual = context.isValid();
 
 		assertEquals(expected, actual);
 	}

@@ -1,5 +1,7 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.validation.ValidationContext;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -27,14 +29,12 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
     }
 
     @Override
-    public boolean validate() {
+    public void validate(ValidationContext context) {
         for (T val : getValue()) {
             if(!val.getReturnType().equals(elementType)){
-                return false;
+                context.error(this, "Element types do not match");
             }
         }
-
-        return true;
     }
 
     @Override
