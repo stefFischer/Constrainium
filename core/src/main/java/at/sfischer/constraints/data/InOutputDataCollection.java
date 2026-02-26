@@ -137,6 +137,10 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         dataCollection.add(dataEntry);
     }
 
+    public void addDataEntry(DataObject in, DataObject out) {
+        addDataEntry(new Pair<>(in, out));
+    }
+
     @Override
     public void removeDataEntry(Pair<DataObject, DataObject> dataEntry) {
         dataCollection.remove(dataEntry);

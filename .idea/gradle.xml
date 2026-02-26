@@ -10,6 +10,11 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/driver" />
+            <option value="$PROJECT_DIR$/driver/rest" />
+            <option value="$PROJECT_DIR$/test-systems" />
+            <option value="$PROJECT_DIR$/test-systems/EMB" />
+            <option value="$PROJECT_DIR$/test-systems/EMB/rest-ncs" />
           </set>
         </option>
       </GradleProjectSettings>
