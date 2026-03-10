@@ -29,6 +29,10 @@ public class SimpleDataSchema extends DataSchema {
         return this.schema.get(entryName);
     }
 
+    public Set<String> getSchemaEntryNames(){
+        return new HashSet<>(schema.keySet());
+    }
+
     public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
         return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.BOOLEAN, mandatory, null));
     }

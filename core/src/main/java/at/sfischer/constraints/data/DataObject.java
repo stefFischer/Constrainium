@@ -62,8 +62,12 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
     }
 
-    public void putValue(String name, DataValue<?>[] value) {
+    protected void putValue(String name, DataValue<?>[] value) {
         Type nestedArrayType = value[0].getType();
+        putValue(name, value, nestedArrayType);
+    }
+
+    public void putValue(String name, DataValue<?>[] value, Type nestedArrayType) {
         dataValues.put(name, new DataValue<>(new ArrayType(nestedArrayType), value));
     }
 

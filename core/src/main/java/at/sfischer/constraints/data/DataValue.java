@@ -11,7 +11,7 @@ public class DataValue<T> {
 
     private final T value;
 
-    protected DataValue(Type type, T value) {
+    public DataValue(Type type, T value) {
         this.type = type;
         this.value = value;
         validate();

@@ -10,16 +10,16 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/core" />
-
             <option value="$PROJECT_DIR$/driver" />
             <option value="$PROJECT_DIR$/driver/rest" />
-
+            <option value="$PROJECT_DIR$/generator" />
+            <option value="$PROJECT_DIR$/generator/random" />
             <option value="$PROJECT_DIR$/test-systems" />
-            <option value="$PROJECT_DIR$/test-systems/TestSystemRunner" />
             <option value="$PROJECT_DIR$/test-systems/EMB" />
             <option value="$PROJECT_DIR$/test-systems/EMB/rest-ncs" />
             <option value="$PROJECT_DIR$/test-systems/Rest" />
             <option value="$PROJECT_DIR$/test-systems/Rest/SpringPayrollTestSystem" />
+            <option value="$PROJECT_DIR$/test-systems/TestSystemRunner" />
           </set>
         </option>
       </GradleProjectSettings>
