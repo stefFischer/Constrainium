@@ -1,5 +1,7 @@
 package at.sfischer.driver;
 
+import at.sfischer.ConfigurationDescriptor;
+
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -8,7 +10,7 @@ public interface SystemDriverProvider {
 
     String getIdentifier();
 
-    DriverConfigurationDescriptor getConfigurationDescriptor();
+    ConfigurationDescriptor getConfigurationDescriptor();
 
     SystemDriver create(Map<String, Object> configurationValues);
 
