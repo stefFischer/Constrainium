@@ -12,13 +12,13 @@ public class OneOfNumberArray extends Function {
 
     private static final String FUNCTION_NAME = "number.OneOfArray";
 
-    public OneOfNumberArray(Node value, NumberLiteral numberOfOptions) {
+    public OneOfNumberArray(Node value, IntegerLiteral numberOfOptions) {
         //noinspection unchecked
-        this(value, new ArrayValues<ArrayValues<NumberLiteral>>(new ArrayType(TypeEnum.NUMBER), new ArrayValues[numberOfOptions.getValue().intValue()]));
+        this(value, new ArrayValues<ArrayValues<NumberLiteral>>(new ArrayType(TypeEnum.NUMBER), new ArrayValues[numberOfOptions.getValue()]));
     }
 
     public OneOfNumberArray(Node value, ArrayValues<ArrayValues<NumberLiteral>> options) {
-        super(FUNCTION_NAME, value, new NumberLiteral(options.getValue().length), options);
+        super(FUNCTION_NAME, value, new IntegerLiteral(options.getValue().length), options);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class OneOfNumberArray extends Function {
 
     @Override
     public List<Type> parameterTypes() {
-        return List.of(new ArrayType(TypeEnum.NUMBER), TypeEnum.NUMBER, new ArrayType(new ArrayType(TypeEnum.NUMBER)));
+        return List.of(new ArrayType(TypeEnum.NUMBER), TypeEnum.INTEGER, new ArrayType(new ArrayType(TypeEnum.NUMBER)));
     }
 
     @Override

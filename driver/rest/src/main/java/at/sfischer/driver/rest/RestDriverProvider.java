@@ -1,7 +1,7 @@
 package at.sfischer.driver.rest;
 
-import at.sfischer.driver.DriverConfigurationDescriptor;
-import at.sfischer.driver.DriverConfigurationField;
+import at.sfischer.ConfigurationDescriptor;
+import at.sfischer.ConfigurationField;
 import at.sfischer.driver.SystemDriverProvider;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -21,33 +21,33 @@ public class RestDriverProvider implements SystemDriverProvider {
     }
 
     @Override
-    public DriverConfigurationDescriptor getConfigurationDescriptor() {
-        return new DriverConfigurationDescriptor(List.of(
-                new DriverConfigurationField(
+    public ConfigurationDescriptor getConfigurationDescriptor() {
+        return new ConfigurationDescriptor(List.of(
+                new ConfigurationField(
                         "baseUrl",
                         String.class,
                         true,
                         "Base URL of the REST service"),
 
-                new DriverConfigurationField(
+                new ConfigurationField(
                         "openApiSpec",
                         String.class,
                         true,
                         "Path to OpenAPI specification file"),
 
-                new DriverConfigurationField(
+                new ConfigurationField(
                         "path",
                         String.class,
                         true,
                         "Operation ID of the endpoint to call"),
 
-                new DriverConfigurationField(
+                new ConfigurationField(
                         "operation",
                         String.class,
                         true,
                         "Operation of the endpoint to call (GET, POST, PUT, PATCH, DELETE)"),
 
-                new DriverConfigurationField(
+                new ConfigurationField(
                         "timeoutSeconds",
                         Integer.class,
                         false,

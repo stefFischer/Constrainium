@@ -158,7 +158,7 @@ public class ForAllTest {
 				new StringLiteral("THREE"),
 				new StringLiteral("TWO")
 		});
-		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(3));
+		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new IntegerLiteral(3));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -175,7 +175,7 @@ public class ForAllTest {
 				new StringLiteral("THREE"),
 				new StringLiteral("FOUR")
 		});
-		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(3));
+		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new IntegerLiteral(3));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -191,7 +191,7 @@ public class ForAllTest {
 				new StringLiteral("TWO"),
 				new StringLiteral("TWO")
 		});
-		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new NumberLiteral(1));
+		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new IntegerLiteral(1));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -207,7 +207,7 @@ public class ForAllTest {
 				new StringLiteral("TWO"),
 				new StringLiteral("THREE")
 		});
-		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new NumberLiteral(1));
+		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new IntegerLiteral(1));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -272,7 +272,7 @@ public class ForAllTest {
 		DataSchemaEntry<SimpleDataSchema> array1Entry = schema.stringArrayEntry("array1", true);
 		DataSchemaEntry<SimpleDataSchema> array2Entry = schema.stringArrayEntry("array2", true);
 
-		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(3)));
+		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), new IntegerLiteral(3)));
 		schema.fillSchemaWithConstraints(term);
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(

@@ -29,6 +29,8 @@ public class DefaultTypePromotionPolicy implements TypePromotionPolicy {
     public Type promote(Type type1, Type type2) {
         if (type1.equals(type2)) return type1;
         if (
+            (type1 == TypeEnum.STRING && type2 == TypeEnum.INTEGER) ||
+            (type1 == TypeEnum.INTEGER && type2 == TypeEnum.STRING) ||
             (type1 == TypeEnum.STRING && type2 == TypeEnum.NUMBER) ||
             (type1 == TypeEnum.NUMBER && type2 == TypeEnum.STRING)
         )
@@ -39,7 +41,8 @@ public class DefaultTypePromotionPolicy implements TypePromotionPolicy {
         )
             return TypeEnum.STRING;
         if (
-                (type1 == TypeEnum.NUMBER && type2 == TypeEnum.BOOLEAN) ||
+                (type1 == TypeEnum.INTEGER && type2 == TypeEnum.BOOLEAN) ||
+                        (type1 == TypeEnum.NUMBER && type2 == TypeEnum.BOOLEAN) ||
                         (type1 == TypeEnum.BOOLEAN && type2 == TypeEnum.NUMBER)
         )
             return TypeEnum.STRING;

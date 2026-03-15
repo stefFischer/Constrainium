@@ -60,7 +60,7 @@ class ConstraintDslScannerTest {
     void testIntegerAndDecimalNumbers() throws Exception {
         List<Token> tokens = scan("42 3.14");
 
-        assertToken(tokens.get(0), TokenType.NUMBER, "42");
+        assertToken(tokens.get(0), TokenType.INTEGER, "42");
         assertToken(tokens.get(1), TokenType.NUMBER, "3.14");
     }
 
@@ -136,7 +136,7 @@ class ConstraintDslScannerTest {
         assertToken(tokens.get(2), TokenType.COLON, ":");
         assertToken(tokens.get(3), TokenType.IDENTIFIER, "a");
         assertToken(tokens.get(4), TokenType.LESS_EQUAL, "<=");
-        assertToken(tokens.get(5), TokenType.NUMBER, "5");
+        assertToken(tokens.get(5), TokenType.INTEGER, "5");
     }
 
     // =====================================

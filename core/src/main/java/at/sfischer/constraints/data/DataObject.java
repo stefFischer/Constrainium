@@ -22,6 +22,10 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(TypeEnum.BOOLEAN, value));
     }
 
+    public void putValue(String name, Integer value){
+        dataValues.put(name, new DataValue<>(TypeEnum.INTEGER, value));
+    }
+
     public void putValue(String name, Number value){
         dataValues.put(name, new DataValue<>(TypeEnum.NUMBER, value));
     }
@@ -38,6 +42,14 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
     }
 
+    public void putValue(String name, Boolean[] value){
+        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
+    }
+
+    public void putValue(String name, Integer[] value){
+        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.INTEGER), value));
+    }
+
     public void putValue(String name, Number[] value){
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.NUMBER), value));
     }
@@ -50,8 +62,12 @@ public class DataObject {
         dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
     }
 
-    public void putValue(String name, DataValue<?>[] value) {
+    protected void putValue(String name, DataValue<?>[] value) {
         Type nestedArrayType = value[0].getType();
+        putValue(name, value, nestedArrayType);
+    }
+
+    public void putValue(String name, DataValue<?>[] value, Type nestedArrayType) {
         dataValues.put(name, new DataValue<>(new ArrayType(nestedArrayType), value));
     }
 
@@ -247,7 +263,9 @@ public class DataObject {
             String key = keyIt.next();
             Object value = object.get(key);
 
-            if(value instanceof Number){
+            if(value instanceof Integer){
+                dao.putValue(key, (Integer)value);
+            } else if(value instanceof Number){
                 dao.putValue(key, (Number)value);
             } else if (value instanceof Boolean){
                 dao.putValue(key, (Boolean)value);
@@ -273,7 +291,13 @@ public class DataObject {
         }
 
         // Insert value array into data object.
-        if(elementType == Number.class){
+        if(elementType == Integer.class){
+            Integer[] value = new Integer[values.size()];
+            for (int i = 0; i < values.size(); i++) {
+                value[i] = (Integer)values.get(i);
+            }
+            dao.putValue(key, value);
+        } else if(elementType == Number.class){
             Number[] value = new Number[values.size()];
             for (int i = 0; i < values.size(); i++) {
                 value[i] = (Number)values.get(i);
@@ -313,7 +337,13 @@ public class DataObject {
     }
 
     private static Class<?> inferElementType(Class<?> elementType, Object value){
-        if(value instanceof Number){
+        if(value instanceof Integer){
+            if(elementType == null){
+                return Integer.class;
+            } else if(!elementType.equals(Integer.class)) {
+                return Object.class;
+            }
+        } else if(value instanceof Number){
             if(elementType == null){
                 return Number.class;
             } else if(!elementType.equals(Number.class)) {

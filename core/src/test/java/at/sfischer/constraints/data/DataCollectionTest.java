@@ -20,7 +20,7 @@ public class DataCollectionTest {
 
 
 		Map<String, Type> expected = new HashMap<>();
-		expected.put("size", TypeEnum.NUMBER);
+		expected.put("size", TypeEnum.INTEGER);
 		expected.put("isEmpty", TypeEnum.BOOLEAN);
 		Map<String, Type> actual = dataCollection.getDataTypes();
 
@@ -35,10 +35,10 @@ public class DataCollectionTest {
 
 
 		Map<String, Type> expected = new HashMap<>();
-		expected.put("size", TypeEnum.NUMBER);
+		expected.put("size", TypeEnum.INTEGER);
 		expected.put("isEmpty", TypeEnum.BOOLEAN);
 		expected.put("object", TypeEnum.COMPLEXTYPE);
-		expected.put("object.id", TypeEnum.NUMBER);
+		expected.put("object.id", TypeEnum.INTEGER);
 		expected.put("object.value", TypeEnum.STRING);
 		Map<String, Type> actual = dataCollection.getDataTypes();
 

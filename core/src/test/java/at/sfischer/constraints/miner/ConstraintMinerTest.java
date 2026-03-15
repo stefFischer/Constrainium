@@ -378,12 +378,12 @@ public class ConstraintMinerTest {
 		);
 
 		Set<Node> terms = new HashSet<>();
-		terms.add(new OneOfString(new Variable("a"), new NumberLiteral(3)));
+		terms.add(new OneOfString(new Variable("a"), new IntegerLiteral(3)));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new OneOfString(new Variable("value"), new NumberLiteral(3)));
+		Constraint constraint1 = new Constraint(new OneOfString(new Variable("value"), new IntegerLiteral(3)));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new OneOfString(new Variable("string"), new NumberLiteral(3)));
+		Constraint constraint2 = new Constraint(new OneOfString(new Variable("string"), new IntegerLiteral(3)));
 		expected.add(constraint2);
 
 		ConstraintMiner miner = new ConstraintMinerFromData(data);
@@ -419,12 +419,12 @@ public class ConstraintMinerTest {
 		);
 
 		Set<Node> terms = new HashSet<>();
-		terms.add(new OneOfNumber(new Variable("a"), new NumberLiteral(3)));
+		terms.add(new OneOfNumber(new Variable("a"), new IntegerLiteral(3)));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new OneOfNumber(new Variable("value"), new NumberLiteral(3)));
+		Constraint constraint1 = new Constraint(new OneOfNumber(new Variable("value"), new IntegerLiteral(3)));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new OneOfNumber(new Variable("number"), new NumberLiteral(3)));
+		Constraint constraint2 = new Constraint(new OneOfNumber(new Variable("number"), new IntegerLiteral(3)));
 		expected.add(constraint2);
 
 		ConstraintMiner miner = new ConstraintMinerFromData(data);

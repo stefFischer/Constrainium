@@ -9,16 +9,16 @@ public class InOutputDataCollectionTest {
 	@Test
 	public void deriveSchema() {
         InOutputDataCollection data = InOutputDataCollection.parseData(
-                new Pair<>("{add:0}", "{size:3, object:{number:2}}"),
-                new Pair<>("{add:5}", "{size:1, object:{number:0}}"),
-                new Pair<>("{add:3}", "{size:2, object:{number:1}}")
+                new Pair<>("{add:0}", "{size:3, object:{number:2.0}}"),
+                new Pair<>("{add:5}", "{size:1, object:{number:0.0}}"),
+                new Pair<>("{add:3}", "{size:2, object:{number:1.0}}")
         );
 
         SimpleDataSchema inputSchema = new SimpleDataSchema();
-        inputSchema.numberEntry("add", true);
+        inputSchema.integerEntry("add", true);
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
-        outputSchema.numberEntry("size", true);
+        outputSchema.integerEntry("size", true);
         DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
         entry.dataSchema.numberEntry("number",true);
 
@@ -38,12 +38,12 @@ public class InOutputDataCollectionTest {
         );
 
         SimpleDataSchema inputSchema = new SimpleDataSchema();
-        inputSchema.numberEntry("add", true);
+        inputSchema.integerEntry("add", true);
 
         SimpleDataSchema outputSchema = new SimpleDataSchema();
-        outputSchema.numberEntry("size", true);
+        outputSchema.integerEntry("size", true);
         DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", false);
-        entry.dataSchema.numberEntry("number",true);
+        entry.dataSchema.integerEntry("number",true);
 
         InOutputDataSchema<SimpleDataSchema> expected = new InOutputDataSchema<>(inputSchema, outputSchema);
 

@@ -223,9 +223,11 @@ public class ConstraintDslScanner {
                 advance();
                 builder.append((char) currentChar);
             }
-        }
 
-        addToken(TokenType.NUMBER, builder.toString(), startLine, startColumn);
+            addToken(TokenType.NUMBER, builder.toString(), startLine, startColumn);
+        } else {
+            addToken(TokenType.INTEGER, builder.toString(), startLine, startColumn);
+        }
     }
 
     private void string(int startLine, int startColumn) throws IOException {

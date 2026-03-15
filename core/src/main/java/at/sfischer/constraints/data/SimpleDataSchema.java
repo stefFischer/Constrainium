@@ -29,8 +29,16 @@ public class SimpleDataSchema extends DataSchema {
         return this.schema.get(entryName);
     }
 
+    public Set<String> getSchemaEntryNames(){
+        return new HashSet<>(schema.keySet());
+    }
+
     public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
         return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.BOOLEAN, mandatory, null));
+    }
+
+    public DataSchemaEntry<SimpleDataSchema> integerEntry(String name, boolean mandatory){
+        return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.INTEGER, mandatory, null));
     }
 
     public DataSchemaEntry<SimpleDataSchema> numberEntry(String name, boolean mandatory){
@@ -57,6 +65,10 @@ public class SimpleDataSchema extends DataSchema {
 
     public DataSchemaEntry<SimpleDataSchema> booleanArrayEntry(String name, boolean mandatory){
         return arrayEntryFor(TypeEnum.BOOLEAN, name, mandatory);
+    }
+
+    public DataSchemaEntry<SimpleDataSchema> integerArrayEntry(String name, boolean mandatory){
+        return arrayEntryFor(TypeEnum.INTEGER, name, mandatory);
     }
 
     public DataSchemaEntry<SimpleDataSchema> numberArrayEntry(String name, boolean mandatory){
@@ -86,14 +98,21 @@ public class SimpleDataSchema extends DataSchema {
         otherSchema.schema.forEach((k, v) -> {
             if(this.schema.containsKey(k)){
                 DataSchemaEntry<SimpleDataSchema> entry = this.schema.get(k);
-                if(!entry.type.equals(v.type)){
-                    if(typePromotionPolicy == null){
-                        throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                if(!v.type.canAssignTo(entry.type)){
+                    Type newType = null;
+                    if(entry.type.canAssignTo(v.type)){
+                        newType = v.type;
                     }
 
-                    Type newType= typePromotionPolicy.promote(entry.type, v.type);
-                    if(newType == null){
-                        throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                    if(newType == null) {
+                        if (typePromotionPolicy == null) {
+                            throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                        }
+
+                        newType = typePromotionPolicy.promote(entry.type, v.type);
+                        if (newType == null) {
+                            throw new IllegalStateException("Types for field \"" + entry.getQualifiedName() + "\" are not consistent: \"" + entry.type + "\" != \"" + v.type + "\"");
+                        }
                     }
 
                     entry.type = newType;
@@ -287,6 +306,8 @@ public class SimpleDataSchema extends DataSchema {
     private DataSchemaEntry<SimpleDataSchema> createEntry(String fieldName, DataValue<?> value){
         if(value.getType() instanceof TypeEnum) {
             switch ((TypeEnum) value.getType()){
+                case INTEGER:
+                    return integerEntry(fieldName, true);
                 case NUMBER:
                     return numberEntry(fieldName, true);
                 case BOOLEAN:
@@ -310,7 +331,7 @@ public class SimpleDataSchema extends DataSchema {
 
             if(internalElementType instanceof TypeEnum){
                 switch ((TypeEnum) internalElementType){
-                    case NUMBER: case BOOLEAN: case STRING:
+                    case INTEGER: case NUMBER: case BOOLEAN: case STRING:
                         return arrayEntryFor(elementType, fieldName, true);
                     case COMPLEXTYPE:
                         List<DataObject> nestedDaos = internalElements(value);

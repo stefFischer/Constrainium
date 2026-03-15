@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class FixedLengthStringTest {
 	@Test
 	public void evaluate() {
-		OneOfNumber operator = new OneOfNumber(new StringLength(new StringLiteral("ONE")), new NumberLiteral(1));
+		OneOfNumber operator = new OneOfNumber(new StringLength(new StringLiteral("ONE")), new IntegerLiteral(1));
 		Node result = operator.evaluate();
 
 		assertInstanceOf(BooleanLiteral.class,result);
@@ -23,7 +23,7 @@ public class FixedLengthStringTest {
 	@Test
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
-		OneOfNumber operator = new OneOfNumber(new StringLength(value), new NumberLiteral(1));
+		OneOfNumber operator = new OneOfNumber(new StringLength(value), new IntegerLiteral(1));
 
 		testValues(operator, value, new StringLiteral[]{
 				new StringLiteral("ONE"),

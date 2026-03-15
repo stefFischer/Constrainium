@@ -47,10 +47,10 @@ public class DataObjectTest {
 		String jsonData = "{size:1, isEmpty:false, object:{id:0, value:\"string\"}}";
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Value<?>> expected = new HashMap<>();
-		expected.put("size", new NumberLiteral(1));
+		expected.put("size", new IntegerLiteral(1));
 		expected.put("isEmpty", BooleanLiteral.FALSE);
 		expected.put("object", new ComplexValue(DataObject.parseData("{id:0, value:\"string\"}")));
-		expected.put("object.id", new NumberLiteral(0));
+		expected.put("object.id", new IntegerLiteral(0));
 		expected.put("object.value", new StringLiteral("string"));
 		Map<String, Node> actual = d.getDataValues();
 
@@ -62,14 +62,14 @@ public class DataObjectTest {
 		String jsonData = "{size:0, object:{number:2}, array:[1,2,3,4]}";
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Value<?>> expected = new HashMap<>();
-		expected.put("size", new NumberLiteral(0));
+		expected.put("size", new IntegerLiteral(0));
 		expected.put("object", new ComplexValue(DataObject.parseData("{number:2}")));
-		expected.put("object.number", new NumberLiteral(2));
-		expected.put("array", new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{ 
-		  new NumberLiteral(1), 
-		  new NumberLiteral(2), 
-		  new NumberLiteral(3), 
-		  new NumberLiteral(4) }));
+		expected.put("object.number", new IntegerLiteral(2));
+		expected.put("array", new ArrayValues<>(TypeEnum.INTEGER, new IntegerLiteral[]{
+		  new IntegerLiteral(1),
+		  new IntegerLiteral(2),
+		  new IntegerLiteral(3),
+		  new IntegerLiteral(4) }));
 		Map<String, Node> actual = d.getDataValues();
 
 		assertEquals(expected, actual);
@@ -80,10 +80,10 @@ public class DataObjectTest {
 		String jsonData = "{size:0, object:{number:2}, array:[1,2,3,4]}";
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Type> expected = new HashMap<>();
-		expected.put("size", TypeEnum.NUMBER);
+		expected.put("size", TypeEnum.INTEGER);
 		expected.put("object", TypeEnum.COMPLEXTYPE);
-		expected.put("object.number", TypeEnum.NUMBER);
-		expected.put("array", new ArrayType(TypeEnum.NUMBER));
+		expected.put("object.number", TypeEnum.INTEGER);
+		expected.put("array", new ArrayType(TypeEnum.INTEGER));
 
 		Map<String, Type> actual = d.getDataTypes();
 
@@ -95,10 +95,10 @@ public class DataObjectTest {
 		String jsonData = "{size:0, object:{number:2}, array:[[1,2],[3,4]]}";
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Type> expected = new HashMap<>();
-		expected.put("size", TypeEnum.NUMBER);
+		expected.put("size", TypeEnum.INTEGER);
 		expected.put("object", TypeEnum.COMPLEXTYPE);
-		expected.put("object.number", TypeEnum.NUMBER);
-		expected.put("array", new ArrayType(new ArrayType(TypeEnum.NUMBER)));
+		expected.put("object.number", TypeEnum.INTEGER);
+		expected.put("array", new ArrayType(new ArrayType(TypeEnum.INTEGER)));
 
 		Map<String, Type> actual = d.getDataTypes();
 
@@ -110,9 +110,9 @@ public class DataObjectTest {
 		String jsonData = "{size:0, object:{number:2}, array:[{number:1},{number:2},{number:3}]}";
 		DataObject d = DataObject.parseData(jsonData);
 		Map<String, Type> expected = new HashMap<>();
-		expected.put("size", TypeEnum.NUMBER);
+		expected.put("size", TypeEnum.INTEGER);
 		expected.put("object", TypeEnum.COMPLEXTYPE);
-		expected.put("object.number", TypeEnum.NUMBER);
+		expected.put("object.number", TypeEnum.INTEGER);
 		expected.put("array", new ArrayType(TypeEnum.COMPLEXTYPE));
 
 		Map<String, Type> actual = d.getDataTypes();

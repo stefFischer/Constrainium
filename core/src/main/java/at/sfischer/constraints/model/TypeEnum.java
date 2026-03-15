@@ -1,7 +1,7 @@
 package at.sfischer.constraints.model;
 
 public enum TypeEnum implements Type {
-    ANY, NUMBER, BOOLEAN, STRING, COMPLEXTYPE;
+    ANY, INTEGER, NUMBER, BOOLEAN, STRING, COMPLEXTYPE;
 
 
     @Override
@@ -11,6 +11,9 @@ public enum TypeEnum implements Type {
         }
 
         switch (this){
+            case INTEGER -> {
+                return target == INTEGER || target == NUMBER;
+            }
             case NUMBER -> {
                 return target == NUMBER;
             }

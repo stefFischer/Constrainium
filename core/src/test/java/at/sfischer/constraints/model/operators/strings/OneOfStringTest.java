@@ -16,7 +16,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateTrueOneOptionTest() {
 		Node value = new StringLiteral("ONE");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfString operator = new OneOfString(value, numberOfOptions);
 		Node result = operator.evaluate();
 
@@ -27,7 +27,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateTrueOnlySameOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfString operator = new OneOfString(value, numberOfOptions);
 
 		testValues(operator, value, new StringLiteral[]{
@@ -54,7 +54,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfString operator = new OneOfString(value, numberOfOptions);
 
 		testValues(operator, value, new StringLiteral[]{
@@ -73,7 +73,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateFalseFollowedTrueTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfString operator = new OneOfString(value, numberOfOptions);
 
 		testValues(operator, value, new StringLiteral[]{
@@ -110,7 +110,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateOneOfStringArrayElement(){
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), numberOfOptions));
 
 		testArrayValues(operator, value, new ArrayValues[]{
@@ -130,7 +130,7 @@ public class OneOfStringTest {
 	@Test
 	public void evaluateOneOfStringArrayElementWithViolations(){
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), numberOfOptions));
 
 		testArrayValues(operator, value, new ArrayValues[]{

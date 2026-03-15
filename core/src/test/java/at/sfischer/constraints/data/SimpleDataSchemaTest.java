@@ -19,7 +19,7 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -33,11 +33,11 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		expected.booleanEntry("isEmpty", true);
 
 		DataSchemaEntry<SimpleDataSchema> entry = expected.objectEntry("object", true);
-		entry.dataSchema.numberEntry("id",true);
+		entry.dataSchema.integerEntry("id",true);
 		entry.dataSchema.stringEntry("value",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -51,7 +51,21 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
+		expected.integerArrayEntry("array", true);
+
+		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void deriveFromFloatArrayData() {
+		String jsonData = "{size:0, array:[1.0,2.1,3.2,4.4]}";
+		DataObject dao = DataObject.parseData(jsonData);
+
+		SimpleDataSchema expected = new SimpleDataSchema();
+		expected.integerEntry("size", true);
 		expected.numberArrayEntry("array", true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
@@ -65,8 +79,8 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
-		expected.arrayEntryFor(new ArrayType(TypeEnum.NUMBER), "array", true);
+		expected.integerEntry("size", true);
+		expected.arrayEntryFor(new ArrayType(TypeEnum.INTEGER), "array", true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
@@ -79,9 +93,9 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
-		entry.dataSchema.numberEntry("number",true);
+		entry.dataSchema.integerEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
@@ -94,10 +108,10 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(TypeEnum.COMPLEXTYPE, "array", true);
-		entry.dataSchema.numberEntry("id",true);
-		entry.dataSchema.numberEntry("number",false);
+		entry.dataSchema.integerEntry("id",true);
+		entry.dataSchema.integerEntry("number",false);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
@@ -110,9 +124,9 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
-		entry.dataSchema.numberEntry("number",true);
+		entry.dataSchema.integerEntry("number",true);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
@@ -125,10 +139,10 @@ public class SimpleDataSchemaTest {
 		DataObject dao = DataObject.parseData(jsonData);
 
 		SimpleDataSchema expected = new SimpleDataSchema();
-		expected.numberEntry("size", true);
+		expected.integerEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> entry = expected.arrayEntryFor(new ArrayType(TypeEnum.COMPLEXTYPE), "array", true);
-		entry.dataSchema.numberEntry("id",true);
-		entry.dataSchema.numberEntry("number",false);
+		entry.dataSchema.integerEntry("id",true);
+		entry.dataSchema.integerEntry("number",false);
 
 		SimpleDataSchema actual = SimpleDataSchema.deriveFromData(dao);
 
@@ -138,11 +152,11 @@ public class SimpleDataSchemaTest {
 	@Test
 	public void evaluateNothingWrongTest() {
 		SimpleDataSchema schema = new SimpleDataSchema();
-		schema.numberEntry("size", true);
+		schema.integerEntry("size", true);
 		schema.booleanEntry("isEmpty", true);
 
 		DataSchemaEntry<SimpleDataSchema> entry = schema.objectEntry("object", true);
-		entry.dataSchema.numberEntry("id",true);
+		entry.dataSchema.integerEntry("id",true);
 		entry.dataSchema.stringEntry("value",true);
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(

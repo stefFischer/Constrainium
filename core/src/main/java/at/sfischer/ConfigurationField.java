@@ -1,13 +1,13 @@
-package at.sfischer.driver;
+package at.sfischer;
 
-public class DriverConfigurationField {
+public class ConfigurationField {
 
     private final String name;
     private final Class<?> type;
     private final boolean required;
     private final String description;
 
-    public DriverConfigurationField(
+    public ConfigurationField(
             String name,
             Class<?> type,
             boolean required,
