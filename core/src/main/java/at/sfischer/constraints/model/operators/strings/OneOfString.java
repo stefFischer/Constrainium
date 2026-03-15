@@ -11,12 +11,12 @@ public class OneOfString extends Function {
 
     private static final String FUNCTION_NAME = "string.OneOf";
 
-    public OneOfString(Node value, NumberLiteral numberOfOptions) {
-        this(value, new ArrayValues<>(TypeEnum.STRING, new StringLiteral[numberOfOptions.getValue().intValue()]));
+    public OneOfString(Node value, IntegerLiteral numberOfOptions) {
+        this(value, new ArrayValues<>(TypeEnum.STRING, new StringLiteral[numberOfOptions.getValue()]));
     }
 
     public OneOfString(Node value, ArrayValues<StringLiteral> options) {
-        super(FUNCTION_NAME, value, new NumberLiteral(options.getValue().length), options);
+        super(FUNCTION_NAME, value, new IntegerLiteral(options.getValue().length), options);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class OneOfString extends Function {
 
     @Override
     public List<Type> parameterTypes() {
-        return List.of(TypeEnum.STRING, TypeEnum.NUMBER, new ArrayType(TypeEnum.STRING));
+        return List.of(TypeEnum.STRING, TypeEnum.INTEGER, new ArrayType(TypeEnum.STRING));
     }
 
     @Override

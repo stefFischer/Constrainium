@@ -61,10 +61,10 @@ public class ArrayIndexTest {
 
 		DataSchemaEntry<SimpleDataSchema> objectEntry = schema.objectEntry("object", true);
 
-		DataSchemaEntry<SimpleDataSchema> arrayEntry = objectEntry.dataSchema.numberArrayEntry("array", true);
-		DataSchemaEntry<SimpleDataSchema> indexEntry = objectEntry.dataSchema.numberEntry("index", true);
+		DataSchemaEntry<SimpleDataSchema> arrayEntry = objectEntry.dataSchema.integerArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> indexEntry = objectEntry.dataSchema.integerEntry("index", true);
 
-		Constraint idConstraint = new Constraint(new OneOfNumber(new ArrayIndex(new DataReference(arrayEntry), new DataReference(indexEntry)), new NumberLiteral(1)));
+		Constraint idConstraint = new Constraint(new OneOfNumber(new ArrayIndex(new DataReference(arrayEntry), new DataReference(indexEntry)), new IntegerLiteral(1)));
 		indexEntry.constraints.add(idConstraint);
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(

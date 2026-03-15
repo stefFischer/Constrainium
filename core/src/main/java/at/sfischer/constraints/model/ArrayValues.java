@@ -70,7 +70,13 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
             }
         }
 
-        if(elementType == TypeEnum.NUMBER){
+        if(elementType == TypeEnum.INTEGER){
+            IntegerLiteral[] literalArray = new IntegerLiteral[literals.size()];
+            for (int i = 0; i < literals.size(); i++) {
+                literalArray[i] = new IntegerLiteral(((IntegerLiteral)literals.get(i)).getValue());
+            }
+            return new ArrayValues<>(elementType, literalArray);
+        } else if(elementType == TypeEnum.NUMBER){
             NumberLiteral[] literalArray = new NumberLiteral[literals.size()];
             for (int i = 0; i < literals.size(); i++) {
                 literalArray[i] = new NumberLiteral(((NumberLiteral)literals.get(i)).getValue());

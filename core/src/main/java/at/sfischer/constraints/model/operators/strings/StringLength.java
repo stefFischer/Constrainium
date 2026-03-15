@@ -41,6 +41,6 @@ public class StringLength extends Function {
 
     @Override
     public Type getReturnType() {
-        return TypeEnum.NUMBER;
+        return TypeEnum.INTEGER;
     }
 }

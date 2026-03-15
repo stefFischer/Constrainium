@@ -18,7 +18,11 @@ public class DataValue<T> {
     }
 
     private void validate(){
-        if (type == TypeEnum.NUMBER) {
+        if (type == TypeEnum.INTEGER) {
+            if(value instanceof Integer){
+                return;
+            }
+        } else if (type == TypeEnum.NUMBER) {
             if(value instanceof Number){
                 return;
             }
@@ -110,7 +114,9 @@ public class DataValue<T> {
     }
 
     public static <T> Value<?> getLiteralValue(Type type, T value){
-        if (type == TypeEnum.NUMBER) {
+        if (type == TypeEnum.INTEGER) {
+            return new IntegerLiteral((Integer) value);
+        } else if (type == TypeEnum.NUMBER) {
             return new NumberLiteral((Number) value);
         } else if (type == TypeEnum.BOOLEAN) {
             return BooleanLiteral.getBooleanLiteral((Boolean) value);
@@ -120,7 +126,15 @@ public class DataValue<T> {
             return new ComplexValue((DataObject) value);
         } else if (type instanceof ArrayType) {
             Type elementType = ((ArrayType) type).elementType();
-            if (elementType == TypeEnum.NUMBER) {
+            if (elementType == TypeEnum.INTEGER) {
+                Integer[] val =  (Integer[])value;
+                IntegerLiteral[] literalValues = new IntegerLiteral[val.length];
+                for (int i = 0; i < val.length; i++) {
+                    literalValues[i] = new IntegerLiteral(val[i]);
+                }
+
+                return new ArrayValues<>(elementType, literalValues);
+            } else if (elementType == TypeEnum.NUMBER) {
                 Number[] val =  (Number[])value;
                 NumberLiteral[] literalValues = new NumberLiteral[val.length];
                 for (int i = 0; i < val.length; i++) {

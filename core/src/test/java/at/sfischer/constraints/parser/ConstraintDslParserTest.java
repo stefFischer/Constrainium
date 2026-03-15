@@ -157,7 +157,7 @@ class ConstraintDslParserTest {
                         ),
                         new PowerOperator(
                                 new Variable("d"),
-                                new NumberLiteral(2.0)
+                                new IntegerLiteral(2)
                         )
                 )
         );
@@ -207,7 +207,7 @@ class ConstraintDslParserTest {
     void parsesQuantifierWithArrayElement() throws Exception {
         String input = """
             constraint C1:
-                forall x: ARRAY_ELEMENT > 5
+                forall x: ARRAY_ELEMENT > 5.0
             """;
 
         ConstraintTemplateFile file = parse(input);
@@ -245,7 +245,7 @@ class ConstraintDslParserTest {
                 new Variable("x"),
                 new GreaterThanOperator(
                         new Variable(ArrayQuantifier.ELEMENT_NAME),
-                        new NumberLiteral(5.0)
+                        new IntegerLiteral(5)
                 )
         );
         assertEquals(expectedNode, actualNode);
@@ -265,7 +265,7 @@ class ConstraintDslParserTest {
         assertEquals("C1", c.getName());
 
         Node actualNode = c.getTerm();
-        Node expectedNode = new OneOfNumber(new Variable("x"), new NumberLiteral(3));
+        Node expectedNode = new OneOfNumber(new Variable("x"), new IntegerLiteral(3));
         assertEquals(expectedNode, actualNode);
     }
 

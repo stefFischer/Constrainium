@@ -7,11 +7,11 @@ public record ArrayType(Type elementType) implements Type {
 
     @Override
     public boolean canAssignTo(Type target) {
-        if(!(target instanceof ArrayType targetArrayType)){
+        if(!(target instanceof ArrayType(Type type))){
             return false;
         }
 
-        return targetArrayType.elementType().canAssignTo(this.elementType());
+        return this.elementType().canAssignTo(type);
     }
 
     @Override

@@ -16,7 +16,7 @@ public class OneOfStringArrayTest {
 		Node value = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
 				new StringLiteral("ONE")
 		});
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfStringArray operator = new OneOfStringArray(value, numberOfOptions);
 		Node result = operator.evaluate();
 
@@ -28,7 +28,7 @@ public class OneOfStringArrayTest {
 	@Test
 	public void evaluateTrueOnlySameOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfStringArray operator = new OneOfStringArray(value, numberOfOptions);
 
 		testValues(operator, value, new ArrayValues[]{
@@ -48,7 +48,7 @@ public class OneOfStringArrayTest {
 	@Test
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfStringArray operator = new OneOfStringArray(value, numberOfOptions);
 
 		testValues(operator, value, new ArrayValues[]{
@@ -70,7 +70,7 @@ public class OneOfStringArrayTest {
 	@Test
 	public void evaluateFalseFollowedTrueTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfStringArray operator = new OneOfStringArray(value, numberOfOptions);
 
 		testValues(operator, value, new ArrayValues[]{

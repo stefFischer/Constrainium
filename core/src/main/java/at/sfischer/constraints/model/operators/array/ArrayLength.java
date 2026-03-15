@@ -41,6 +41,6 @@ public class ArrayLength extends Function {
 
     @Override
     public Type getReturnType() {
-        return TypeEnum.NUMBER;
+        return TypeEnum.INTEGER;
     }
 }

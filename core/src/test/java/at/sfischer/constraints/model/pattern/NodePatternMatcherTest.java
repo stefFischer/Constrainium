@@ -18,10 +18,10 @@ public class NodePatternMatcherTest {
     @Test
     public void testMatchWithOnePlaceholder() {
         Variable a = new Variable("a");
-        Node actual = new OneOfNumber(a, new NumberLiteral(3));
+        Node actual = new OneOfNumber(a, new IntegerLiteral(3));
 
         Placeholder p = new Placeholder("x");
-        Node pattern = new OneOfNumber(p, new NumberLiteral(3));
+        Node pattern = new OneOfNumber(p, new IntegerLiteral(3));
 
         Map<Placeholder, Node> match = NodePatternMatcher.match(pattern, actual);
 
@@ -33,11 +33,11 @@ public class NodePatternMatcherTest {
     @Test
     public void testMatchWithOnePlaceholderPatterNode() {
         Variable a = new Variable("a");
-        Node actual = new OneOfNumber(a, new NumberLiteral(3));
+        Node actual = new OneOfNumber(a, new IntegerLiteral(3));
 
         Placeholder p = new Placeholder("x");
         Placeholder v = new Placeholder("y");
-        Node pattern = new PatternNode("at.sfischer.constraints.model.operators.numbers.OneOfNumber", p, new NumberLiteral(3), v);
+        Node pattern = new PatternNode("at.sfischer.constraints.model.operators.numbers.OneOfNumber", p, new IntegerLiteral(3), v);
 
         Map<Placeholder, Node> match = NodePatternMatcher.match(pattern, actual);
 
@@ -68,10 +68,10 @@ public class NodePatternMatcherTest {
     @Test
     public void testMatchNotAVariable() {
         Variable a = new Variable("a");
-        Node actual = new OneOfNumber(new ArrayLength(a), new NumberLiteral(3));
+        Node actual = new OneOfNumber(new ArrayLength(a), new IntegerLiteral(3));
 
         Placeholder p = new Placeholder("x");
-        Node pattern = new OneOfNumber(p, new NumberLiteral(3));
+        Node pattern = new OneOfNumber(p, new IntegerLiteral(3));
 
         Map<Placeholder, Node> match = NodePatternMatcher.match(pattern, actual);
 
@@ -87,7 +87,7 @@ public class NodePatternMatcherTest {
         Node actual = new StringEquals(a, b);
 
         Placeholder p = new Placeholder("x");
-        Node pattern = new OneOfNumber(p, new NumberLiteral(3));
+        Node pattern = new OneOfNumber(p, new IntegerLiteral(3));
 
         Map<Placeholder, Node> match = NodePatternMatcher.match(pattern, actual);
 
@@ -97,10 +97,10 @@ public class NodePatternMatcherTest {
     @Test
     public void testMatchDoesNotMatchDifferentLeafNode() {
         Variable a = new Variable("a");
-        Node actual = new OneOfNumber(a, new NumberLiteral(3));
+        Node actual = new OneOfNumber(a, new IntegerLiteral(3));
 
         Placeholder p = new Placeholder("x");
-        Node pattern = new OneOfNumber(p, new NumberLiteral(2));
+        Node pattern = new OneOfNumber(p, new IntegerLiteral(2));
 
         Map<Placeholder, Node> match = NodePatternMatcher.match(pattern, actual);
 

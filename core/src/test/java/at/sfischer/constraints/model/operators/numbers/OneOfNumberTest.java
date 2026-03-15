@@ -1,9 +1,6 @@
 package at.sfischer.constraints.model.operators.numbers;
 
-import at.sfischer.constraints.model.BooleanLiteral;
-import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.NumberLiteral;
-import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -16,7 +13,7 @@ public class OneOfNumberTest {
 	@Test
 	public void evaluateTrueOneOptionTest() {
 		Node value = new NumberLiteral(2);
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 		Node result = operator.evaluate();
 
@@ -27,7 +24,7 @@ public class OneOfNumberTest {
 	@Test
 	public void evaluateTrueOnlySameOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{
@@ -54,7 +51,7 @@ public class OneOfNumberTest {
 	@Test
 	public void evaluateFalseTooManyOptionsTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{
@@ -73,7 +70,7 @@ public class OneOfNumberTest {
 	@Test
 	public void evaluateFalseFollowedTrueTest() {
 		Variable value = new Variable("a");
-		NumberLiteral numberOfOptions = new NumberLiteral(3);
+		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
 		OneOfNumber operator = new OneOfNumber(value, numberOfOptions);
 
 		testValues(operator, value, new NumberLiteral[]{

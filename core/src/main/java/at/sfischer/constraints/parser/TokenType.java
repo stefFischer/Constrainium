@@ -21,6 +21,7 @@ public enum TokenType {
     // ===== Identifiers & Literals =====
     IDENTIFIER,
     NUMBER,
+    INTEGER,
     STRING,
 
     // ===== Operators =====

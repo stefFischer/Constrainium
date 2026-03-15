@@ -150,7 +150,7 @@ public class ConstraintDslParser {
         if (match(TokenType.MIN_APPLICATIONS)) {
             consume(TokenType.ASSIGN, "Expected '='");
             int value = Integer.parseInt(
-                    consume(TokenType.NUMBER, "Expected integer").getLexeme()
+                    consume(TokenType.INTEGER, "Expected integer").getLexeme()
             );
             return new MinApplicationsPolicy(value);
         }
@@ -328,7 +328,8 @@ public class ConstraintDslParser {
     }
 
     private Node parsePrimary() throws IOException, ParseException {
-        if (check(TokenType.NUMBER)
+        if (check(TokenType.INTEGER)
+            || check(TokenType.NUMBER)
             || check(TokenType.STRING)
             || check(TokenType.TRUE)
             || check(TokenType.FALSE)
@@ -368,6 +369,10 @@ public class ConstraintDslParser {
     }
 
     private Value<?> parseLiteral() throws IOException, ParseException {
+        if (match(TokenType.INTEGER)) {
+            return new IntegerLiteral(Integer.parseInt(previous.getLexeme()));
+        }
+
         if (match(TokenType.NUMBER)) {
             return new NumberLiteral(Double.parseDouble(previous.getLexeme()));
         }
