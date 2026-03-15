@@ -2,8 +2,6 @@ package at.sfischer.driver.rest;
 
 import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.data.DataValue;
-import at.sfischer.constraints.data.InOutputDataCollection;
-import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.driver.DriverException;
 import at.sfischer.driver.SystemDriver;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,175 +52,169 @@ public class RestSystemDriver implements SystemDriver {
     }
 
     @Override
-    public InOutputDataCollection execute(SimpleDataCollection input) throws DriverException {
-
-        InOutputDataCollection inout = new InOutputDataCollection();
-
+    public DataObject execute(DataObject input) throws DriverException {
         PathItem pathItem = openAPI.getPaths().get(pathTemplate);
-        Operation operation = switch (this.operation){
+        Operation operation = switch (this.operation) {
             case "GET" -> pathItem.getGet();
             case "POST" -> pathItem.getPost();
             case "PUT" -> pathItem.getPut();
             case "PATCH" -> pathItem.getPatch();
             case "DELETE" -> pathItem.getDelete();
-            default -> throw new IllegalArgumentException("Unsupported operation, needs to be one of GET, POST, PUT, PATCH, DELETE.");
+            default ->
+                    throw new IllegalArgumentException("Unsupported operation, needs to be one of GET, POST, PUT, PATCH, DELETE.");
         };
 
-        for (DataObject dataEntry : input.getDataCollection()) {
-            if(!(dataEntry instanceof DataObject dataObject)){
-                continue;
-            }
+        /// Get the parameters.
+        String resolvedPath = pathTemplate;
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        Map<String, String> headers = new LinkedHashMap<>();
+        Map<String, String> cookies = new LinkedHashMap<>();
+        List<Parameter> parameters = operation.getParameters();
+        if (parameters != null) {
+            for (Parameter p : parameters) {
 
-            /// Get the parameters.
-            String resolvedPath = pathTemplate;
-            Map<String, String> queryParams = new LinkedHashMap<>();
-            Map<String, String> headers = new LinkedHashMap<>();
-            Map<String, String> cookies = new LinkedHashMap<>();
-            List<Parameter> parameters = operation.getParameters();
-            if(parameters != null){
-                for (Parameter p : parameters) {
+                String name = p.getName();
+                Object rawValue = input.getDataValue(name).getValue();
 
-                    String name = p.getName();
-                    Object rawValue = dataObject.getDataValue(name).getValue();
-
-                    // Skip null optional parameters
-                    if (rawValue == null) {
-                        if (Boolean.TRUE.equals(p.getRequired())) {
-                            throw new DriverException("Missing required parameter: " + name);
-                        }
-
-                        continue;
+                // Skip null optional parameters
+                if (rawValue == null) {
+                    if (Boolean.TRUE.equals(p.getRequired())) {
+                        throw new DriverException("Missing required parameter: " + name);
                     }
 
-                    String value = rawValue.toString();
-                    switch (p.getIn()) {
-                        case "path" -> resolvedPath = resolvedPath.replace("{" + name + "}", value);
-                        case "query" -> queryParams.put(name, value);
-                        case "header" -> headers.put(name, value);
-                        case "cookie" -> cookies.put(name, value);
-                        default -> throw new DriverException("Unsupported parameter location: " + p.getIn());
-                    }
-                }
-            }
-
-            /// Build request body.
-            RequestBody body = operation.getRequestBody();
-            String requestBody = "";
-            String contentType = "";
-            if (body != null) {
-                contentType = body
-                        .getContent()
-                        .keySet()
-                        .iterator()
-                        .next();
-
-                Schema<?> schema = body.getContent()
-                        .get(contentType)
-                        .getSchema();
-
-                switch (contentType) {
-                    case "application/json": {
-                        DataValue<?> rootValue = dataEntry.getDataValue("body");
-                        Object jsonObject = buildJsonFromSchema(schema, rootValue);
-                        ObjectMapper mapper = new ObjectMapper();
-                        try {
-                            requestBody = mapper.writeValueAsString(jsonObject);
-                        } catch (JsonProcessingException e) {
-                            throw new DriverException("Error while trying to build request body", e);
-                        }
-                        break;
-                    }
-                    case "application/xml":
-                    case "application/x-www-form-urlencoded":
-                    case "application/octet-stream":
-                    case "multipart/form-data":
-                    default: throw new DriverException("Unsupported content type for request body: " + contentType);
-                }
-            }
-
-            ///  Build URI.
-            StringBuilder uriBuilder = new StringBuilder();
-            uriBuilder.append(uri.toString());
-            uriBuilder.append(resolvedPath);
-
-            ///  - Append query parameters
-            if (!queryParams.isEmpty()) {
-                uriBuilder.append("?");
-                boolean first = true;
-                for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                    if (!first) {
-                        uriBuilder.append("&");
-                    }
-                    first = false;
-
-                    uriBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
-                    uriBuilder.append("=");
-                    uriBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
-                }
-            }
-
-            URI finalUri = URI.create(uriBuilder.toString());
-
-            /// Build request.
-            HttpRequest.Builder builder =
-                    HttpRequest.newBuilder()
-                            .uri(finalUri)
-                            .timeout(duration);
-
-
-            switch (this.operation){
-                case "GET" -> builder.GET();
-                case "DELETE" -> builder.DELETE();
-                case "PUT" -> builder.PUT(HttpRequest.BodyPublishers.ofString(requestBody));
-                case "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(requestBody));
-
-                default -> throw new IllegalArgumentException("Unsupported operation, needs to be one of GET, POST, PUT, PATCH, DELETE.");
-            }
-
-            ///  - Add headers and cookies.
-            headers.forEach(builder::header);
-            if (!cookies.isEmpty()) {
-                String cookieHeader = cookies.entrySet().stream()
-                        .map(e -> e.getKey() + "=" + e.getValue())
-                        .collect(Collectors.joining("; "));
-
-                builder.header("Cookie", cookieHeader);
-            }
-
-            HttpRequest request;
-            if(requestBody.isEmpty()){
-                request = builder.build();
-            } else {
-                request = builder.header("Content-Type", contentType).build();
-            }
-
-            LOGGER.debug("Created request: {} with body: {}", request, requestBody);
-
-            try (HttpClient client = HttpClient.newHttpClient()) {
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                LOGGER.debug("Response: {} with body: {}", response, response.body());
-
-                // Convert Response → DataCollection
-                if(isSuccess(response)){
-                    String b = response.body();
-                    if(b == null || b.isEmpty()){
-                        b = "{}";
-                    }
-                    DataObject responseBody = DataObject.parseData(b);
-                    inout.addDataEntry(dataObject, responseBody);
-                } else {
-                    // TODO special handing for error cases.
-                    LOGGER.debug("Error ({}) \"{}\" for data: {}", response.statusCode(), response.body(), dataObject);
+                    continue;
                 }
 
-
-            } catch (Exception e) {
-                throw new DriverException(e);
+                String value = rawValue.toString();
+                switch (p.getIn()) {
+                    case "path" -> resolvedPath = resolvedPath.replace("{" + name + "}", value);
+                    case "query" -> queryParams.put(name, value);
+                    case "header" -> headers.put(name, value);
+                    case "cookie" -> cookies.put(name, value);
+                    default -> throw new DriverException("Unsupported parameter location: " + p.getIn());
+                }
             }
         }
 
-        return inout;
+        /// Build request body.
+        RequestBody body = operation.getRequestBody();
+        String requestBody = "";
+        String contentType = "";
+        if (body != null) {
+            contentType = body
+                    .getContent()
+                    .keySet()
+                    .iterator()
+                    .next();
+
+            Schema<?> schema = body.getContent()
+                    .get(contentType)
+                    .getSchema();
+
+            switch (contentType) {
+                case "application/json": {
+                    DataValue<?> rootValue = input.getDataValue("body");
+                    Object jsonObject = buildJsonFromSchema(schema, rootValue);
+                    ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        requestBody = mapper.writeValueAsString(jsonObject);
+                    } catch (JsonProcessingException e) {
+                        throw new DriverException("Error while trying to build request body", e);
+                    }
+                    break;
+                }
+                case "application/xml":
+                case "application/x-www-form-urlencoded":
+                case "application/octet-stream":
+                case "multipart/form-data":
+                default:
+                    throw new DriverException("Unsupported content type for request body: " + contentType);
+            }
+        }
+
+        ///  Build URI.
+        StringBuilder uriBuilder = new StringBuilder();
+        uriBuilder.append(uri.toString());
+        uriBuilder.append(resolvedPath);
+
+        ///  - Append query parameters
+        if (!queryParams.isEmpty()) {
+            uriBuilder.append("?");
+            boolean first = true;
+            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+                if (!first) {
+                    uriBuilder.append("&");
+                }
+                first = false;
+
+                uriBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
+                uriBuilder.append("=");
+                uriBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+            }
+        }
+
+        URI finalUri = URI.create(uriBuilder.toString());
+
+        /// Build request.
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder()
+                        .uri(finalUri)
+                        .timeout(duration);
+
+
+        switch (this.operation) {
+            case "GET" -> builder.GET();
+            case "DELETE" -> builder.DELETE();
+            case "PUT" -> builder.PUT(HttpRequest.BodyPublishers.ofString(requestBody));
+            case "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(requestBody));
+
+            default ->
+                    throw new IllegalArgumentException("Unsupported operation, needs to be one of GET, POST, PUT, PATCH, DELETE.");
+        }
+
+        ///  - Add headers and cookies.
+        headers.forEach(builder::header);
+        if (!cookies.isEmpty()) {
+            String cookieHeader = cookies.entrySet().stream()
+                    .map(e -> e.getKey() + "=" + e.getValue())
+                    .collect(Collectors.joining("; "));
+
+            builder.header("Cookie", cookieHeader);
+        }
+
+        HttpRequest request;
+        if (requestBody.isEmpty()) {
+            request = builder.build();
+        } else {
+            request = builder.header("Content-Type", contentType).build();
+        }
+
+        LOGGER.debug("Created request: {} with body: {}", request, requestBody);
+
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            LOGGER.debug("Response: {} with body: {}", response, response.body());
+
+            // Convert Response → DataCollection
+            if (isSuccess(response)) {
+                String b = response.body();
+                if (b == null || b.isEmpty()) {
+                    b = "{}";
+                }
+
+                return DataObject.parseData(b);
+            } else {
+                // TODO special handing for error cases.
+                LOGGER.debug("Error ({}) \"{}\" for data: {}", response.statusCode(), response.body(), input);
+            }
+
+
+        } catch (Exception e) {
+            throw new DriverException(e);
+        }
+
+        return null;
     }
 
     private boolean isSuccess(HttpResponse<?> response) {
