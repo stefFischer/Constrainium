@@ -198,10 +198,10 @@ public class SimpleDataSchema extends DataSchema {
     private <DS extends DataSchema> List<DataSchemaEntry<DS>> findMatchingEntries(Collection<DataSchemaEntry<DS>> schema, Variable variable, Type valueType, Node term, int recursiveCount) {
         List<DataSchemaEntry<DS>> matches = new ArrayList<>();
         for (DataSchemaEntry<DS> entry : schema) {
-            if (valueType.canAssignTo(entry.type)) {
+            if (entry.type.canAssignTo(valueType)) {
                 matches.add(entry);
             } else if(entry.type instanceof ArrayType){
-                if (valueType.canAssignTo(((ArrayType) entry.type).elementType())) {
+                if (((ArrayType) entry.type).elementType().canAssignTo(valueType)) {
                     if(recursiveCount <= 0) {
                         Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
                         fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
