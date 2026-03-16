@@ -111,9 +111,10 @@ public class RestSystemDriver implements SystemDriver {
                     .get(contentType)
                     .getSchema();
 
+            String bodyName = findBodyName(schema);
             switch (contentType) {
                 case "application/json": {
-                    DataValue<?> rootValue = input.getDataValue("body");
+                    DataValue<?> rootValue = input.getDataValue(bodyName);
                     Object jsonObject = buildJsonFromSchema(schema, rootValue);
                     ObjectMapper mapper = new ObjectMapper();
                     try {
@@ -299,5 +300,14 @@ public class RestSystemDriver implements SystemDriver {
         }
 
         return jsonArray;
+    }
+
+    private String findBodyName(Schema<?> schema){
+        if(schema.get$ref() != null){
+            String[] parts = schema.get$ref().split("/");
+            return parts[parts.length - 1].toLowerCase();
+        }
+
+        return "body";
     }
 }
