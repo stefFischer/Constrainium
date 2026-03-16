@@ -24,6 +24,14 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
         this.outputSchema = outputSchema;
     }
 
+    public SCHEMA getInputSchema() {
+        return inputSchema;
+    }
+
+    public SCHEMA getOutputSchema() {
+        return outputSchema;
+    }
+
     @Override
     public void fillSchemaWithConstraints(Node term) {
         fillSchemaWithConstraintsFromTwoSchemas(term, this.inputSchema.getDataSchemaEntries(), this.outputSchema.getDataSchemaEntries(), 0);
