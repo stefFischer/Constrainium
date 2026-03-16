@@ -24,6 +24,14 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
         this.outputSchema = outputSchema;
     }
 
+    public SCHEMA getInputSchema() {
+        return inputSchema;
+    }
+
+    public SCHEMA getOutputSchema() {
+        return outputSchema;
+    }
+
     @Override
     public void fillSchemaWithConstraints(Node term) {
         fillSchemaWithConstraintsFromTwoSchemas(term, this.inputSchema.getDataSchemaEntries(), this.outputSchema.getDataSchemaEntries(), 0);
@@ -64,10 +72,10 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             int recursiveCount) {
         List<DataSchemaEntry<DS>> matches = new ArrayList<>();
         for (DataSchemaEntry<DS> entry : schema) {
-            if (valueType.canAssignTo(entry.type)) {
+            if (entry.type.canAssignTo(valueType)) {
                 matches.add(entry);
             } else if(entry.type instanceof ArrayType){
-                if (valueType.canAssignTo(((ArrayType) entry.type).elementType())) {
+                if (((ArrayType) entry.type).elementType().canAssignTo(valueType)) {
                     if(recursiveCount <= 0) {
                         Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
                         fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, schema, otherSchema, recursiveCount + 1);

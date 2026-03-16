@@ -9,6 +9,7 @@ findProject(":generator:random")?.name = "random"
 include("driver:rest")
 findProject(":driver:rest")?.name = "rest"
 
+include("integration-testing")
 
 include("test-systems:TestSystemRunner")
 findProject(":test-systems:TestSystemRunner")?.name = "TestSystemRunner"
