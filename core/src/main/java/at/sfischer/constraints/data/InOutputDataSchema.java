@@ -2,10 +2,7 @@ package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
-import at.sfischer.constraints.model.ArrayType;
-import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.Type;
-import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import org.javatuples.Pair;
@@ -15,6 +12,9 @@ import java.util.*;
 
 public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
+    public static final String INPUT_PREFIX = "input";
+    public static final String OUTPUT_PREFIX = "output";
+
     private final SCHEMA inputSchema;
 
     private final SCHEMA outputSchema;
@@ -22,6 +22,9 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
     public InOutputDataSchema(SCHEMA inputSchema, SCHEMA outputSchema) {
         this.inputSchema = inputSchema;
         this.outputSchema = outputSchema;
+
+        this.inputSchema.setParentEntry(new DataSchemaEntry<>(this, INPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.inputSchema));
+        this.outputSchema.setParentEntry(new DataSchemaEntry<>(this, OUTPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.outputSchema));
     }
 
     public SCHEMA getInputSchema() {
@@ -124,8 +127,8 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
             Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
     ){
-        evaluateDataObject(inputSchema.getDataSchemaEntries(), dao.getValue0(), dataEntry, evaluationResults);
-        evaluateDataObject(outputSchema.getDataSchemaEntries(), dao.getValue1(), dataEntry, evaluationResults);
+        evaluateDataObject(inputSchema.getDataSchemaEntries(), InOutputDataCollection.getInputData(dao), dataEntry, evaluationResults);
+        evaluateDataObject(outputSchema.getDataSchemaEntries(), InOutputDataCollection.getOutputData(dao), dataEntry, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){

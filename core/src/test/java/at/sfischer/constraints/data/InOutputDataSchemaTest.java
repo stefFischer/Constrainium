@@ -98,10 +98,11 @@ public class InOutputDataSchemaTest {
 		outputSchema.numberEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> objectEntry = outputSchema.objectEntry("object", true);
 		DataSchemaEntry<SimpleDataSchema> number = objectEntry.dataSchema.numberEntry("number",true);
-		Constraint numberConstraint = new Constraint(new EqualOperator(new DataReference(number), new DataReference(add)));
-		number.constraints.add(numberConstraint);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
+
+		Constraint numberConstraint = new Constraint(new EqualOperator(new DataReference(number), new DataReference(add)));
+		number.constraints.add(numberConstraint);
 
 		@SuppressWarnings("unchecked")
 		InOutputDataCollection data = InOutputDataCollection.parseData(
@@ -126,10 +127,11 @@ public class InOutputDataSchemaTest {
 		outputSchema.numberEntry("size", true);
 		DataSchemaEntry<SimpleDataSchema> objectEntry = outputSchema.objectEntry("object", true);
 		DataSchemaEntry<SimpleDataSchema> number = objectEntry.dataSchema.numberEntry("number",true);
-		Constraint numberConstraint = new Constraint(new EqualOperator(new DataReference(number), new DataReference(add)));
-		number.constraints.add(numberConstraint);
 
 		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
+
+		Constraint numberConstraint = new Constraint(new EqualOperator(new DataReference(number), new DataReference(add)));
+		number.constraints.add(numberConstraint);
 
 		@SuppressWarnings("unchecked")
 		InOutputDataCollection data = InOutputDataCollection.parseData(
