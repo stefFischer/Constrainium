@@ -48,7 +48,7 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
         if (o == null || getClass() != o.getClass()) return false;
         ArrayValues<?> that = (ArrayValues<?>) o;
         if(!Objects.equals(elementType, that.elementType)) return false;
-        return Arrays.equals(this.getValue(), that.getValue());
+        return Arrays.deepEquals(this.getValue(), that.getValue());
     }
 
     @Override
