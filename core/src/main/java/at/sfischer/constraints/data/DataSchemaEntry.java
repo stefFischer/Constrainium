@@ -58,6 +58,19 @@ public class DataSchemaEntry<T extends DataSchema> {
         return this.parentSchema.getParentEntry();
     }
 
+    public T getRootSchema(){
+        if(this.parentSchema == null){
+            return null;
+        }
+
+        if(this.parentSchema.getParentEntry() == null){
+            return this.parentSchema;
+        }
+
+        //noinspection unchecked
+        return (T) this.parentSchema.getParentEntry().getRootSchema();
+    }
+
     public Constraint getPotentionConstraint(Constraint constraint){
         for (Constraint potentialConstraint : potentialConstraints) {
             if(potentialConstraint.equals(constraint)){
