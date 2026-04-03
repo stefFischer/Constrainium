@@ -27,6 +27,21 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
         this.outputSchema.setParentEntry(new DataSchemaEntry<>(this, OUTPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.outputSchema));
     }
 
+    @Override
+    public <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path) {
+        if(path.startsWith(INPUT_PREFIX)){
+            path = path.substring(INPUT_PREFIX.length() + 1);
+            return inputSchema.findDataSchemaEntry(path);
+        }
+
+        if(path.startsWith(OUTPUT_PREFIX)){
+            path = path.substring(OUTPUT_PREFIX.length() + 1);
+            return outputSchema.findDataSchemaEntry(path);
+        }
+
+        return null;
+    }
+
     public SCHEMA getInputSchema() {
         return inputSchema;
     }

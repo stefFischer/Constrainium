@@ -35,6 +35,8 @@ public abstract class DataSchema {
         // Do nothing by default. This is only required for schema that are used in the entry hierarchy like SimpleDataSchema.
     }
 
+    public abstract <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path);
+
     public abstract void fillSchemaWithConstraints(Node term);
 
     public void fillSchemaWithConstraints(Node term, Set<Node> replacementTerms){
