@@ -59,13 +59,95 @@ public class DataValue<T> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DataValue<?> dataValue = (DataValue<?>) o;
-        return Objects.equals(type, dataValue.type) && Objects.equals(value, dataValue.value);
+        DataValue<?> that = (DataValue<?>) o;
+        return Objects.equals(type, that.type) &&
+                valuesEqual(this.value, that.value);
+    }
+
+    private boolean valuesEqual(Object v1, Object v2) {
+        if (v1 == v2) return true;
+        if (v1 == null || v2 == null) return false;
+
+        if (v1.getClass().isArray() && v2.getClass().isArray()) {
+            switch (v1) {
+                case int[] ints when v2 instanceof int[] -> {
+                    return Arrays.equals(ints, (int[]) v2);
+                }
+                case long[] longs when v2 instanceof long[] -> {
+                    return Arrays.equals(longs, (long[]) v2);
+                }
+                case byte[] bytes when v2 instanceof byte[] -> {
+                    return Arrays.equals(bytes, (byte[]) v2);
+                }
+                case char[] chars when v2 instanceof char[] -> {
+                    return Arrays.equals(chars, (char[]) v2);
+                }
+                case short[] shorts when v2 instanceof short[] -> {
+                    return Arrays.equals(shorts, (short[]) v2);
+                }
+                case float[] floats when v2 instanceof float[] -> {
+                    return Arrays.equals(floats, (float[]) v2);
+                }
+                case double[] doubles when v2 instanceof double[] -> {
+                    return Arrays.equals(doubles, (double[]) v2);
+                }
+                case boolean[] booleans when v2 instanceof boolean[] -> {
+                    return Arrays.equals(booleans, (boolean[]) v2);
+                }
+                case Object[] objects when v2 instanceof Object[] -> {
+                    return Arrays.deepEquals(objects, (Object[]) v2);
+                }
+                default -> {
+                }
+            }
+        }
+
+        return v1.equals(v2);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, value);
+        return 31 * Objects.hashCode(type) + valueHash(value);
+    }
+
+    private int valueHash(Object v) {
+        if (v == null) return 0;
+
+        if (v.getClass().isArray()) {
+            switch (v) {
+                case Object[] objects -> {
+                    return Arrays.deepHashCode(objects);
+                }
+                case int[] ints -> {
+                    return Arrays.hashCode(ints);
+                }
+                case long[] longs -> {
+                    return Arrays.hashCode(longs);
+                }
+                case byte[] bytes -> {
+                    return Arrays.hashCode(bytes);
+                }
+                case char[] chars -> {
+                    return Arrays.hashCode(chars);
+                }
+                case short[] shorts -> {
+                    return Arrays.hashCode(shorts);
+                }
+                case float[] floats -> {
+                    return Arrays.hashCode(floats);
+                }
+                case double[] doubles -> {
+                    return Arrays.hashCode(doubles);
+                }
+                case boolean[] booleans -> {
+                    return Arrays.hashCode(booleans);
+                }
+                default -> {
+                }
+            }
+        }
+
+        return v.hashCode();
     }
 
     public Map<String, Type> getDataTypes(){

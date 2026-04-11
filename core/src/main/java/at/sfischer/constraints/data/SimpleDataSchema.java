@@ -33,6 +33,25 @@ public class SimpleDataSchema extends DataSchema {
         return new HashSet<>(schema.keySet());
     }
 
+    @Override
+    public <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path) {
+        return findDataSchemaEntry(List.of(path.split("\\.")));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(List<String> path) {
+        if(path.size() == 1){
+            return (DataSchemaEntry<T>) getSchemaEntry(path.getFirst());
+        }
+
+        DataSchemaEntry<SimpleDataSchema> nextEntry = getSchemaEntry(path.getFirst());
+        if(nextEntry == null || nextEntry.dataSchema == null){
+            return null;
+        }
+
+        return nextEntry.dataSchema.findDataSchemaEntry(path.subList(1, path.size()));
+    }
+
     public DataSchemaEntry<SimpleDataSchema> booleanEntry(String name, boolean mandatory){
         return schema.computeIfAbsent(name, k -> new DataSchemaEntry<>(this, name, TypeEnum.BOOLEAN, mandatory, null));
     }
@@ -220,10 +239,14 @@ public class SimpleDataSchema extends DataSchema {
     @Override
     public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
         for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
-            //noinspection unchecked
-            constraints.put((DataSchemaEntry<DS>)entry, entry.constraints);
-            //noinspection unchecked
-            potentialConstraints.put((DataSchemaEntry<DS>)entry, entry.potentialConstraints);
+            if(constraints != null) {
+                //noinspection unchecked
+                constraints.put((DataSchemaEntry<DS>) entry, entry.constraints);
+            }
+            if(potentialConstraints != null) {
+                //noinspection unchecked
+                potentialConstraints.put((DataSchemaEntry<DS>) entry, entry.potentialConstraints);
+            }
 
             if(entry.dataSchema != null) {
                 entry.dataSchema.collectAllConstraints(constraints, potentialConstraints);

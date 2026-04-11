@@ -253,13 +253,13 @@ public class ConstraintMinerTest {
 		terms.add(new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b")));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new Variable("add"), new Variable("size")));
+		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new Variable("input.add"), new Variable("output.size")));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new Variable("size"), new Variable("add")));
+		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new Variable("output.size"), new Variable("input.add")));
 		expected.add(constraint2);
-		Constraint constraint3 = new Constraint(new GreaterThanOrEqualOperator(new Variable("size"), new Variable("object.number")));
+		Constraint constraint3 = new Constraint(new GreaterThanOrEqualOperator(new Variable("output.size"), new Variable("input.object.number")));
 		expected.add(constraint3);
-		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("object.number"), new Variable("size")));
+		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("input.object.number"), new Variable("output.size")));
 		expected.add(constraint4);
 
 		ConstraintMiner miner = new ConstraintMinerFromData(data);
@@ -282,13 +282,13 @@ public class ConstraintMinerTest {
 		terms.add(new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b")));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new Variable("add"), new Variable("size")));
+		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new Variable("input.add"), new Variable("output.size")));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new Variable("size"), new Variable("add")));
+		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new Variable("output.size"), new Variable("input.add")));
 		expected.add(constraint2);
-		Constraint constraint3 = new Constraint(new GreaterThanOrEqualOperator(new Variable("add"), new Variable("object.number")));
+		Constraint constraint3 = new Constraint(new GreaterThanOrEqualOperator(new Variable("input.add"), new Variable("output.object.number")));
 		expected.add(constraint3);
-		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("object.number"), new Variable("add")));
+		Constraint constraint4 = new Constraint(new GreaterThanOrEqualOperator(new Variable("output.object.number"), new Variable("input.add")));
 		expected.add(constraint4);
 
 		ConstraintMiner miner = new ConstraintMinerFromData(data);
@@ -311,9 +311,9 @@ public class ConstraintMinerTest {
 		terms.add(new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b")));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new Variable("size"))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("output.array"), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new Variable("input.size"))));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Variable("size"), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")))));
+		Constraint constraint2 = new Constraint(new ForAll(new Variable("output.array"), new GreaterThanOrEqualOperator(new Variable("input.size"), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")))));
 		expected.add(constraint2);
 
 		ConstraintMiner miner = new ConstraintMinerFromData(data);

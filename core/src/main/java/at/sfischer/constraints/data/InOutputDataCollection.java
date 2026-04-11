@@ -1,9 +1,6 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.model.Node;
-import at.sfischer.constraints.model.Type;
-import at.sfischer.constraints.model.Value;
-import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.*;
 import org.javatuples.Pair;
 
 import java.util.*;
@@ -16,6 +13,45 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         this.dataCollection = new LinkedList<>();
     }
 
+    public static InOutputDataCollection createFromSimpleCollections(SimpleDataCollection in, SimpleDataCollection out){
+        if(in.size() != out.size()){
+            throw new IllegalArgumentException("Both data collections must have the same size.");
+        }
+
+        InOutputDataCollection inOutputDataCollection = new InOutputDataCollection();
+        List<DataObject> inData = in.getDataCollection();
+        List<DataObject> outData = out.getDataCollection();
+        for (int i = 0; i < inData.size(); i++) {
+            inOutputDataCollection.addDataEntry(inData.get(i), outData.get(i));
+        }
+
+        return inOutputDataCollection;
+    }
+
+    public static DataObject getInputData(Pair<DataObject, DataObject> pair){
+        if(pair.getValue0() == null){
+            return new DataObject();
+        }
+        DataValue<?> val = pair.getValue0().getDataValue(InOutputDataSchema.INPUT_PREFIX);
+        if(val == null || val.getType() != TypeEnum.COMPLEXTYPE){
+            return new DataObject();
+        }
+
+        return (DataObject)val.getValue();
+    }
+
+    public static DataObject getOutputData(Pair<DataObject, DataObject> pair){
+        if(pair.getValue1() == null){
+            return new DataObject();
+        }
+        DataValue<?> val = pair.getValue1().getDataValue(InOutputDataSchema.OUTPUT_PREFIX);
+        if(val == null || val.getType() != TypeEnum.COMPLEXTYPE){
+            return new DataObject();
+        }
+
+        return (DataObject)val.getValue();
+    }
+
     public List<Pair<DataObject, DataObject>> getDataCollection() {
         return dataCollection;
     }
@@ -26,14 +62,14 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         SimpleDataSchema outputSchema = null;
         for (Pair<DataObject, DataObject> pair : dataCollection) {
             if(inputSchema == null){
-                inputSchema = SimpleDataSchema.deriveFromData(pair.getValue0());
+                inputSchema = SimpleDataSchema.deriveFromData(getInputData(pair));
             } else {
-                inputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue0()), typePromotionPolicy);
+                inputSchema.unify(SimpleDataSchema.deriveFromData(getInputData(pair)), typePromotionPolicy);
             }
             if(outputSchema == null){
-                outputSchema = SimpleDataSchema.deriveFromData(pair.getValue1());
+                outputSchema = SimpleDataSchema.deriveFromData(getOutputData(pair));
             } else {
-                outputSchema.unify(SimpleDataSchema.deriveFromData(pair.getValue1()), typePromotionPolicy);
+                outputSchema.unify(SimpleDataSchema.deriveFromData(getOutputData(pair)), typePromotionPolicy);
             }
         }
 
@@ -134,7 +170,12 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
 
     @Override
     public void addDataEntry(Pair<DataObject, DataObject> dataEntry) {
-        dataCollection.add(dataEntry);
+        DataObject in = new DataObject();
+        DataObject out = new DataObject();
+        in.putValue(InOutputDataSchema.INPUT_PREFIX, dataEntry.getValue0());
+        out.putValue(InOutputDataSchema.OUTPUT_PREFIX, dataEntry.getValue1());
+
+        dataCollection.add(new Pair<>(in, out));
     }
 
     public void addDataEntry(DataObject in, DataObject out) {

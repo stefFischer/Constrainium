@@ -291,4 +291,70 @@ public class DataSchemaTest {
 		assertTrue(size.potentialConstraints.contains(constraint1));
 		assertTrue(size.potentialConstraints.contains(constraint2));
 	}
+
+	@Test
+	public void testFindEntryInSimple() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> size = schema.numberEntry("size", true);
+		DataSchemaEntry<SimpleDataSchema> array = schema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> arrayNumber = array.dataSchema.numberEntry("number",true);
+
+		DataSchemaEntry<SimpleDataSchema> foundSize = schema.findDataSchemaEntry("size");
+        assertSame(size, foundSize);
+
+		DataSchemaEntry<SimpleDataSchema> foundArrayNumber = schema.findDataSchemaEntry("array.number");
+		assertSame(arrayNumber, foundArrayNumber);
+	}
+
+	@Test
+	public void testFindNonExistentInSimple() {
+		SimpleDataSchema schema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> size = schema.numberEntry("size", true);
+		DataSchemaEntry<SimpleDataSchema> array = schema.objectArrayEntry("array", true);
+		DataSchemaEntry<SimpleDataSchema> arrayNumber = array.dataSchema.numberEntry("number",true);
+
+		DataSchemaEntry<SimpleDataSchema> found = schema.findDataSchemaEntry("object.number");
+		assertNull(found);
+	}
+
+	@Test
+	public void testFindEntryInOutput() {
+		SimpleDataSchema inputSchema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> add = inputSchema.numberEntry("add", true);
+
+		SimpleDataSchema outputSchema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> size = outputSchema.numberEntry("size", true);
+		DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> number = entry.dataSchema.numberEntry("number",true);
+
+		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
+
+		DataSchemaEntry<SimpleDataSchema> foundAdd = schema.findDataSchemaEntry(InOutputDataSchema.INPUT_PREFIX + ".add");
+		assertSame(add, foundAdd);
+
+		DataSchemaEntry<SimpleDataSchema> foundSize = schema.findDataSchemaEntry(InOutputDataSchema.OUTPUT_PREFIX + ".size");
+		assertSame(size, foundSize);
+
+		DataSchemaEntry<SimpleDataSchema> foundNumber = schema.findDataSchemaEntry(InOutputDataSchema.OUTPUT_PREFIX + ".object.number");
+		assertSame(number, foundNumber);
+	}
+
+	@Test
+	public void testFindNonExistentInOutput() {
+		SimpleDataSchema inputSchema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> add = inputSchema.numberEntry("add", true);
+
+		SimpleDataSchema outputSchema = new SimpleDataSchema();
+		DataSchemaEntry<SimpleDataSchema> size = outputSchema.numberEntry("size", true);
+		DataSchemaEntry<SimpleDataSchema> entry = outputSchema.objectEntry("object", true);
+		DataSchemaEntry<SimpleDataSchema> number = entry.dataSchema.numberEntry("number",true);
+
+		InOutputDataSchema<SimpleDataSchema> schema = new InOutputDataSchema<>(inputSchema, outputSchema);
+
+		DataSchemaEntry<SimpleDataSchema> found = schema.findDataSchemaEntry("object.number");
+		assertNull(found);
+
+		DataSchemaEntry<SimpleDataSchema> foundSize = schema.findDataSchemaEntry(InOutputDataSchema.INPUT_PREFIX + ".size");
+		assertNull(foundSize);
+	}
 }
