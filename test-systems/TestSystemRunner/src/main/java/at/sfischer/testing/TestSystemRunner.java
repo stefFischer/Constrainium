@@ -6,6 +6,8 @@ public interface TestSystemRunner {
 
     boolean start();
 
+    boolean start(String agentPath, String jvmArgs);
+
     boolean stop();
 
     static File findProjectRoot() {

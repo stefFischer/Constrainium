@@ -36,3 +36,22 @@ dependencies {
 tasks.bootJar {
     archiveFileName.set("rest-ncs-sut.jar")
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val agentPath = project.findProperty("agentPath") as String?
+    val jvmArgsProp = project.findProperty("jvmArgs") as String?
+
+    val argsList = mutableListOf<String>()
+
+    if (agentPath != null) {
+        argsList.add("-javaagent:$agentPath")
+    }
+
+    if (jvmArgsProp != null) {
+        argsList.addAll(jvmArgsProp.split(";").filter { it.isNotBlank() })
+    }
+
+    if (argsList.isNotEmpty()) {
+        jvmArgs(argsList)
+    }
+}

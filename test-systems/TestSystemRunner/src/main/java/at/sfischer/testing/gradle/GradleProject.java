@@ -49,6 +49,33 @@ public class GradleProject {
         systemStartedCondition.waitForSystemStart();
     }
 
+    public void runProjectWithAgent(SystemStartedCondition systemStartedCondition, String agentPath, String jvmArgs) {
+        Thread t = new Thread(() -> {
+            gradleConnector = GradleConnector.newConnector().useGradleVersion(gradleVersion);
+
+            try (ProjectConnection project = gradleConnector.forProjectDirectory(projectDir).connect()) {
+                String[] args = new String[jvmArgs == null ? 1 : 2];
+                args[0] = "-PagentPath=" + agentPath;
+                if(jvmArgs != null)
+                    args[1] = "-PjvmArgs=" + jvmArgs;
+
+                project.newBuild()
+                        .forTasks(bootTask)
+                        .withArguments(args)
+                        .setStandardOutput(systemStartedCondition.getStdOut())
+                        .setStandardError(systemStartedCondition.getStdErr())
+                        .run();
+
+            } catch (GradleConnectionException | IllegalStateException e) {
+                systemStartedCondition.systemStartFailed();
+                LOGGER.log(Level.SEVERE, "Project did not start correctly.", e);
+            }
+        });
+
+        t.start();
+        systemStartedCondition.waitForSystemStart();
+    }
+
     public void stopProject(){
         gradleConnector.disconnect();
     }

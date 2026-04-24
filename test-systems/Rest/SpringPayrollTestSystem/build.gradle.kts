@@ -15,6 +15,25 @@ application {
     mainClass.set("at.sfischer.spring.payroll.PayrollApplication")
 }
 
+tasks.named<JavaExec>("run") {
+    val agentPath = project.findProperty("agentPath") as String?
+    val jvmArgsProp = project.findProperty("jvmArgs") as String?
+
+    val argsList = mutableListOf<String>()
+
+    if (agentPath != null) {
+        argsList.add("-javaagent:$agentPath")
+    }
+
+    if (jvmArgsProp != null) {
+        argsList.addAll(jvmArgsProp.split(";").filter { it.isNotBlank() })
+    }
+
+    if (argsList.isNotEmpty()) {
+        jvmArgs(argsList)
+    }
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web:3.3.3")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.3.3")
