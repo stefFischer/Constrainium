@@ -38,20 +38,26 @@ tasks.bootJar {
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    val agentPath = project.findProperty("agentPath") as String?
     val jvmArgsProp = project.findProperty("jvmArgs") as String?
-
-    val argsList = mutableListOf<String>()
-
-    if (agentPath != null) {
-        argsList.add("-javaagent:$agentPath")
-    }
+    val envVarsProp = project.findProperty("envVars") as String?
 
     if (jvmArgsProp != null) {
+        val argsList = mutableListOf<String>()
         argsList.addAll(jvmArgsProp.split(";").filter { it.isNotBlank() })
+        if (argsList.isNotEmpty()) {
+            jvmArgs(argsList)
+        }
     }
 
-    if (argsList.isNotEmpty()) {
-        jvmArgs(argsList)
+    if (envVarsProp != null) {
+        val envMap = envVarsProp
+            .split(";")
+            .mapNotNull {
+                val parts = it.split("=", limit = 2)
+                if (parts.size == 2) parts[0] to parts[1] else null
+            }
+            .toMap()
+
+        environment(envMap)
     }
 }

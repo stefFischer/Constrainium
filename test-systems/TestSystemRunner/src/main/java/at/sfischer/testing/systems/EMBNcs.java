@@ -5,6 +5,7 @@ import at.sfischer.testing.TestSystemRunner;
 import at.sfischer.testing.gradle.GradleProject;
 
 import java.io.File;
+import java.util.Map;
 
 public class EMBNcs implements TestSystemRunner {
 
@@ -42,9 +43,9 @@ public class EMBNcs implements TestSystemRunner {
     }
 
     @Override
-    public boolean start(String agentPath, String jvmArgs) {
+    public boolean start(Map<String, String> environmentVariables, String... jvmArgs) {
         SystemStartedCondition systemStartedCondition = getSystemStartedCondition();
-        project.runProjectWithAgent(systemStartedCondition, agentPath, jvmArgs);
+        project.runProjectWithArguments(systemStartedCondition, environmentVariables, jvmArgs);
         systemStartedCondition.waitForSystemStart();
         return systemStartedCondition.isSystemStarted();
     }

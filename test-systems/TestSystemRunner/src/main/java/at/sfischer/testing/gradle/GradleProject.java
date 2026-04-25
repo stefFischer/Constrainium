@@ -6,6 +6,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
 import java.io.File;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,15 +50,21 @@ public class GradleProject {
         systemStartedCondition.waitForSystemStart();
     }
 
-    public void runProjectWithAgent(SystemStartedCondition systemStartedCondition, String agentPath, String jvmArgs) {
+    public void runProjectWithArguments(SystemStartedCondition systemStartedCondition, Map<String, String> environmentVariables, String... jvmArgs) {
         Thread t = new Thread(() -> {
             gradleConnector = GradleConnector.newConnector().useGradleVersion(gradleVersion);
 
             try (ProjectConnection project = gradleConnector.forProjectDirectory(projectDir).connect()) {
-                String[] args = new String[jvmArgs == null ? 1 : 2];
-                args[0] = "-PagentPath=" + agentPath;
-                if(jvmArgs != null)
-                    args[1] = "-PjvmArgs=" + jvmArgs;
+                int argNumber = 0;
+                argNumber += jvmArgs == null || jvmArgs.length == 0 ? 0 : 1;
+                argNumber += environmentVariables == null || environmentVariables.isEmpty() ? 0 : 1;
+
+                int i = 0;
+                String[] args = new String[argNumber];
+                if(environmentVariables != null && !environmentVariables.isEmpty())
+                    args[i++] = "-PenvVars=" + getEnvironmentArgument(environmentVariables);
+                if(jvmArgs != null && jvmArgs.length > 0)
+                    args[i] = "-PjvmArgs=" + combineArguments(jvmArgs);
 
                 project.newBuild()
                         .forTasks(bootTask)
@@ -78,5 +85,16 @@ public class GradleProject {
 
     public void stopProject(){
         gradleConnector.disconnect();
+    }
+
+    private static String combineArguments(String... args) {
+        return String.join(";", args);
+    }
+
+    private static String getEnvironmentArgument(Map<String, String> environmentVariables) {
+        String[] args = new String[environmentVariables.size()];
+        int[] i = new int[]{0};
+        environmentVariables.forEach((key, value) -> args[i[0]++] = key + "=" + value);
+        return combineArguments(args);
     }
 }
