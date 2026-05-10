@@ -1,0 +1,130 @@
+package at.sfischer.traces.otel;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+public abstract class TraceNode<T extends TraceNode<T>> {
+
+    protected final String name;
+
+    protected final String kind;
+
+    protected final Attributes attributes;
+
+    protected final List<T> children;
+
+    protected TraceNode(String name, String kind) {
+        this.name = name;
+        this.kind = kind;
+        this.attributes = new Attributes();
+        this.children = new LinkedList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getKind() {
+        return kind;
+    }
+
+    public Attributes getAttributes() {
+        return attributes;
+    }
+
+    public <V> V getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    public <V> V removeAttribute(String key) {
+        return attributes.remove(key);
+    }
+
+    public void putAttributes(Attributes attributes) {
+        this.attributes.putAll(attributes);
+    }
+
+    public List<T> getChildren() {
+        return children;
+    }
+
+    public void addChild(T child) {
+        children.add(child);
+    }
+
+    public void visit(TraceNodeVisitor<T> visitor) {
+        boolean visitChildren = visitor.visit(thisAsT());
+        if (visitChildren) {
+            children.forEach(child -> child.visit(visitor));
+        }
+    }
+
+    public int countSpans() {
+        final int[] count = {0};
+        visit(node -> {
+            count[0]++;
+            return true;
+        });
+
+        return count[0];
+    }
+
+    public int getDepth() {
+        if (children.isEmpty()) {
+            return 1;
+        }
+
+        int maxChildDepth = 0;
+        for (T child : children) {
+            int childDepth = child.getDepth();
+            if (childDepth > maxChildDepth) {
+                maxChildDepth = childDepth;
+            }
+        }
+
+        return 1 + maxChildDepth;
+    }
+
+    public int getBreadth() {
+        Map<Integer, Integer> levelCounts = new HashMap<>();
+        computeBreadth(0, levelCounts);
+
+        int maxBreadth = 0;
+        for (int count : levelCounts.values()) {
+            if (count > maxBreadth) {
+                maxBreadth = count;
+            }
+        }
+
+        return maxBreadth;
+    }
+
+    protected void computeBreadth(int level, Map<Integer, Integer> levelCounts) {
+        levelCounts.put(level, levelCounts.getOrDefault(level, 0) + 1);
+        for (T child : children) {
+            child.computeBreadth(level + 1, levelCounts);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private T thisAsT() {
+        return (T) this;
+    }
+
+    public String toStringWithChildren() {
+        return toStringWithChildren("");
+    }
+
+    protected String toStringWithChildren(String indent) {
+        StringBuilder sb = new StringBuilder(indent);
+        sb.append(this);
+        for (T child : children) {
+            sb.append("\n");
+            sb.append(child.toStringWithChildren(indent + "\t"));
+        }
+
+        return sb.toString();
+    }
+}

@@ -1,6 +1,7 @@
 package at.sfischer.traces.otel.parser;
 
 import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.collector.RecordingTraceListener;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -34,7 +35,9 @@ public class JaegerParserTest {
                 """.trim();
         JaegerParser parser = new JaegerParser();
 
-        List<Span> spans = parser.parse(new StringReader(trace));
+        RecordingTraceListener listener = new RecordingTraceListener();
+        parser.parse(new StringReader(trace), listener);
+        List<Span> spans = listener.getAll();
         assertEquals(1, spans.size());
 
         Span expectedSpan = new Span("root", "1", "1", null, null,null, 123456789, 123456789 + 1000);
@@ -94,7 +97,9 @@ public class JaegerParserTest {
             """.trim();
 
         JaegerParser parser = new JaegerParser();
-        List<Span> spans = parser.parse(new StringReader(trace));
+        RecordingTraceListener listener = new RecordingTraceListener();
+        parser.parse(new StringReader(trace), listener);
+        List<Span> spans = listener.getAll();
 
         assertEquals(3, spans.size());
 

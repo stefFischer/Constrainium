@@ -1,9 +1,9 @@
 package at.sfischer.traces.otel.collector;
 
-import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.TraceNode;
 
 import java.util.List;
 
-public interface TraceListener {
-    void spansCollected(List<Span> spans);
+public interface TraceListener<T extends TraceNode<T>> {
+    void spansCollected(List<T> spans);
 }

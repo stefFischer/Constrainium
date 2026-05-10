@@ -28,6 +28,10 @@ public class Event {
         this.attributes.putAll(attributes);
     }
 
+    public Attributes getAttributes() {
+        return attributes;
+    }
+
     public <T> T getAttribute(String key){
         return this.attributes.get(key);
     }

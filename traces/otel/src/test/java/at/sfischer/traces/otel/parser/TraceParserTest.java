@@ -21,8 +21,8 @@ public class TraceParserTest {
         assertEquals(1, spanTree.size());
 
         Span expectedRoot = new Span("root", "1", "1", null, null, null, 1000, 4000);
-        expectedRoot.children.add(new Span("child-1", "2", "1", "1", null, null, 1500, 2000));
-        expectedRoot.children.add(new Span("child-2", "3", "1", "1", null, null, 2000, 2700));
+        expectedRoot.getChildren().add(new Span("child-1", "2", "1", "1", null, null, 1500, 2000));
+        expectedRoot.getChildren().add(new Span("child-2", "3", "1", "1", null, null, 2000, 2700));
 
         assertThat(spanTree.getFirst())
                 .usingRecursiveComparison()

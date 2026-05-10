@@ -5,7 +5,7 @@ import at.sfischer.traces.otel.parser.TraceParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.Reader;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -21,16 +21,21 @@ public class FileCollectorTest {
         );
 
         TraceParser parser = mock(TraceParser.class);
-        when(parser.parse(any(FileReader.class))).thenReturn(parsedSpans);
 
-        FileCollector collector = new FileCollector(tempFile, parser) {};
+        doAnswer(invocation -> {
+            TraceListener listenerArg = invocation.getArgument(1);
+            listenerArg.spansCollected(parsedSpans);
+            return null;
+        }).when(parser).parse(any(Reader.class), any(TraceListener.class));
+
+        FileCollector collector = new FileCollector(tempFile, parser);
 
         TraceListener listener = mock(TraceListener.class);
         collector.addTraceListener(listener);
 
         collector.collect();
 
-        verify(parser).parse(any(FileReader.class));
+        verify(parser).parse(any(Reader.class), any(TraceListener.class));
         verify(listener).spansCollected(parsedSpans);
     }
 
@@ -43,9 +48,14 @@ public class FileCollectorTest {
         );
 
         TraceParser parser = mock(TraceParser.class);
-        when(parser.parse(any(FileReader.class))).thenReturn(parsedSpans);
 
-        FileCollector collector = new FileCollector(tempFile, parser) {};
+        doAnswer(invocation -> {
+            TraceListener listenerArg = invocation.getArgument(1);
+            listenerArg.spansCollected(parsedSpans);
+            return null;
+        }).when(parser).parse(any(Reader.class), any(TraceListener.class));
+
+        FileCollector collector = new FileCollector(tempFile, parser);
 
         TraceListener listener1 = mock(TraceListener.class);
         TraceListener listener2 = mock(TraceListener.class);
@@ -68,9 +78,14 @@ public class FileCollectorTest {
         );
 
         TraceParser parser = mock(TraceParser.class);
-        when(parser.parse(any(FileReader.class))).thenReturn(parsedSpans);
 
-        FileCollector collector = new FileCollector(tempFile, parser) {};
+        doAnswer(invocation -> {
+            TraceListener listenerArg = invocation.getArgument(1);
+            listenerArg.spansCollected(parsedSpans);
+            return null;
+        }).when(parser).parse(any(Reader.class), any(TraceListener.class));
+
+        FileCollector collector = new FileCollector(tempFile, parser);
 
         TraceListener listener = mock(TraceListener.class);
 
@@ -87,10 +102,12 @@ public class FileCollectorTest {
         File tempFile = File.createTempFile("trace", ".json");
 
         TraceParser parser = mock(TraceParser.class);
-        when(parser.parse(any(FileReader.class)))
-                .thenThrow(new RuntimeException("fail"));
 
-        FileCollector collector = new FileCollector(tempFile, parser) {};
+        doThrow(new RuntimeException("fail"))
+                .when(parser)
+                .parse(any(Reader.class), any(TraceListener.class));
+
+        FileCollector collector = new FileCollector(tempFile, parser);
 
         TraceListener listener = mock(TraceListener.class);
         collector.addTraceListener(listener);

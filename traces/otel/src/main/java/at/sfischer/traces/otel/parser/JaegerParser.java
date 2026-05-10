@@ -2,6 +2,7 @@ package at.sfischer.traces.otel.parser;
 
 import at.sfischer.traces.otel.Attributes;
 import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.collector.TraceListener;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -27,12 +28,12 @@ public class JaegerParser implements TraceParser {
     }
 
     @Override
-    public List<Span> parse(InputStream inputStream) {
-        return parse(new InputStreamReader(inputStream));
+    public void parse(InputStream inputStream, TraceListener listener) {
+        parse(new InputStreamReader(inputStream), listener);
     }
 
     @Override
-    public List<Span> parse(Reader reader) {
+    public void parse(Reader reader, TraceListener listener) {
         List<Span> spans = new LinkedList<>();
         try {
             JsonParser parser = factory.createParser(reader);
@@ -115,7 +116,7 @@ public class JaegerParser implements TraceParser {
             throw new RuntimeException(e);
         }
 
-        return spans;
+        listener.spansCollected(spans);
     }
 
     private String extractParentSpanId(JsonNode spanNode) {

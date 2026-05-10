@@ -28,7 +28,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"), span("child2"));
 		Span b = span("root", span("child1"), span("child2"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator());
+		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertTrue(diffs.isEmpty(), "No differences expected");
 	}
 
@@ -37,7 +37,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"));
 		Span b = span("root", span("child1"), span("child2"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator());
+		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.ADDED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child2"));
@@ -48,7 +48,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"), span("child2"));
 		Span b = span("root", span("child1"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator());
+		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.REMOVED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child2"));
@@ -59,7 +59,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"));
 		Span b = span("root", span("childX"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator());
+		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.CHANGED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child1"));
@@ -70,8 +70,8 @@ public class TraceDifferTest {
 		Span a = new Span("op", "id1", "trace1", null, null, null, 0, 1);
 		Span b = new Span("op", "id2", "trace1", null, null, null, 0, 1);
 
-		SpanComparator strictIdComparator = (s1, s2) -> s1.getSpanId().equals(s2.getSpanId());
-		SpanComparator nameComparator = new NameOnlySpanComparator();
+		SpanComparator<Span> strictIdComparator = (s1, s2) -> s1.getSpanId().equals(s2.getSpanId());
+		SpanComparator<Span> nameComparator = new NameOnlySpanComparator<>();
 
 		assertTrue(TraceDiffer.diff(a, b, nameComparator).isEmpty());
 		assertEquals(1, TraceDiffer.diff(a, b, strictIdComparator).size());

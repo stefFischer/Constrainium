@@ -1,10 +1,10 @@
 package at.sfischer.traces.otel.differ;
 
-import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.TraceNode;
 
-public class NameOnlySpanComparator implements SpanComparator {
+public class NameOnlySpanComparator<T extends TraceNode<T>> implements SpanComparator<T> {
     @Override
-    public boolean isSame(Span a, Span b) {
+    public boolean isSame(T a, T b) {
         return a.getName().equals(b.getName());
     }
 }
