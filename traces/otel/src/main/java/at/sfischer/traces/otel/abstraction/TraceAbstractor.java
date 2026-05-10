@@ -1,8 +1,12 @@
 package at.sfischer.traces.otel.abstraction;
 
 import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.processing.TraceProcessor;
 
-public class TraceAbstractor {
+import java.util.LinkedList;
+import java.util.List;
+
+public class TraceAbstractor implements TraceProcessor<Span, AbstractSpan> {
 
     private final SpanAbstractor[] spanAbstractors;
 
@@ -41,5 +45,12 @@ public class TraceAbstractor {
         }
 
         return null;
+    }
+
+    @Override
+    public List<AbstractSpan> process(List<Span> input) {
+        List<AbstractSpan> abstracted = new LinkedList<>();
+        input.forEach(s -> abstracted.add(abstractTrace(s)));
+        return abstracted;
     }
 }

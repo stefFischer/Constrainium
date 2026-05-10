@@ -95,7 +95,7 @@ public class TraceBuffer implements TraceListener<Span> {
     }
 
     private void emit(List<Span> spans) {
-        for (TraceListener listener : listeners) {
+        for (TraceListener<Span> listener : listeners) {
             listener.spansCollected(spans);
         }
     }
