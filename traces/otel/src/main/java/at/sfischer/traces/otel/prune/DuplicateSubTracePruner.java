@@ -10,9 +10,9 @@ import java.util.List;
 
 public class DuplicateSubTracePruner implements TracePruner<Span> {
 
-    private final SpanComparator comparator;
+    private final SpanComparator<Span> comparator;
 
-    public DuplicateSubTracePruner(SpanComparator comparator) {
+    public DuplicateSubTracePruner(SpanComparator<Span>comparator) {
         this.comparator = comparator;
     }
 
@@ -45,7 +45,6 @@ public class DuplicateSubTracePruner implements TracePruner<Span> {
             }
         }
 
-        children.clear();
-        children.addAll(keptChildren);
+        span.retainChildren(keptChildren);
     }
 }

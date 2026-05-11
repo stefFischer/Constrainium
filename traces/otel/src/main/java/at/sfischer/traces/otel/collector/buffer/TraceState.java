@@ -11,9 +11,10 @@ public class TraceState {
 
     private final String traceId;
 
-    private final List<Span> spans = new ArrayList<>();
     private List<Span> roots = new ArrayList<>();
-    private final Map<String, Span> orphans = new LinkedHashMap<>();
+
+    private final Map<String, Span> spansById = new LinkedHashMap<>();
+    private final Map<String, List<Span>> waitingChildren = new LinkedHashMap<>();
 
     private int inactiveCycles;
 
@@ -31,31 +32,27 @@ public class TraceState {
     }
 
     public void addSpan(Span span) {
-        this.spans.add(span);
+        this.spansById.put(span.getSpanId(), span);
         this.inactiveCycles = 0;
     }
 
-    public List<Span> getSpans() {
-        return spans;
+    public boolean containsSpan(Span span) {
+        return this.spansById.containsKey(span.getSpanId());
+    }
+
+    public Map<String, List<Span>> getWaitingChildren() {
+        return waitingChildren;
+    }
+
+    public Span getSpan(String spanId){
+        return this.spansById.get(spanId);
     }
 
     public void notTouched() {
         this.inactiveCycles++;
     }
 
-    public void clearOrphans() {
-        this.orphans.clear();
-    }
-
-    public Map<String, Span> getOrphans() {
-        return orphans;
-    }
-
     public List<Span> getRoots() {
         return roots;
-    }
-
-    protected void setRoots(List<Span> roots) {
-        this.roots = roots;
     }
 }

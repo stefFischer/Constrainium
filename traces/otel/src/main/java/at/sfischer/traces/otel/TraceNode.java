@@ -1,9 +1,6 @@
 package at.sfischer.traces.otel;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class TraceNode<T extends TraceNode<T>> {
 
@@ -47,11 +44,19 @@ public abstract class TraceNode<T extends TraceNode<T>> {
     }
 
     public List<T> getChildren() {
-        return children;
+        return List.copyOf(children);
     }
 
     public void addChild(T child) {
         children.add(child);
+    }
+
+    public void removeChildren(Collection<T> toRemove){
+        children.removeAll(toRemove);
+    }
+
+    public void retainChildren(Collection<T> toRetain){
+        children.retainAll(toRetain);
     }
 
     public void visit(TraceNodeVisitor<T> visitor) {

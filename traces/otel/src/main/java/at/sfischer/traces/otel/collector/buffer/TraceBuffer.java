@@ -2,7 +2,6 @@ package at.sfischer.traces.otel.collector.buffer;
 
 import at.sfischer.traces.otel.Span;
 import at.sfischer.traces.otel.collector.TraceListener;
-import at.sfischer.traces.otel.parser.TraceParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,20 +38,8 @@ public class TraceBuffer implements TraceListener<Span> {
                     id -> new TraceState(traceId)
             );
 
-            state.addSpan(span);
+            addSpanIncrementally(state, span);
             touchedTraceIds.add(traceId);
-        }
-
-        for (String traceId : touchedTraceIds) {
-            TraceState state = traces.get(traceId);
-            state.clearOrphans();
-
-            List<Span> roots = TraceParser.recreateHierarchy(
-                    state.getSpans(),
-                    state.getOrphans()
-            );
-
-            state.setRoots(roots);
         }
 
         for (Map.Entry<String, TraceState> entry : traces.entrySet()) {
@@ -70,7 +57,7 @@ public class TraceBuffer implements TraceListener<Span> {
             }
 
             boolean inactiveTooLong = state.getInactiveCycles() >= maxInactiveCycles;
-            boolean noOrphans = state.getOrphans().isEmpty();
+            boolean noOrphans = state.getWaitingChildren().isEmpty();
             if (inactiveTooLong && noOrphans) {
                 emit(state.getRoots());
                 emitted.add(traceId);
@@ -81,8 +68,8 @@ public class TraceBuffer implements TraceListener<Span> {
 
     public void flush() {
         for (TraceState state : traces.values()) {
-            if(!state.getOrphans().isEmpty()){
-                LOGGER.error("Orphan spans ({}) remaining for traceid: {}", state.getOrphans().size(), state.getTraceId());
+            if(!state.getWaitingChildren().isEmpty()){
+                LOGGER.error("Orphan spans ({}) remaining for traceid: {}", state.getWaitingChildren().size(), state.getTraceId());
             }
             if(state.getRoots().isEmpty()){
                 continue;
@@ -97,6 +84,36 @@ public class TraceBuffer implements TraceListener<Span> {
     private void emit(List<Span> spans) {
         for (TraceListener<Span> listener : listeners) {
             listener.spansCollected(spans);
+        }
+    }
+
+    private static void addSpanIncrementally(TraceState state, Span span) {
+        if (state.containsSpan(span)) {
+            return;
+        }
+
+        state.addSpan(span);
+        String parentId = span.getParentSpanId();
+
+        if (parentId == null) {
+            state.getRoots().add(span);
+        } else {
+            Span parent = state.getSpan(parentId);
+            if (parent != null) {
+                parent.addChild(span);
+            } else {
+                state.getWaitingChildren()
+                        .computeIfAbsent(parentId, k -> new LinkedList<>())
+                        .add(span);
+            }
+        }
+
+        List<Span> waiting = state.getWaitingChildren().remove(span.getSpanId());
+
+        if (waiting != null) {
+            for (Span child : waiting) {
+                span.addChild(child);
+            }
         }
     }
 }

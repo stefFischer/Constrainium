@@ -1,5 +1,6 @@
 package at.sfischer.traces.otel;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -66,6 +67,11 @@ public class Span extends TraceNode<Span> {
 
     public long getEnd() {
         return end;
+    }
+
+    public void sortChildrenByTime(){
+        children.sort(Comparator.comparing(Span::getStart));
+        children.forEach(Span::sortChildrenByTime);
     }
 
     @Override

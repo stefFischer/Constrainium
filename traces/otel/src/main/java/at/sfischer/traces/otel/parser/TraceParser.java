@@ -46,7 +46,7 @@ public interface TraceParser {
             if(span.getParentSpanId() != null){
                 Span parent = spans.get(span.getParentSpanId());
                 if(parent != null){
-                    parent.getChildren().add(span);
+                    parent.addChild(span);
                 } else {
                     orphans.put(span.getSpanId(), span);
                 }
@@ -62,6 +62,6 @@ public interface TraceParser {
 
     static void sortByTime(List<? extends Span> spans){
         spans.sort(Comparator.comparing(Span::getStart));
-        spans.forEach(d -> sortByTime(d.getChildren()));
+        spans.forEach(Span::sortChildrenByTime);
     }
 }

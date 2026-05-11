@@ -8,9 +8,9 @@ import java.util.List;
 
 public class DuplicateLeafPruner implements TracePruner<Span> {
 
-    private final SpanComparator comparator;
+    private final SpanComparator<Span> comparator;
 
-    public DuplicateLeafPruner(SpanComparator comparator) {
+    public DuplicateLeafPruner(SpanComparator<Span> comparator) {
         this.comparator = comparator;
     }
 
@@ -47,7 +47,6 @@ public class DuplicateLeafPruner implements TracePruner<Span> {
             }
         }
 
-        children.clear();
-        children.addAll(keptChildren);
+        span.retainChildren(keptChildren);
     }
 }

@@ -18,7 +18,7 @@ public class TraceDifferTest {
 	private Span span(String name, Span ... children) {
 		Span s = span(name);
 		for (Span child : children) {
-			s.getChildren().add(child);
+			s.addChild(child);
 		}
 		return s;
 	}
