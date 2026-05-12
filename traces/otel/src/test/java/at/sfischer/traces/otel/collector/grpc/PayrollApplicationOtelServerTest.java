@@ -2,9 +2,9 @@ package at.sfischer.traces.otel.collector.grpc;
 
 import at.sfischer.testing.Arguments;
 import at.sfischer.testing.systems.PayrollApplication;
+import at.sfischer.traces.otel.Span;
 import at.sfischer.traces.otel.collector.RecordingTraceListener;
-import at.sfischer.traces.otel.testing.AndSpanMatch;
-import at.sfischer.traces.otel.testing.JSONMatch;
+import at.sfischer.traces.otel.matching.JSONMatch;
 import org.apache.hc.client5.http.classic.methods.*;
 import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Map;
 
-import static at.sfischer.traces.otel.testing.SpanMatch.*;
+import static at.sfischer.traces.otel.matching.SpanMatch.*;
 import static at.sfischer.traces.otel.testing.TraceAssertion.assertSpans;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,7 +27,7 @@ public class PayrollApplicationOtelServerTest {
 
     private static OtelGrpcCollector otelServer;
 
-    private static final RecordingTraceListener listener = new RecordingTraceListener();
+    private static final RecordingTraceListener<Span> listener = new RecordingTraceListener<>();
 
     @BeforeAll
     public static void setup() {
@@ -64,10 +64,11 @@ public class PayrollApplicationOtelServerTest {
         assertEquals(200, httpResponse.getCode());
         httpResponse.close();
 
+        //noinspection unchecked
         assertSpans(listener, 5000,
-                new AndSpanMatch(name("GET /employees"), kind("SPAN_KIND_SERVER")),
-                new AndSpanMatch(name("SELECT at.sfischer.spring.payroll.Employee"), kind("SPAN_KIND_INTERNAL")),
-                new AndSpanMatch(nameRegex("SELECT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "SELECT"))
+                and(name("GET /employees"), kind("SPAN_KIND_SERVER")),
+                and(name("SELECT at.sfischer.spring.payroll.Employee"), kind("SPAN_KIND_INTERNAL")),
+                and(nameRegex("SELECT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "SELECT"))
         );
     }
 
@@ -79,9 +80,10 @@ public class PayrollApplicationOtelServerTest {
         assertEquals(200, httpResponse.getCode());
         httpResponse.close();
 
+        //noinspection unchecked
         assertSpans(listener, 5000,
-            new AndSpanMatch(name("GET /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/1")),
-            new AndSpanMatch(nameRegex("SELECT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "SELECT"))
+                and(name("GET /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/1")),
+                and(nameRegex("SELECT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "SELECT"))
         );
     }
 
@@ -99,9 +101,10 @@ public class PayrollApplicationOtelServerTest {
         String responseString = new BasicHttpClientResponseHandler().handleResponse(httpResponse);
         httpResponse.close();
 
+        //noinspection unchecked
         assertSpans(listener, 5000,
-                new AndSpanMatch(name("POST /employee"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee")),
-                new AndSpanMatch(nameRegex("INSERT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "INSERT"))
+                and(name("POST /employee"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee")),
+                and(nameRegex("INSERT .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "INSERT"))
         );
 
 
@@ -118,9 +121,10 @@ public class PayrollApplicationOtelServerTest {
         httpResponse = HttpClientBuilder.create().build().execute( request );
         assertEquals(200, httpResponse.getCode());
 
+        //noinspection unchecked
         assertSpans(listener, 5000,
-                new AndSpanMatch(name("PUT /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/3")),
-                new AndSpanMatch(nameRegex("UPDATE .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "UPDATE"))
+                and(name("PUT /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/3")),
+                and(nameRegex("UPDATE .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "UPDATE"))
         );
 
 
@@ -131,9 +135,10 @@ public class PayrollApplicationOtelServerTest {
         httpResponse = HttpClientBuilder.create().build().execute( request );
         assertEquals(200, httpResponse.getCode());
 
+        //noinspection unchecked
         assertSpans(listener, 5000,
-                new AndSpanMatch(name("DELETE /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/3")),
-                new AndSpanMatch(nameRegex("DELETE .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "DELETE"))
+                and(name("DELETE /employee/{id}"), kind("SPAN_KIND_SERVER"), attribute("url.path", "/employee/3")),
+                and(nameRegex("DELETE .*employee"), kind("SPAN_KIND_CLIENT"), attribute("db.operation", "DELETE"))
         );
     }
 }

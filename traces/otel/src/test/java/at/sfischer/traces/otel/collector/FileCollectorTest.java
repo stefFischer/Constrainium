@@ -23,14 +23,14 @@ public class FileCollectorTest {
         TraceParser parser = mock(TraceParser.class);
 
         doAnswer(invocation -> {
-            TraceListener listenerArg = invocation.getArgument(1);
+            TraceListener<Span> listenerArg = invocation.getArgument(1);
             listenerArg.spansCollected(parsedSpans);
             return null;
         }).when(parser).parse(any(Reader.class), any(TraceListener.class));
 
         FileCollector collector = new FileCollector(tempFile, parser);
 
-        TraceListener listener = mock(TraceListener.class);
+        TraceListener<Span> listener = mock(TraceListener.class);
         collector.addTraceListener(listener);
 
         collector.collect();
@@ -50,15 +50,15 @@ public class FileCollectorTest {
         TraceParser parser = mock(TraceParser.class);
 
         doAnswer(invocation -> {
-            TraceListener listenerArg = invocation.getArgument(1);
+            TraceListener<Span> listenerArg = invocation.getArgument(1);
             listenerArg.spansCollected(parsedSpans);
             return null;
         }).when(parser).parse(any(Reader.class), any(TraceListener.class));
 
         FileCollector collector = new FileCollector(tempFile, parser);
 
-        TraceListener listener1 = mock(TraceListener.class);
-        TraceListener listener2 = mock(TraceListener.class);
+        TraceListener<Span> listener1 = mock(TraceListener.class);
+        TraceListener<Span> listener2 = mock(TraceListener.class);
 
         collector.addTraceListener(listener1);
         collector.addTraceListener(listener2);
@@ -80,14 +80,14 @@ public class FileCollectorTest {
         TraceParser parser = mock(TraceParser.class);
 
         doAnswer(invocation -> {
-            TraceListener listenerArg = invocation.getArgument(1);
+            TraceListener<Span> listenerArg = invocation.getArgument(1);
             listenerArg.spansCollected(parsedSpans);
             return null;
         }).when(parser).parse(any(Reader.class), any(TraceListener.class));
 
         FileCollector collector = new FileCollector(tempFile, parser);
 
-        TraceListener listener = mock(TraceListener.class);
+        TraceListener<Span> listener = mock(TraceListener.class);
 
         collector.addTraceListener(listener);
         collector.removeTraceListener(listener);
@@ -109,7 +109,7 @@ public class FileCollectorTest {
 
         FileCollector collector = new FileCollector(tempFile, parser);
 
-        TraceListener listener = mock(TraceListener.class);
+        TraceListener<Span> listener = mock(TraceListener.class);
         collector.addTraceListener(listener);
 
         collector.collect();

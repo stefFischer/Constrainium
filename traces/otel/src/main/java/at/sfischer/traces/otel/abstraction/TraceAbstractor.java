@@ -39,6 +39,10 @@ public class TraceAbstractor implements TraceProcessor<Span, AbstractSpan> {
 
     private AbstractSpan applyAbstraction(Span span) {
         for (SpanAbstractor spanAbstractor : spanAbstractors) {
+            if(!spanAbstractor.matches(span)){
+                continue;
+            }
+
             AbstractSpan current = spanAbstractor.abstractSpan(span);
             if (current != null)
                 return current;

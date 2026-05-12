@@ -1,7 +1,9 @@
 package at.sfischer.traces.otel.testing;
 
 import at.sfischer.traces.otel.Span;
+import at.sfischer.traces.otel.TraceNode;
 import at.sfischer.traces.otel.collector.RecordingTraceListener;
+import at.sfischer.traces.otel.matching.*;
 
 import java.util.*;
 
@@ -14,8 +16,9 @@ public interface TraceAssertion {
      * @param timeout maximum time in milliseconds for the span to arrive. If it is not received before this timeout is exceeded the assertion fails with an AssertionError.
      * @param matchers SpanMatches to check if the received span matches the expected one
      */
-    static void assertSpan(RecordingTraceListener listener, long timeout, Collection<SpanMatch> matchers){
-        assertSpan(listener, timeout, matchers.toArray(new SpanMatch[0]));
+    static <T extends TraceNode<T>> void assertSpan(RecordingTraceListener<T> listener, long timeout, Collection<TraceNodeMatch<T>> matchers){
+        //noinspection unchecked
+        assertSpan(listener, timeout, matchers.toArray(new TraceNodeMatch[0]));
     }
 
     /**
@@ -26,13 +29,13 @@ public interface TraceAssertion {
      * @param timeout maximum time in milliseconds for the span to arrive. If it is not received before this timeout is exceeded the assertion fails with an AssertionError.
      * @param matchers SpanMatches to check if the received span matches the expected one
      */
-    static void assertSpan(RecordingTraceListener listener, long timeout, SpanMatch... matchers){
-        AndSpanMatch matcher = new AndSpanMatch(matchers);
-        Map<Span, MatchResult> mismatches = new HashMap<>();
+    static <T extends TraceNode<T>> void assertSpan(RecordingTraceListener<T> listener, long timeout, TraceNodeMatch<T>... matchers){
+        AndSpanMatch<T> matcher = new AndSpanMatch<>(matchers);
+        Map<T, MatchResult> mismatches = new HashMap<>();
         long startTime = System.currentTimeMillis();
         while(System.currentTimeMillis() < startTime + timeout){
-            List<Span> spans = listener.drain();
-            for (Span span : spans) {
+            List<T> spans = listener.drain();
+            for (T span : spans) {
                 MatchResult result = matcher.matches(span);
                 if(result == MatchResult.SUCCESS){
                     return;
@@ -43,8 +46,13 @@ public interface TraceAssertion {
         }
 
         StringBuilder mismatchMessage = new StringBuilder();
-        for (Map.Entry<Span, MatchResult> entry : mismatches.entrySet()) {
-            mismatchMessage.append("Span: ").append(entry.getKey().getSpanId()).append("\n");
+        for (Map.Entry<T, MatchResult> entry : mismatches.entrySet()) {
+            T key = entry.getKey();
+            if(key instanceof Span){
+                mismatchMessage.append("Span: ").append(((Span)key).getSpanId()).append("\n");
+            } else {
+                mismatchMessage.append("TraceNode: ").append(key.toString()).append("\n");
+            }
             mismatchMessage.append(entry.getValue().resultMessage()).append("\n");
         }
 
@@ -59,8 +67,9 @@ public interface TraceAssertion {
      * @param name of the expected span
      * @param kind of the expected span
      */
-    static void assertSpan(RecordingTraceListener listener, long timeout, String name, String kind){
-        assertSpan(listener, timeout, new NameMatch(name), new KindMatch(kind));
+    static <T extends TraceNode<T>> void assertSpan(RecordingTraceListener<T> listener, long timeout, String name, String kind){
+        //noinspection unchecked
+        assertSpan(listener, timeout, new NameMatch<>(name), new KindMatch<>(kind));
     }
 
     /**
@@ -72,10 +81,10 @@ public interface TraceAssertion {
      * @param kind of the expected span
      * @param attributes which the expected span should contain as a map with the key being the attribute name and the value the attribute value
      */
-    static void assertSpan(RecordingTraceListener listener, long timeout, String name, String kind, Map<String, Object> attributes){
-        List<SpanMatch> matchers = new LinkedList<>(Arrays.asList(new NameMatch(name), new KindMatch(kind)));
+    static <T extends TraceNode<T>> void assertSpan(RecordingTraceListener<T> listener, long timeout, String name, String kind, Map<String, Object> attributes){
+        List<TraceNodeMatch<T>> matchers = new LinkedList<>(Arrays.asList(new NameMatch<>(name), new KindMatch<>(kind)));
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            AttributeMatch<?> match = new AttributeMatch<>(entry.getKey(), entry.getValue());
+            AttributeMatch<?, T> match = new AttributeMatch<>(entry.getKey(), entry.getValue());
             matchers.add(match);
         }
 
@@ -91,10 +100,10 @@ public interface TraceAssertion {
      * @param kindRegex regular expression that the kind of the span should match
      * @param attributesRegex regular expressions that the values of the span attributes should match, as a map (attribute name -> regular expression that the value should match)
      */
-    static void assertSpanMatch(RecordingTraceListener listener, long timeout, String nameRegex, String kindRegex, Map<String, String> attributesRegex){
-        List<SpanMatch> matchers = new LinkedList<>(Arrays.asList(new NameRegexMatch(nameRegex), new KindRegexMatch(kindRegex)));
+    static <T extends TraceNode<T>> void assertSpanMatch(RecordingTraceListener<T> listener, long timeout, String nameRegex, String kindRegex, Map<String, String> attributesRegex){
+        List<TraceNodeMatch<T>> matchers = new LinkedList<>(Arrays.asList(new NameRegexMatch<>(nameRegex), new KindRegexMatch<>(kindRegex)));
         for (Map.Entry<String, String> entry : attributesRegex.entrySet()) {
-            AttributeRegexMatch match = new AttributeRegexMatch(entry.getKey(), entry.getValue());
+            AttributeRegexMatch<T> match = new AttributeRegexMatch<>(entry.getKey(), entry.getValue());
             matchers.add(match);
         }
 
@@ -109,17 +118,17 @@ public interface TraceAssertion {
      * @param timeout maximum time in milliseconds for the span to arrive. If it is not received before this timeout is exceeded the assertion fails with an AssertionError.
      * @param matchers SpanMatches to check if the received spans match the expected ones
      */
-    static void assertSpans(RecordingTraceListener listener, long timeout, SpanMatch... matchers){
-        Map<SpanMatch, Map<Span, MatchResult>> mismatches = new HashMap<>();
-        List<SpanMatch> matchedSpans = new LinkedList<>();
+    static <T extends TraceNode<T>> void assertSpans(RecordingTraceListener<T> listener, long timeout, TraceNodeMatch<T>... matchers){
+        Map<TraceNodeMatch<T>, Map<T, MatchResult>> mismatches = new HashMap<>();
+        List<TraceNodeMatch<T>> matchedSpans = new LinkedList<>();
         long startTime = System.currentTimeMillis();
         while(System.currentTimeMillis() < startTime + timeout){
-            List<Span> spans = listener.drain();
-            for (Span span : spans) {
+            List<T> spans = listener.drain();
+            for (T span : spans) {
                 if(matchedSpans.size() == matchers.length){
                     return;
                 }
-                for (SpanMatch matcher : matchers) {
+                for (TraceNodeMatch<T> matcher : matchers) {
                     if(mismatches.get(matcher) != null && mismatches.get(matcher).isEmpty()){
                         continue;
                     }
@@ -131,7 +140,7 @@ public interface TraceAssertion {
                         break;
                     }
 
-                    Map<Span, MatchResult> misses = mismatches.computeIfAbsent(matcher, k -> new HashMap<>());
+                    Map<T, MatchResult> misses = mismatches.computeIfAbsent(matcher, k -> new HashMap<>());
                     misses.put(span, result);
                 }
             }
@@ -144,14 +153,19 @@ public interface TraceAssertion {
         }
 
         StringBuilder mismatchMessage = new StringBuilder();
-        for (Map.Entry<SpanMatch, Map<Span, MatchResult>> entry : mismatches.entrySet()) {
+        for (Map.Entry<TraceNodeMatch<T>, Map<T, MatchResult>> entry : mismatches.entrySet()) {
             if(entry.getValue().isEmpty()){
                 continue;
             }
 
             mismatchMessage.append("Could not find span for: ").append(entry.getKey()).append("\n");
-            for (Map.Entry<Span, MatchResult> misses : entry.getValue().entrySet()) {
-                mismatchMessage.append("Span: ").append(misses.getKey().getSpanId()).append("\n");
+            for (Map.Entry<T, MatchResult> misses : entry.getValue().entrySet()) {
+                T key = misses.getKey();
+                if(key instanceof Span){
+                    mismatchMessage.append("Span: ").append(((Span)key).getSpanId()).append("\n");
+                } else {
+                    mismatchMessage.append("TraceNode: ").append(key.toString()).append("\n");
+                }
                 mismatchMessage.append(misses.getValue().resultMessage()).append("\n");
             }
         }

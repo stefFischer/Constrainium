@@ -1,5 +1,8 @@
 package at.sfischer.traces.otel;
 
+import at.sfischer.traces.otel.matching.MatchResult;
+import at.sfischer.traces.otel.matching.TraceNodeMatch;
+
 import java.util.*;
 
 public abstract class TraceNode<T extends TraceNode<T>> {
@@ -11,6 +14,8 @@ public abstract class TraceNode<T extends TraceNode<T>> {
     protected final Attributes attributes;
 
     protected final List<T> children;
+
+    protected TraceNode<T> parent;
 
     protected TraceNode(String name, String kind) {
         this.name = name;
@@ -43,12 +48,40 @@ public abstract class TraceNode<T extends TraceNode<T>> {
         this.attributes.putAll(attributes);
     }
 
+    public TraceNode<T> getParent() {
+        return parent;
+    }
+
     public List<T> getChildren() {
         return List.copyOf(children);
     }
 
     public void addChild(T child) {
         children.add(child);
+        child.parent = this;
+    }
+
+    public static <T extends TraceNode<T>> T find(Collection<T> collection, TraceNodeMatch<T> match){
+        Optional<T> found = collection.stream()
+                .filter(s -> match.matches(s) == MatchResult.SUCCESS)
+                .findFirst();
+        return found.orElse(null);
+    }
+
+    public T findChild(TraceNodeMatch<T> match){
+        return TraceNode.find(children, match);
+    }
+
+    public T findSibling(TraceNodeMatch<T> match){
+        if(parent == null){
+            return null;
+        }
+
+        List<T> siblings = this.parent.getChildren()
+                .stream()
+                .filter(s -> s != this)
+                .toList();
+        return TraceNode.find(siblings, match);
     }
 
     public void removeChildren(Collection<T> toRemove){

@@ -93,4 +93,15 @@ public class Attributes {
     public Collection<Attribute<?>> getAttributes(){
         return this.attributes.values();
     }
+
+    public Attributes getSubSet(String... attributeNames){
+        Attributes subSet = new Attributes();
+        for (String attributeName : attributeNames) {
+            if(this.attributes.containsKey(attributeName)){
+                subSet.put(attributeName, this.attributes.get(attributeName).getValue());
+            }
+        }
+
+        return subSet;
+    }
 }
