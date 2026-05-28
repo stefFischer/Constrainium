@@ -2,11 +2,22 @@ package at.sfischer.traces.otel.abstraction;
 
 import at.sfischer.traces.otel.Attribute;
 import at.sfischer.traces.otel.TraceNode;
+import at.sfischer.traces.otel.dataextraction.SpanData;
 
 public class AbstractSpan extends TraceNode<AbstractSpan> {
 
+    private SpanData spanData;
+
     public AbstractSpan(String name, String kind) {
         super(name, kind);
+    }
+
+    public SpanData getSpanData() {
+        return spanData;
+    }
+
+    public void setSpanData(SpanData spanData) {
+        this.spanData = spanData;
     }
 
     @Override

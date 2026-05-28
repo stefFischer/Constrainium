@@ -22,6 +22,10 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
 
+    implementation("com.github.jsqlparser:jsqlparser:5.3")
+
+    implementation("org.javatuples:javatuples:1.2")
+
     implementation("io.opentelemetry.proto:opentelemetry-proto:1.3.2-alpha")
 
     testImplementation(project(":test-systems:TestSystemRunner"))
