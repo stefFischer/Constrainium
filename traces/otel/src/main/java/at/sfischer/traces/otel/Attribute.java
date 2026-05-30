@@ -1,5 +1,7 @@
 package at.sfischer.traces.otel;
 
+import java.util.Objects;
+
 public class Attribute<T> {
 
     private final String key;
@@ -17,6 +19,18 @@ public class Attribute<T> {
 
     public T getValue() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Attribute<?> attribute = (Attribute<?>) o;
+        return Objects.equals(key, attribute.key) && Objects.equals(value, attribute.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
     }
 
     @Override

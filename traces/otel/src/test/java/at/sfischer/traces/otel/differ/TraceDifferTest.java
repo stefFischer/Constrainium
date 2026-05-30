@@ -28,7 +28,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"), span("child2"));
 		Span b = span("root", span("child1"), span("child2"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
+		List<Difference<Span>> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertTrue(diffs.isEmpty(), "No differences expected");
 	}
 
@@ -37,7 +37,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"));
 		Span b = span("root", span("child1"), span("child2"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
+		List<Difference<Span>> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.ADDED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child2"));
@@ -48,7 +48,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"), span("child2"));
 		Span b = span("root", span("child1"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
+		List<Difference<Span>> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.REMOVED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child2"));
@@ -59,7 +59,7 @@ public class TraceDifferTest {
 		Span a = span("root", span("child1"));
 		Span b = span("root", span("childX"));
 
-		List<Difference> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
+		List<Difference<Span>> diffs = TraceDiffer.diff(a, b, new NameOnlySpanComparator<>());
 		assertEquals(1, diffs.size());
 		assertEquals(Difference.Type.CHANGED, diffs.getFirst().type());
 		assertTrue(diffs.getFirst().message().contains("child1"));

@@ -12,6 +12,15 @@ public class Attributes {
         this.attributes = new HashMap<>();
     }
 
+    private Attributes(Map<String, Attribute<?>> attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public Attributes clone() {
+        return new Attributes(new HashMap<>(this.attributes));
+    }
+
     private void put(String key, Object value){
         attributes.put(key, new Attribute<>(key, value));
     }

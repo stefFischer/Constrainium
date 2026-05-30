@@ -32,7 +32,7 @@ public class DuplicateSubTracePruner implements TracePruner<Span> {
         for (Span child : children) {
             boolean duplicate = false;
             for (Span existing : uniqueLeaves) {
-                List<Difference> diffs = TraceDiffer.diff(existing,child, comparator);
+                List<Difference<Span>> diffs = TraceDiffer.diff(existing,child, comparator);
                 if (diffs.isEmpty()) {
                     duplicate = true;
                     break;
