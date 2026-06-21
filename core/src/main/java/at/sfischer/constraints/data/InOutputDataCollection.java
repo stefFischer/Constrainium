@@ -28,6 +28,22 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         return inOutputDataCollection;
     }
 
+    public SimpleDataCollection getInputDataCollection(){
+        SimpleDataCollection inputs = new SimpleDataCollection();
+        for (Pair<DataObject, DataObject> pair : this.dataCollection) {
+            inputs.addDataEntry(getInputData(pair));
+        }
+        return inputs;
+    }
+
+    public SimpleDataCollection getOutputDataCollection(){
+        SimpleDataCollection outputs = new SimpleDataCollection();
+        for (Pair<DataObject, DataObject> pair : this.dataCollection) {
+            outputs.addDataEntry(getOutputData(pair));
+        }
+        return outputs;
+    }
+
     public static DataObject getInputData(Pair<DataObject, DataObject> pair){
         if(pair.getValue0() == null){
             return new DataObject();

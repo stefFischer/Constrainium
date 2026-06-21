@@ -1,17 +1,32 @@
 package at.sfischer.constraints.data.model;
 
-import at.sfischer.constraints.data.SimpleDataSchema;
+import at.sfischer.constraints.data.DataCollection;
+import at.sfischer.constraints.data.DataSchema;
 
-public class CallEdge extends Edge {
+import java.util.ArrayList;
+import java.util.List;
 
-    private final SimpleDataSchema schema;
+public abstract class CallEdge extends Edge {
 
-    public CallEdge(GraphNode from, GraphNode to, SimpleDataSchema schema) {
+    private final List<DataFlow> dataFlows = new ArrayList<>();
+
+    public CallEdge(GraphNode from, GraphNode to) {
         super(from, to);
-        this.schema = schema;
     }
 
-    public SimpleDataSchema getSchema() {
-        return schema;
+    public List<DataFlow> getDataFlows() {
+        return dataFlows;
     }
+
+    public List<DataFlow> getDataFlowsTo(CallEdge target) {
+        return dataFlows.stream().filter(df -> df.getTo() == target).toList();
+    }
+
+    protected void addDataFlow(DataFlow dataFlow){
+        this.dataFlows.add(dataFlow);
+    }
+
+    public abstract void inferDataFlows(DataCollection<?> fromData, CallEdge to, DataCollection<?> toData);
+
+    public abstract DataSchema getSchema();
 }

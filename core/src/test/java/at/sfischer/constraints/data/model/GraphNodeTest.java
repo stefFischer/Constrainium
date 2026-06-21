@@ -1,10 +1,12 @@
 package at.sfischer.constraints.data.model;
 
+import at.sfischer.constraints.data.InOutputDataCollection;
+import at.sfischer.constraints.data.InOutputDataSchema;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GraphNodeTest {
 
@@ -74,72 +76,89 @@ public class GraphNodeTest {
         SimpleDataSchema calculatePriceResponseSchema = (SimpleDataSchema) calculatePriceResponse.deriveSchema();
         SimpleDataSchema createOrderResponseSchema = (SimpleDataSchema) createOrderResponse.deriveSchema();
 
-        CallEdge e1 = new CallEdge(client, createOrder, createOrderCallSchema);
-        CallEdge e2 = new CallEdge(createOrder, validateOrder, validateOrderCallSchema);
-        CallEdge e3 = new CallEdge(createOrder, calculatePrice, calculatePriceCallSchema);
-        CallEdge e4 = new CallEdge(calculatePrice, createOrder, calculatePriceResponseSchema);
-        CallEdge e5 = new CallEdge(createOrder, client, createOrderResponseSchema);
+        CallEdge clientEdge = new SynchronousCallEdge(client, createOrder, new InOutputDataSchema<>(createOrderCallSchema, createOrderResponseSchema));
+        CallEdge validateEdge = new AsynchronousCallEdge(createOrder, validateOrder, validateOrderCallSchema);
+        CallEdge calcPriceEdge = new SynchronousCallEdge(createOrder, calculatePrice, new InOutputDataSchema<>(calculatePriceCallSchema, calculatePriceResponseSchema));
 
-        DataFlow e1_e2 = createOrder.inferDataFlow(e1, createOrderCall, e2, validateOrderCall);
-        DataFlow e1_e3 = createOrder.inferDataFlow(e1, createOrderCall, e3, calculatePriceCall);
-        DataFlow e3_e4 = calculatePrice.inferDataFlow(e3, calculatePriceCall, e4, calculatePriceResponse);
-        DataFlow e4_e5 = createOrder.inferDataFlow(e4, calculatePriceResponse, e5, createOrderResponse);
+        InOutputDataCollection createOrderData = InOutputDataCollection.createFromSimpleCollections(createOrderCall, createOrderResponse);
+        InOutputDataCollection calculatePriceData = InOutputDataCollection.createFromSimpleCollections(calculatePriceCall, calculatePriceResponse);
 
-        assertMapping(e1_e2, "orderId", "orderRef");
-        assertMapping(e1_e2, "customerId", "userId");
+        clientEdge.inferDataFlows(createOrderData, validateEdge, validateOrderCall);
+        clientEdge.inferDataFlows(createOrderData, calcPriceEdge, calculatePriceData);
 
-        assertMapping(e1_e3, "items", "items");
-        assertMapping(e1_e3, "orderId", "orderId");
+        DataFlow e1_e2 = clientEdge.getDataFlowsTo(validateEdge).getFirst();
+        DataFlow e1_e3 = clientEdge.getDataFlowsTo(calcPriceEdge).getFirst();
+        DataFlow e4_e5 = calcPriceEdge.getDataFlowsTo(clientEdge).getFirst();
 
-        assertMapping(e3_e4, "orderId", "orderId");
+        assertMapping(e1_e2, "input.orderId", "orderRef");
+        assertMapping(e1_e2, "input.customerId", "userId");
 
-        assertMapping(e4_e5, "totalPrice", "totalPrice");
-        assertMapping(e4_e5, "orderId", "orderId");
+        assertMapping(e1_e3, "input.items", "input.items");
+        assertMapping(e1_e3, "input.orderId", "input.orderId");
 
-        DataFlowTreeNode expectedOrderIdFlow = new DataFlowTreeNode(client);
-        DataFlowTreeNode expectedOrderIdFlowN2_1 = new DataFlowTreeNode(createOrder);
-        DataFlowTreeNode expectedOrderIdFlowN3 = new DataFlowTreeNode(validateOrder);
-        DataFlowTreeNode expectedOrderIdFlowN4 = new DataFlowTreeNode(calculatePrice);
-        DataFlowTreeNode expectedOrderIdFlowN2_2 = new DataFlowTreeNode(createOrder);
-        DataFlowTreeNode expectedOrderIdFlowN1 = new DataFlowTreeNode(client);
+        assertMapping(e4_e5, "output.totalPrice", "output.totalPrice");
+        assertMapping(e4_e5, "output.orderId", "output.orderId");
 
-        expectedOrderIdFlow.addChild(e1.getSchema().findDataSchemaEntry("orderId"), expectedOrderIdFlowN2_1);
-        expectedOrderIdFlowN2_1.addChild(e2.getSchema().findDataSchemaEntry("orderRef"), expectedOrderIdFlowN3);
-        expectedOrderIdFlowN2_1.addChild(e3.getSchema().findDataSchemaEntry("orderId"), expectedOrderIdFlowN4);
-        expectedOrderIdFlowN4.addChild(e4.getSchema().findDataSchemaEntry("orderId"), expectedOrderIdFlowN2_2);
-        expectedOrderIdFlowN2_2.addChild(e5.getSchema().findDataSchemaEntry("orderId"), expectedOrderIdFlowN1);
 
-        DataFlowTreeNode orderIdFlow = client.buildTree(e1.getSchema().findDataSchemaEntry("orderId"));
+        DataPaths orderIdFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.orderId"));
 
-        assertThat(orderIdFlow).
-                usingRecursiveComparison().
-                isEqualTo(expectedOrderIdFlow);
+        assertEquals(1, orderIdFlow.getRoots().size());
 
-        DataFlowTreeNode expectedCustomerIdFlow = new DataFlowTreeNode(client);
-        DataFlowTreeNode expectedCustomerIdFlowN2 = new DataFlowTreeNode(createOrder);
-        DataFlowTreeNode expectedCustomerIdFlowN3 = new DataFlowTreeNode(validateOrder);
+        DataPathNode root = orderIdFlow.getRoots().getFirst();
+        assertSame(clientEdge, root.getEdge());
+        assertEquals("input.orderId", root.getEntry().getQualifiedName());
 
-        expectedCustomerIdFlow.addChild(e1.getSchema().findDataSchemaEntry("customerId"), expectedCustomerIdFlowN2);
-        expectedCustomerIdFlowN2.addChild(e2.getSchema().findDataSchemaEntry("userId"), expectedCustomerIdFlowN3);
+        assertEquals(2, root.getNext().size());
 
-        DataFlowTreeNode customerIdFlow = client.buildTree(e1.getSchema().findDataSchemaEntry("customerId"));
+        DataPathNode validate = root.getNext().stream()
+                .filter(n -> n.getEdge() == validateEdge)
+                .findFirst()
+                .orElseThrow();
 
-        assertThat(customerIdFlow)
-                .usingRecursiveComparison()
-                .isEqualTo(expectedCustomerIdFlow);
+        assertEquals("orderRef", validate.getEntry().getQualifiedName());
+        assertTrue(validate.getNext().isEmpty());
 
-        DataFlowTreeNode expectedItemsFlow = new DataFlowTreeNode(client);
-        DataFlowTreeNode expectedItemsFlowN2 = new DataFlowTreeNode(createOrder);
-        DataFlowTreeNode expectedItemsFlowN4 = new DataFlowTreeNode(calculatePrice);
+        DataPathNode calculate = root.getNext().stream()
+                .filter(n -> n.getEdge() == calcPriceEdge)
+                .findFirst()
+                .orElseThrow();
 
-        expectedItemsFlow.addChild(e1.getSchema().findDataSchemaEntry("items"), expectedItemsFlowN2);
-        expectedItemsFlowN2.addChild(e3.getSchema().findDataSchemaEntry("items"), expectedItemsFlowN4);
+        assertEquals("input.orderId", calculate.getEntry().getQualifiedName());
+        assertTrue(calculate.getNext().isEmpty());
 
-        DataFlowTreeNode itemsFlow = client.buildTree(e1.getSchema().findDataSchemaEntry("items"));
 
-        assertThat(itemsFlow)
-                .usingRecursiveComparison()
-                .isEqualTo(expectedItemsFlow);
+        DataPaths customerIdFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.customerId"));
+
+        assertEquals(1, customerIdFlow.getRoots().size());
+
+        root = customerIdFlow.getRoots().getFirst();
+
+        assertSame(clientEdge, root.getEdge());
+        assertEquals("input.customerId", root.getEntry().getQualifiedName());
+
+        assertEquals(1, root.getNext().size());
+
+        DataPathNode child = root.getNext().getFirst();
+        assertSame(validateEdge, child.getEdge());
+        assertEquals("userId", child.getEntry().getQualifiedName());
+        assertTrue(child.getNext().isEmpty());
+
+
+        DataPaths itemsFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.items"));
+
+        assertEquals(1, itemsFlow.getRoots().size());
+
+        root = itemsFlow.getRoots().getFirst();
+
+        assertSame(clientEdge, root.getEdge());
+        assertEquals("input.items", root.getEntry().getQualifiedName());
+
+        assertEquals(1, root.getNext().size());
+
+        child = root.getNext().getFirst();
+        assertSame(calcPriceEdge, child.getEdge());
+        assertEquals("input.items", child.getEntry().getQualifiedName());
+        assertTrue(child.getNext().isEmpty());
     }
 
     private static void assertMapping(
