@@ -4,6 +4,7 @@ import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.InOutputDataSchema;
 import at.sfischer.constraints.data.SimpleDataCollection;
 import at.sfischer.constraints.data.SimpleDataSchema;
+import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,17 +18,33 @@ public class GraphNodeTest {
         GraphNode validateOrder = new GraphNode("n3", "validateOrder");
         GraphNode calculatePrice = new GraphNode("n4", "calculatePrice");
 
-        SimpleDataCollection createOrderCall = SimpleDataCollection.parseData(
-                """
-                        {
-                          "orderId": "O123",
-                          "customerId": "C42",
-                          "items": [
-                            { "productId": "P1", "quantity": 2 },
-                            { "productId": "P2", "quantity": 1 }
-                          ]
-                        }
-                        """
+        Graph graph = new Graph();
+        graph.addEntryNode(client);
+        createOrder = graph.getOrCreateNode(createOrder);
+        validateOrder = graph.getOrCreateNode(validateOrder);
+        calculatePrice = graph.getOrCreateNode(calculatePrice);
+
+        @SuppressWarnings("unchecked")
+        InOutputDataCollection createOrderData = InOutputDataCollection.parseData(
+                new Pair<>(
+                    """
+                    {
+                      "orderId": "O123",
+                      "customerId": "C42",
+                      "items": [
+                        { "productId": "P1", "quantity": 2 },
+                        { "productId": "P2", "quantity": 1 }
+                      ]
+                    }
+                    """,
+                    """
+                    {
+                      "orderId": "O123",
+                      "status": "CONFIRMED",
+                      "totalPrice": 300
+                    }
+                    """
+                )
         );
 
         SimpleDataCollection validateOrderCall = SimpleDataCollection.parseData(
@@ -39,8 +56,10 @@ public class GraphNodeTest {
                         """
         );
 
-        SimpleDataCollection calculatePriceCall = SimpleDataCollection.parseData(
-                """
+        @SuppressWarnings("unchecked")
+        InOutputDataCollection calculatePriceData = InOutputDataCollection.parseData(
+                new Pair<>(
+                        """
                         {
                           "orderId": "O123",
                           "items": [
@@ -48,40 +67,23 @@ public class GraphNodeTest {
                             { "productId": "P2", "quantity": 1 }
                           ]
                         }
+                        """,
                         """
-        );
-
-        SimpleDataCollection calculatePriceResponse = SimpleDataCollection.parseData(
-                """
                         {
                           "orderId": "O123",
                           "totalPrice": 300
                         }
                         """
+                )
         );
 
-        SimpleDataCollection createOrderResponse = SimpleDataCollection.parseData(
-                """
-                        {
-                          "orderId": "O123",
-                          "status": "CONFIRMED",
-                          "totalPrice": 300
-                        }
-                        """
-        );
-
-        SimpleDataSchema createOrderCallSchema = (SimpleDataSchema) createOrderCall.deriveSchema();
+        InOutputDataSchema<SimpleDataSchema> createOrderSchema = createOrderData.deriveSchema(null);
         SimpleDataSchema validateOrderCallSchema = (SimpleDataSchema) validateOrderCall.deriveSchema();
-        SimpleDataSchema calculatePriceCallSchema = (SimpleDataSchema) calculatePriceCall.deriveSchema();
-        SimpleDataSchema calculatePriceResponseSchema = (SimpleDataSchema) calculatePriceResponse.deriveSchema();
-        SimpleDataSchema createOrderResponseSchema = (SimpleDataSchema) createOrderResponse.deriveSchema();
+        InOutputDataSchema<SimpleDataSchema> calculatePriceSchema = createOrderData.deriveSchema(null);
 
-        CallEdge clientEdge = new SynchronousCallEdge(client, createOrder, new InOutputDataSchema<>(createOrderCallSchema, createOrderResponseSchema));
+        CallEdge clientEdge = new SynchronousCallEdge(client, createOrder, createOrderSchema);
         CallEdge validateEdge = new AsynchronousCallEdge(createOrder, validateOrder, validateOrderCallSchema);
-        CallEdge calcPriceEdge = new SynchronousCallEdge(createOrder, calculatePrice, new InOutputDataSchema<>(calculatePriceCallSchema, calculatePriceResponseSchema));
-
-        InOutputDataCollection createOrderData = InOutputDataCollection.createFromSimpleCollections(createOrderCall, createOrderResponse);
-        InOutputDataCollection calculatePriceData = InOutputDataCollection.createFromSimpleCollections(calculatePriceCall, calculatePriceResponse);
+        CallEdge calcPriceEdge = new SynchronousCallEdge(createOrder, calculatePrice, calculatePriceSchema);
 
         clientEdge.inferDataFlows(createOrderData, validateEdge, validateOrderCall);
         clientEdge.inferDataFlows(createOrderData, calcPriceEdge, calculatePriceData);
@@ -100,7 +102,7 @@ public class GraphNodeTest {
         assertMapping(e4_e5, "output.orderId", "output.orderId");
 
 
-        DataPaths orderIdFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.orderId"));
+        DataPaths orderIdFlow = graph.deriveDataPaths("input.orderId");
 
         assertEquals(1, orderIdFlow.getRoots().size());
 
@@ -127,7 +129,7 @@ public class GraphNodeTest {
         assertTrue(calculate.getNext().isEmpty());
 
 
-        DataPaths customerIdFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.customerId"));
+        DataPaths customerIdFlow = graph.deriveDataPaths("input.customerId");
 
         assertEquals(1, customerIdFlow.getRoots().size());
 
@@ -144,7 +146,7 @@ public class GraphNodeTest {
         assertTrue(child.getNext().isEmpty());
 
 
-        DataPaths itemsFlow = client.deriveDataPaths(clientEdge.getSchema().findDataSchemaEntry("input.items"));
+        DataPaths itemsFlow = graph.deriveDataPaths("input.items");
 
         assertEquals(1, itemsFlow.getRoots().size());
 
