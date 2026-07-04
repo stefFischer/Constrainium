@@ -40,6 +40,39 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.21.0")
 }
 
+val integrationTest by sourceSets.creating {
+    java.srcDir("src/integrationTest/java")
+    resources.srcDir("src/integrationTest/resources")
+
+    compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"]
+    runtimeClasspath += output + compileClasspath
+}
+
+configurations[integrationTest.implementationConfigurationName]
+    .extendsFrom(configurations["testImplementation"])
+
+configurations[integrationTest.runtimeOnlyConfigurationName]
+    .extendsFrom(configurations["testRuntimeOnly"])
+
 tasks.test {
     useJUnitPlatform()
+}
+
+val integrationTestTask = tasks.register<Test>("integrationTest") {
+    description = "Runs integration tests."
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+
+    shouldRunAfter(tasks.test)
+    useJUnitPlatform()
+}
+
+tasks.check {
+    dependsOn(integrationTestTask)
+}
+
+tasks.named<ProcessResources>("processIntegrationTestResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

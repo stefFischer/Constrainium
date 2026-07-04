@@ -16,15 +16,22 @@ import java.util.*;
 
 public class DataFlow {
 
+    private final String traceId;
+
     private final CallEdge from;
 
     private final CallEdge to;
 
     private final Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> dataFlows = new IdentityHashMap<>();
 
-    public DataFlow(CallEdge from, CallEdge to) {
+    public DataFlow(String traceId, CallEdge from, CallEdge to) {
+        this.traceId = traceId;
         this.from = from;
         this.to = to;
+    }
+
+    public String getTraceId() {
+        return traceId;
     }
 
     public CallEdge getFrom() {

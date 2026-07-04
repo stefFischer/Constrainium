@@ -17,9 +17,9 @@ public class AsynchronousCallEdge extends CallEdge {
     }
 
     @Override
-    public void inferDataFlows(DataCollection<?> fromData, CallEdge to, DataCollection<?> toData) {
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData) {
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
-        DataFlow dataFlow = new DataFlow(this, to);
+        DataFlow dataFlow = new DataFlow(traceId, this, to);
         dataFlow.inferDataFlows(inOut, schema, getSchema(to.getSchema()));
         this.addDataFlow(dataFlow);
     }

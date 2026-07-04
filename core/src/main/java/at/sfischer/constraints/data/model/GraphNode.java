@@ -50,7 +50,13 @@ public class GraphNode {
             }
 
             if (contains(callEdge, source)) {
-                roots.add(build(callEdge, source, new HashSet<>()));
+                callEdge.getDataFlows().stream()
+                        .map(DataFlow::getTraceId)
+                        .distinct()
+                        .forEach(traceId ->
+                                roots.add(build(callEdge, source, traceId, new HashSet<>()))
+                        );
+
             }
         }
 
@@ -65,6 +71,7 @@ public class GraphNode {
     private DataPathNode build(
             CallEdge edge,
             DataSchemaEntry<SimpleDataSchema> current,
+            String traceId,
             Set<Visited> visited) {
 
         Visited state = new Visited(edge, current);
@@ -78,12 +85,16 @@ public class GraphNode {
                 continue;
             }
 
+            if (!flow.getTraceId().equals(traceId)) {
+                continue;
+            }
+
             DataSchemaEntry<SimpleDataSchema> nextEntry = flow.getDataFlows().get(current);
             if (nextEntry == null) {
                 continue;
             }
 
-            node.addNext(build(flow.getTo(), nextEntry, visited));
+            node.addNext(build(flow.getTo(), nextEntry, traceId, visited));
         }
 
         return node;

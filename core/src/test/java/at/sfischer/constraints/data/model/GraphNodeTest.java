@@ -85,8 +85,8 @@ public class GraphNodeTest {
         CallEdge validateEdge = new AsynchronousCallEdge(createOrder, validateOrder, validateOrderCallSchema);
         CallEdge calcPriceEdge = new SynchronousCallEdge(createOrder, calculatePrice, calculatePriceSchema);
 
-        clientEdge.inferDataFlows(createOrderData, validateEdge, validateOrderCall);
-        clientEdge.inferDataFlows(createOrderData, calcPriceEdge, calculatePriceData);
+        clientEdge.inferDataFlows("1", createOrderData, validateEdge, validateOrderCall);
+        clientEdge.inferDataFlows("1", createOrderData, calcPriceEdge, calculatePriceData);
 
         DataFlow e1_e2 = clientEdge.getDataFlowsTo(validateEdge).getFirst();
         DataFlow e1_e3 = clientEdge.getDataFlowsTo(calcPriceEdge).getFirst();

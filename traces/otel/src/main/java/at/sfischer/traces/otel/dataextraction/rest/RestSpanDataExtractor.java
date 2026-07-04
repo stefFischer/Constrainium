@@ -111,9 +111,9 @@ public class RestSpanDataExtractor implements DataExtractor {
                 return result;
             }
 
-            return null;
+            return new DataObject();
         } catch (JsonProcessingException e) {
-            return null;
+            return new DataObject();
         }
     }
 }

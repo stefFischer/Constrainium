@@ -17,21 +17,21 @@ public class SynchronousCallEdge extends CallEdge {
     }
 
     @Override
-    public void inferDataFlows(DataCollection<?> fromData, CallEdge to, DataCollection<?> toData) {
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData) {
         if(to instanceof SynchronousCallEdge){
             if(fromData instanceof InOutputDataCollection && toData instanceof InOutputDataCollection){
                 InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(
                         ((InOutputDataCollection) fromData).getOutputDataCollection(),
                         ((InOutputDataCollection) toData).getOutputDataCollection()
                 );
-                DataFlow dataFlow = new DataFlow(to, this);
+                DataFlow dataFlow = new DataFlow(traceId, to, this);
                 dataFlow.inferDataFlows(inOut, ((SynchronousCallEdge) to).getSchema().getOutputSchema(), this.schema.getOutputSchema());
                 to.addDataFlow(dataFlow);
             }
         }
 
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
-        DataFlow dataFlow = new DataFlow(this, to);
+        DataFlow dataFlow = new DataFlow(traceId, this, to);
         dataFlow.inferDataFlows(inOut, schema.getInputSchema(), getSchema(to.getSchema()));
         this.addDataFlow(dataFlow);
     }

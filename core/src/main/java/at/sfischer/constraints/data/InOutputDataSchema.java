@@ -27,6 +27,19 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
         this.outputSchema.setParentEntry(new DataSchemaEntry<>(this, OUTPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.outputSchema));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void unify(InOutputDataSchema<SCHEMA> otherSchema, TypePromotionPolicy typePromotionPolicy){
+        if(this.inputSchema instanceof SimpleDataSchema){
+            ((SimpleDataSchema) this.inputSchema).unify((SimpleDataSchema) otherSchema.inputSchema, typePromotionPolicy);
+            ((SimpleDataSchema) this.outputSchema).unify((SimpleDataSchema) otherSchema.outputSchema, typePromotionPolicy);
+        }
+
+        if(this.inputSchema instanceof InOutputDataSchema<?>){
+            ((InOutputDataSchema<?>) this.inputSchema).unify((InOutputDataSchema) otherSchema.inputSchema, typePromotionPolicy);
+            ((InOutputDataSchema<?>) this.outputSchema).unify((InOutputDataSchema) otherSchema.outputSchema, typePromotionPolicy);
+        }
+    }
+
     @Override
     public <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path) {
         if(path.startsWith(INPUT_PREFIX)){

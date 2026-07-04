@@ -26,7 +26,7 @@ public abstract class CallEdge extends Edge {
         this.dataFlows.add(dataFlow);
     }
 
-    public abstract void inferDataFlows(DataCollection<?> fromData, CallEdge to, DataCollection<?> toData);
+    public abstract void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData);
 
     public abstract DataSchema getSchema();
 }

@@ -1,5 +1,7 @@
 package at.sfischer.traces.otel.clustering;
 
+import at.sfischer.constraints.data.DataObject;
+import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.traces.otel.Attribute;
 import at.sfischer.traces.otel.TraceNode;
 import at.sfischer.traces.otel.abstraction.AbstractSpan;
@@ -39,6 +41,18 @@ public class ClusteredAbstractSpan extends TraceNode<ClusteredAbstractSpan> {
 
     public List<SpanData> getSpanData() {
         return spanData;
+    }
+
+    public InOutputDataCollection getSpanDataCollection(){
+        InOutputDataCollection data = new InOutputDataCollection();
+        for (SpanData spanDatum : this.getSpanData()) {
+            data.addDataEntry(
+                    spanDatum.getInputData() != null ? spanDatum.getInputData() : new DataObject(),
+                    spanDatum.getOutputData() != null ? spanDatum.getOutputData() : new DataObject()
+            );
+        }
+
+        return data;
     }
 
     @Override
