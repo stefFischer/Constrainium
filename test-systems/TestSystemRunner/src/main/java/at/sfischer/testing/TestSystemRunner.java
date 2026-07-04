@@ -1,10 +1,13 @@
 package at.sfischer.testing;
 
 import java.io.File;
+import java.util.Map;
 
 public interface TestSystemRunner {
 
     boolean start();
+
+    boolean start(Map<String, String> environmentVariables, String... jvmArgs);
 
     boolean stop();
 

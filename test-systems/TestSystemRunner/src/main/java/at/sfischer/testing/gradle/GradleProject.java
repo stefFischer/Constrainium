@@ -6,6 +6,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
 import java.io.File;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +50,51 @@ public class GradleProject {
         systemStartedCondition.waitForSystemStart();
     }
 
+    public void runProjectWithArguments(SystemStartedCondition systemStartedCondition, Map<String, String> environmentVariables, String... jvmArgs) {
+        Thread t = new Thread(() -> {
+            gradleConnector = GradleConnector.newConnector().useGradleVersion(gradleVersion);
+
+            try (ProjectConnection project = gradleConnector.forProjectDirectory(projectDir).connect()) {
+                int argNumber = 0;
+                argNumber += jvmArgs == null || jvmArgs.length == 0 ? 0 : 1;
+                argNumber += environmentVariables == null || environmentVariables.isEmpty() ? 0 : 1;
+
+                int i = 0;
+                String[] args = new String[argNumber];
+                if(environmentVariables != null && !environmentVariables.isEmpty())
+                    args[i++] = "-PenvVars=" + getEnvironmentArgument(environmentVariables);
+                if(jvmArgs != null && jvmArgs.length > 0)
+                    args[i] = "-PjvmArgs=" + combineArguments(jvmArgs);
+
+                project.newBuild()
+                        .forTasks(bootTask)
+                        .withArguments(args)
+                        .setStandardOutput(systemStartedCondition.getStdOut())
+                        .setStandardError(systemStartedCondition.getStdErr())
+                        .run();
+
+            } catch (GradleConnectionException | IllegalStateException e) {
+                systemStartedCondition.systemStartFailed();
+                LOGGER.log(Level.SEVERE, "Project did not start correctly.", e);
+            }
+        });
+
+        t.start();
+        systemStartedCondition.waitForSystemStart();
+    }
+
     public void stopProject(){
         gradleConnector.disconnect();
+    }
+
+    private static String combineArguments(String... args) {
+        return String.join(";", args);
+    }
+
+    private static String getEnvironmentArgument(Map<String, String> environmentVariables) {
+        String[] args = new String[environmentVariables.size()];
+        int[] i = new int[]{0};
+        environmentVariables.forEach((key, value) -> args[i[0]++] = key + "=" + value);
+        return combineArguments(args);
     }
 }

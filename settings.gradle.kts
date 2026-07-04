@@ -2,6 +2,9 @@ rootProject.name = "Constrainium"
 
 include("core")
 
+include("traces:otel")
+findProject(":traces:otel")?.name = "otel"
+
 include("generator:random")
 findProject(":generator:random")?.name = "random"
 

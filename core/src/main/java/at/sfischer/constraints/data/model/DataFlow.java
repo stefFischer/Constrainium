@@ -16,15 +16,22 @@ import java.util.*;
 
 public class DataFlow {
 
+    private final String traceId;
+
     private final CallEdge from;
 
     private final CallEdge to;
 
     private final Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> dataFlows = new IdentityHashMap<>();
 
-    public DataFlow(CallEdge from, CallEdge to) {
+    public DataFlow(String traceId, CallEdge from, CallEdge to) {
+        this.traceId = traceId;
         this.from = from;
         this.to = to;
+    }
+
+    public String getTraceId() {
+        return traceId;
     }
 
     public CallEdge getFrom() {
@@ -39,7 +46,7 @@ public class DataFlow {
         return dataFlows;
     }
 
-    public void inferDataFlows(InOutputDataCollection dataCollection){
+    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema, SimpleDataSchema toSchema){
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = (InOutputDataSchema<SimpleDataSchema>)dataCollection.deriveSchema();
 
@@ -58,7 +65,7 @@ public class DataFlow {
 
         for (Set<Constraint> value : constraints.values()) {
             for (Constraint constraint : value) {
-                DataSchemaEntry<SimpleDataSchema>[] entries = collectEntries(constraint);
+                DataSchemaEntry<SimpleDataSchema>[] entries = collectEntries(constraint, fromSchema, toSchema);
                 if(entries[0] == null || entries[1] == null){
                     continue;
                 }
@@ -68,19 +75,19 @@ public class DataFlow {
         }
     }
 
-    private DataSchemaEntry<SimpleDataSchema>[] collectEntries(Constraint constraint){
+    private DataSchemaEntry<SimpleDataSchema>[] collectEntries(Constraint constraint, SimpleDataSchema fromSchema, SimpleDataSchema toSchema){
         @SuppressWarnings("unchecked")
         DataSchemaEntry<SimpleDataSchema>[] entries = new DataSchemaEntry[2];
         constraint.term().visitNodes((VariableVisitor) variable -> {
             if(variable.getName().startsWith(InOutputDataSchema.INPUT_PREFIX)){
                 String path = variable.getName().substring(InOutputDataSchema.INPUT_PREFIX.length() + 1);
-                DataSchemaEntry<SimpleDataSchema> entry = from.getSchema().findDataSchemaEntry(path);
+                DataSchemaEntry<SimpleDataSchema> entry = fromSchema.findDataSchemaEntry(path);
                 entries[0] = entry;
             }
 
             if(variable.getName().startsWith(InOutputDataSchema.OUTPUT_PREFIX)){
                 String path = variable.getName().substring(InOutputDataSchema.OUTPUT_PREFIX.length() + 1);
-                DataSchemaEntry<SimpleDataSchema> entry = to.getSchema().findDataSchemaEntry(path);
+                DataSchemaEntry<SimpleDataSchema> entry = toSchema.findDataSchemaEntry(path);
                 entries[1] = entry;
             }
         });
