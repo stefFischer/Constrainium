@@ -22,4 +22,5 @@ findProject(":test-systems:EMB:rest-ncs")?.name = "rest-ncs"
 
 include("test-systems:Rest:SpringPayrollTestSystem")
 findProject(":test-systems:Rest:SpringPayrollTestSystem")?.name = "SpringPayrollTestSystem"
-
+include("extensions:metamorphic-testing")
+findProject(":extensions:metamorphic-testing")?.name = "metamorphic-testing"
