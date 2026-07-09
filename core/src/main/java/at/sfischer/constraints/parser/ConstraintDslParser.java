@@ -1,5 +1,6 @@
 package at.sfischer.constraints.parser;
 
+import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
 import at.sfischer.constraints.GroupDefinition;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ConstraintDslParser {
+public class ConstraintDslParser implements ExtensionParserContext {
 
     public static final String DEFAULT_POLICY_NAME = "DEFAULT";
     public static final ConstraintPolicy DEFAULT_POLICY = new AndConstraintPolicy(new NoViolationsPolicy(), new MinApplicationsPolicy(1));
@@ -37,17 +38,30 @@ public class ConstraintDslParser {
         advance(); // load first token
     }
 
-    private void advance() throws IOException {
+    @Override
+    public Token current() {
+        return current;
+    }
+
+    @Override
+    public Token previous() {
+        return previous;
+    }
+
+    @Override
+    public boolean check(TokenKind type) {
+        return current.getType() == type;
+    }
+
+    @Override
+    public void advance() throws IOException {
         previous = current;
         current = scanner.nextToken();
     }
 
-    private boolean check(TokenType type) {
-        return current.getType() == type;
-    }
-
-    private boolean match(TokenType... types) throws IOException {
-        for (TokenType type : types) {
+    @Override
+    public boolean match(TokenKind... types) throws IOException {
+        for (TokenKind type : types) {
             if (check(type)) {
                 advance();
                 return true;
@@ -56,7 +70,8 @@ public class ConstraintDslParser {
         return false;
     }
 
-    private Token consume(TokenType type, String message) throws IOException, ParseException {
+    @Override
+    public Token consume(TokenKind type, String message) throws IOException, ParseException {
         if (check(type)) {
             Token token = current;
             advance();
@@ -74,7 +89,7 @@ public class ConstraintDslParser {
         ConstraintPolicy defaultPolicy;
         Map<String, ConstraintPolicy> policies = new HashMap<>();
         List<GroupDefinition> groups = new ArrayList<>();
-        List<ConstraintTemplate> constraints = new ArrayList<>();
+        List<ConstraintConstruct> constraints = new ArrayList<>();
 
         while (check(TokenType.POLICY)) {
             parsePolicyDecl(policies);
@@ -88,10 +103,11 @@ public class ConstraintDslParser {
             } else if (check(TokenType.CONSTRAINT)) {
                 constraints.add(parseConstraintDecl(defaultPolicy, null, policies));
             } else {
-                throw new ParseException(
-                        "Expected 'policy' or 'group' at top level",
-                        current
-                );
+                ConstraintConstructParser<?> ext = ConstraintConstructParserRegistry.forStartToken(current.getType());
+                if (ext == null) {
+                    throw new ParseException("Expected 'policy', 'group', 'constraint', or a registered extension construct", current);
+                }
+                constraints.add(ext.parse(this, defaultPolicy, null, policies));
             }
         }
 
@@ -182,9 +198,17 @@ public class ConstraintDslParser {
             groupPolicy = policies.get(groupPolicyRef);
         }
 
-        List<ConstraintTemplate> constraints = new ArrayList<>();
+        List<ConstraintConstruct> constraints = new ArrayList<>();
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            constraints.add(parseConstraintDecl(defaultPolicy, groupPolicy, policies));
+            if (check(TokenType.CONSTRAINT)) {
+                constraints.add(parseConstraintDecl(defaultPolicy, groupPolicy, policies));
+            } else {
+                ConstraintConstructParser<?> ext = ConstraintConstructParserRegistry.forStartToken(current.getType());
+                if (ext == null) {
+                    throw new ParseException("Expected 'constraint', or a registered extension construct", current);
+                }
+                constraints.add(ext.parse(this, defaultPolicy, groupPolicy, policies));
+            }
         }
 
         consume(TokenType.RIGHT_BRACE, "Expected '}'");
@@ -214,7 +238,8 @@ public class ConstraintDslParser {
         return new ConstraintTemplate(name, expression, policy);
     }
 
-    private Node parseExpression() throws IOException, ParseException {
+    @Override
+    public Node parseExpression() throws IOException, ParseException {
         return parseOr();
     }
 
@@ -264,11 +289,13 @@ public class ConstraintDslParser {
             Token operator = previous;
             Node right = parseAdditive();
 
-            switch (operator.getType()) {
-                case LESS -> expr = new LessThanOperator(expr, right);
-                case LESS_EQUAL -> expr = new LessThanOrEqualOperator(expr, right);
-                case GREATER -> expr = new GreaterThanOperator(expr, right);
-                case GREATER_EQUAL -> expr = new GreaterThanOrEqualOperator(expr, right);
+            if(operator.getType() instanceof TokenType tokenType) {
+                switch (tokenType) {
+                    case LESS -> expr = new LessThanOperator(expr, right);
+                    case LESS_EQUAL -> expr = new LessThanOrEqualOperator(expr, right);
+                    case GREATER -> expr = new GreaterThanOperator(expr, right);
+                    case GREATER_EQUAL -> expr = new GreaterThanOrEqualOperator(expr, right);
+                }
             }
         }
 

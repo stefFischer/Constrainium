@@ -12,6 +12,8 @@
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/driver" />
             <option value="$PROJECT_DIR$/driver/rest" />
+            <option value="$PROJECT_DIR$/extensions" />
+            <option value="$PROJECT_DIR$/extensions/metamorphic-testing" />
             <option value="$PROJECT_DIR$/generator" />
             <option value="$PROJECT_DIR$/generator/random" />
             <option value="$PROJECT_DIR$/integration-testing" />

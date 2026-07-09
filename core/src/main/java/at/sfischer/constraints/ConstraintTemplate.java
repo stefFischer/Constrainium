@@ -3,7 +3,9 @@ package at.sfischer.constraints;
 import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.Node;
 
-public class ConstraintTemplate {
+import java.util.List;
+
+public class ConstraintTemplate implements ConstraintConstruct {
 
     private final String name;
 
@@ -17,6 +19,7 @@ public class ConstraintTemplate {
         this.retentionPolicy = retentionPolicy;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -25,6 +28,12 @@ public class ConstraintTemplate {
         return term;
     }
 
+    @Override
+    public List<Node> getTerms() {
+        return List.of(this.term);
+    }
+
+    @Override
     public ConstraintPolicy getRetentionPolicy() {
         return retentionPolicy;
     }

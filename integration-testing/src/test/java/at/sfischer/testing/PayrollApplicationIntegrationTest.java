@@ -1,5 +1,6 @@
 package at.sfischer.testing;
 
+import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
 import at.sfischer.constraints.data.*;
@@ -125,15 +126,15 @@ public class PayrollApplicationIntegrationTest {
         ConstraintTemplateFile file = parse(input);
 
         // TODO We need to create a trimming feature to remove equivalent constraints (e.g., a == b, b == a).
-        for (ConstraintTemplate constraint : file.getConstraints()) {
+        for (ConstraintConstruct constraint : file.getConstraints()) {
             ValidationContext context = new ValidationContext();
-            constraint.getTerm().validate(context);
+            constraint.getTerms().getFirst().validate(context);
             assertTrue(context.isValid());
 
-            fullSchema.fillSchemaWithConstraints(constraint.getTerm());
+            fullSchema.fillSchemaWithConstraints(constraint.getTerms().getFirst());
 
-            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerm());
-            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerm());
+            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
+            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
         }
 
         assertConstraintNumber(employeeEntry, 0);
