@@ -16,7 +16,7 @@ public class ConstraintDslScanner {
     private int line = 1;
     private int column = 0;
 
-    private static final Map<String, TokenType> keywords = new HashMap<>();
+    private static final Map<String, TokenKind> keywords = new HashMap<>();
 
     static {
         keywords.putAll(Map.of(
@@ -38,6 +38,12 @@ public class ConstraintDslScanner {
                 "noViolations", TokenType.NO_VIOLATIONS,
                 "minApplications", TokenType.MIN_APPLICATIONS
         ));
+    }
+
+    static void registerKeyword(String key, TokenKind value){
+        if (keywords.putIfAbsent(key, value) != null) {
+            throw new IllegalStateException("Duplicate keyword registered: " + key);
+        }
     }
 
     // =============================
@@ -201,7 +207,7 @@ public class ConstraintDslScanner {
         }
 
         String text = builder.toString();
-        TokenType type = keywords.getOrDefault(text, TokenType.IDENTIFIER);
+        TokenKind type = keywords.getOrDefault(text, TokenType.IDENTIFIER);
 
         addToken(type, text, startLine, startColumn);
     }
@@ -294,7 +300,7 @@ public class ConstraintDslScanner {
         addToken(type, String.valueOf((char) currentChar), line, column);
     }
 
-    private void addToken(TokenType type, String lexeme, int line, int column) {
+    private void addToken(TokenKind type, String lexeme, int line, int column) {
         tokens.add(new Token(type, lexeme, line, column));
     }
 

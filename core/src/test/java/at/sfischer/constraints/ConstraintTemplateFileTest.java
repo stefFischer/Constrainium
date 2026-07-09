@@ -24,7 +24,7 @@ class ConstraintTemplateFileTest {
             return null;
         }).when(term).validate(any());
 
-        when(constraint.getTerm()).thenReturn(term);
+        when(constraint.getTerms()).thenReturn(List.of(term));
         return constraint;
     }
 
@@ -38,7 +38,7 @@ class ConstraintTemplateFileTest {
             return null;
         }).when(term).validate(any());
 
-        when(constraint.getTerm()).thenReturn(term);
+        when(constraint.getTerms()).thenReturn(List.of(term));
         return constraint;
     }
 
@@ -55,7 +55,7 @@ class ConstraintTemplateFileTest {
                 List.of()
         );
 
-        Map<ConstraintTemplate, ValidationContext> removed = file.removeInvalidConstraints();
+        Map<ConstraintConstruct, ValidationContext> removed = file.removeInvalidConstraints();
 
         assertTrue(removed.isEmpty());
         assertEquals(1, file.getConstraints().size());
@@ -71,7 +71,7 @@ class ConstraintTemplateFileTest {
                 List.of()
         );
 
-        Map<ConstraintTemplate, ValidationContext> removed = file.removeInvalidConstraints();
+        Map<ConstraintConstruct, ValidationContext> removed = file.removeInvalidConstraints();
 
         assertEquals(1, removed.size());
         assertFalse(file.getConstraints().contains(invalid));
@@ -89,7 +89,7 @@ class ConstraintTemplateFileTest {
                 List.of()
         );
 
-        Map<ConstraintTemplate, ValidationContext> removed = file.removeInvalidConstraints();
+        Map<ConstraintConstruct, ValidationContext> removed = file.removeInvalidConstraints();
 
         assertEquals(1, removed.size());
         assertEquals(1, file.getConstraints().size());
@@ -102,7 +102,7 @@ class ConstraintTemplateFileTest {
         ConstraintTemplate valid = mockValidConstraint();
         ConstraintTemplate invalid = mockInvalidConstraint();
         GroupDefinition group = mock(GroupDefinition.class);
-        List<ConstraintTemplate> groupConstraints = new ArrayList<>(List.of(valid, invalid));
+        List<ConstraintConstruct> groupConstraints = new ArrayList<>(List.of(valid, invalid));
         when(group.getConstraints()).thenReturn(groupConstraints);
 
         ConstraintTemplateFile file = new ConstraintTemplateFile(
@@ -111,7 +111,7 @@ class ConstraintTemplateFileTest {
                 List.of(group)
         );
 
-        Map<ConstraintTemplate, ValidationContext> removed = file.removeInvalidConstraints();
+        Map<ConstraintConstruct, ValidationContext> removed = file.removeInvalidConstraints();
 
         assertEquals(1, removed.size());
         assertEquals(1, groupConstraints.size());
@@ -127,7 +127,7 @@ class ConstraintTemplateFileTest {
                 List.of()
         );
 
-        Map<ConstraintTemplate, ValidationContext> removed = file.removeInvalidConstraints();
+        Map<ConstraintConstruct, ValidationContext> removed = file.removeInvalidConstraints();
 
         assertTrue(removed.isEmpty());
         assertTrue(file.getConstraints().isEmpty());

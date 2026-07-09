@@ -1,6 +1,6 @@
 package at.sfischer.constraints.parser;
 
-public enum TokenType {
+public enum TokenType implements TokenKind {
 
     // ===== Keywords =====
     POLICY,

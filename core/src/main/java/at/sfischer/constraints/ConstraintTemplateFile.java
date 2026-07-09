@@ -14,10 +14,10 @@ public class ConstraintTemplateFile {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConstraintTemplateFile.class);
 
     private final Map<String, ConstraintPolicy> policies;
-    private final List<ConstraintTemplate> constraints;
+    private final List<ConstraintConstruct> constraints;
     private final List<GroupDefinition> groups;
 
-    public ConstraintTemplateFile(Map<String, ConstraintPolicy> policies, List<ConstraintTemplate> constraints, List<GroupDefinition> groups) {
+    public ConstraintTemplateFile(Map<String, ConstraintPolicy> policies, List<ConstraintConstruct> constraints, List<GroupDefinition> groups) {
         this.policies = policies;
         this.constraints = constraints;
         this.groups = groups;
@@ -27,16 +27,23 @@ public class ConstraintTemplateFile {
         return policies;
     }
 
-    public List<ConstraintTemplate> getConstraints() {
+    public List<ConstraintConstruct> getConstraints() {
         return constraints;
+    }
+
+    public <T extends ConstraintConstruct> List<T> getConstraints(Class<T> clazz) {
+        return constraints.stream()
+                .filter(clazz::isInstance)
+                .map(clazz::cast)
+                .toList();
     }
 
     public List<GroupDefinition> getGroups() {
         return groups;
     }
 
-    public Map<ConstraintTemplate, ValidationContext> removeInvalidConstraints(){
-        Map<ConstraintTemplate, ValidationContext> removed = new HashMap<>();
+    public Map<ConstraintConstruct, ValidationContext> removeInvalidConstraints(){
+        Map<ConstraintConstruct, ValidationContext> removed = new HashMap<>();
         removeInvalidConstraintsFromList(this.constraints, removed);
 
         for (GroupDefinition group : this.groups) {
@@ -46,10 +53,10 @@ public class ConstraintTemplateFile {
         return removed;
     }
 
-    private static void removeInvalidConstraintsFromList(final List<ConstraintTemplate> constraints, final Map<ConstraintTemplate, ValidationContext> removed){
+    private static void removeInvalidConstraintsFromList(final List<ConstraintConstruct> constraints, final Map<ConstraintConstruct, ValidationContext> removed){
         constraints.removeIf(constraint -> {
             ValidationContext context = new ValidationContext();
-            constraint.getTerm().validate(context);
+            constraint.getTerms().forEach(term -> term.validate(context));
             if(context.isValid()){
                 return false;
             }

@@ -1,5 +1,6 @@
 package at.sfischer.constraints.parser;
 
+import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
 import at.sfischer.constraints.GroupDefinition;
@@ -68,7 +69,7 @@ class ConstraintDslParserTest {
 
         ConstraintTemplateFile file = parse(input);
 
-        ConstraintTemplate c = file.getConstraints().get(0);
+        ConstraintConstruct c = file.getConstraints().get(0);
 
         assertEquals("C1", c.getName());
         assertNotNull(c.getRetentionPolicy());
@@ -120,7 +121,7 @@ class ConstraintDslParserTest {
 
         assertTrue(file.getPolicies().containsKey("DEFAULT"));
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertNotNull(c.getRetentionPolicy());
     }
 
@@ -132,7 +133,7 @@ class ConstraintDslParserTest {
 
         ConstraintTemplateFile file = parse(input);
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertEquals(ConstraintDslParser.DEFAULT_POLICY, c.getRetentionPolicy());
     }
 
@@ -146,8 +147,8 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
-        Node actualNode = c.getTerm();
+        ConstraintConstruct c = file.getConstraints().getFirst();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new AdditionOperator(
                 new Variable("a"),
                 new DivisionOperator(
@@ -174,8 +175,8 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
-        Node actualNode = c.getTerm();
+        ConstraintConstruct c = file.getConstraints().getFirst();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new ModuloOperator(
                 new MultiplicationOperator(
                         new AdditionOperator(
@@ -213,10 +214,10 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertEquals("C1", c.getName());
 
-        Node actualNode = c.getTerm();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new ForAll(
                 new Variable("x"),
                 new GreaterThanOperator(
@@ -237,10 +238,10 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertEquals("C1", c.getName());
 
-        Node actualNode = c.getTerm();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new ForAll(
                 new Variable("x"),
                 new GreaterThanOperator(
@@ -261,10 +262,10 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertEquals("C1", c.getName());
 
-        Node actualNode = c.getTerm();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new OneOfNumber(new Variable("x"), new IntegerLiteral(3));
         assertEquals(expectedNode, actualNode);
     }
@@ -279,10 +280,10 @@ class ConstraintDslParserTest {
         ConstraintTemplateFile file = parse(input);
         assertEquals(1, file.getConstraints().size());
 
-        ConstraintTemplate c = file.getConstraints().getFirst();
+        ConstraintConstruct c = file.getConstraints().getFirst();
         assertEquals("C1", c.getName());
 
-        Node actualNode = c.getTerm();
+        Node actualNode = c.getTerms().getFirst();
         Node expectedNode = new OneOfNumber(
                 new Variable("x"),
                 new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
