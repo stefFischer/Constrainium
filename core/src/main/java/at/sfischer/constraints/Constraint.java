@@ -1,18 +1,28 @@
 package at.sfischer.constraints;
 
 import at.sfischer.constraints.data.DataCollection;
+import at.sfischer.constraints.data.DataObject;
+import at.sfischer.constraints.data.Utils;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 
 import java.util.*;
 
-public record Constraint(Node term) {
+public record Constraint(Node term, ConstraintConstruct derivedFrom) implements IConstraint {
 
     public Constraint {
         if (term.getReturnType() != TypeEnum.BOOLEAN) {
             throw new IllegalArgumentException("Constraint term needs to return boolean, instead of: " + term.getReturnType());
         }
+    }
 
+    public Constraint(Node term) {
+        this(term, null);
+    }
+
+    @Override
+    public ConstraintConstruct derivedFrom() {
+        return derivedFrom;
     }
 
     @Override
@@ -151,6 +161,13 @@ public record Constraint(Node term) {
         }
 
         return result;
+    }
+
+    @Override
+    public <T> void evaluate(DataObject dao, T dataEntry, ConstraintResults<T> constraintResults) {
+        Set<Variable> constraintVariables = term.findInvolvedVariables();
+        List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(dao, constraintVariables);
+        applyDataCombinations(valueCombinations, dataEntry, constraintResults);
     }
 
     public <T> void applyDataCombinations(List<Map<Variable, Node>> valueCombinations, T dataEntry, ConstraintResults<T> results) {

@@ -1,7 +1,8 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintFactory;
 import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -195,26 +196,26 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     @Override
-    public void fillSchemaWithConstraints(Node term) {
-        fillSchemaWithConstraints(term, this.getDataSchemaEntries(), 0);
+    public void fillSchemaWithConstraints(Node term, ConstraintFactory factory) {
+        fillSchemaWithConstraints(term, factory, this.getDataSchemaEntries(), 0);
     }
 
-    private <DS extends DataSchema> void fillSchemaWithConstraints(Node term, Collection<DataSchemaEntry<DS>> schema, int recursiveCount) {
+    private <DS extends DataSchema> void fillSchemaWithConstraints(Node term, ConstraintFactory factory, Collection<DataSchemaEntry<DS>> schema, int recursiveCount) {
         Map<Variable, Type> placeholderTypes = term.inferVariableTypes();
         Map<Variable, List<DataSchemaEntry<DS>>> matchingEntries = new HashMap<>();
 
         // Find all matching schema entries for each placeholder
         for (Map.Entry<Variable, Type> placeholder : placeholderTypes.entrySet()) {
-            List<DataSchemaEntry<DS>> matches = findMatchingEntries(schema, placeholder.getKey(), placeholder.getValue(), term, recursiveCount);
+            List<DataSchemaEntry<DS>> matches = findMatchingEntries(schema, placeholder.getKey(), placeholder.getValue(), term, factory, recursiveCount);
             matchingEntries.put(placeholder.getKey(), matches);
         }
 
         // Generate all possible combinations of schema entries that fit the placeholders
         List<Map<Variable, DataSchemaEntry<DS>>> allCombinations = DataSchema.generateUniqueCombinations(matchingEntries);
-        DataSchema.fillSchemaWithConstraint(term, allCombinations, new HighestEntrySelector<>());
+        DataSchema.fillSchemaWithConstraint(term, factory, allCombinations, new HighestEntrySelector<>());
     }
 
-    private <DS extends DataSchema> List<DataSchemaEntry<DS>> findMatchingEntries(Collection<DataSchemaEntry<DS>> schema, Variable variable, Type valueType, Node term, int recursiveCount) {
+    private <DS extends DataSchema> List<DataSchemaEntry<DS>> findMatchingEntries(Collection<DataSchemaEntry<DS>> schema, Variable variable, Type valueType, Node term, ConstraintFactory factory, int recursiveCount) {
         List<DataSchemaEntry<DS>> matches = new ArrayList<>();
         for (DataSchemaEntry<DS> entry : schema) {
             if (entry.type.canAssignTo(valueType)) {
@@ -223,13 +224,13 @@ public class SimpleDataSchema extends DataSchema {
                 if (((ArrayType) entry.type).elementType().canAssignTo(valueType)) {
                     if(recursiveCount <= 0) {
                         Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
-                        fillSchemaWithConstraints(replacedTerm, schema, recursiveCount + 1);
+                        fillSchemaWithConstraints(replacedTerm, factory, schema, recursiveCount + 1);
                     }
                     continue;
                 }
             }
             if (entry.dataSchema != null) {
-                matches.addAll(findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, recursiveCount));
+                matches.addAll(findMatchingEntries(entry.dataSchema.getDataSchemaEntries(), variable, valueType, term, factory, recursiveCount));
             }
         }
 
@@ -237,7 +238,7 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     @Override
-    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints){
+    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints){
         for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
             if(constraints != null) {
                 //noinspection unchecked
@@ -258,8 +259,8 @@ public class SimpleDataSchema extends DataSchema {
     public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
 
-        Map<DataSchemaEntry<DS>, Set<Constraint>> constraints = new HashMap<>();
-        Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints = new HashMap<>();
         collectAllConstraints(constraints, potentialConstraints);
         data.visitDataEntries((values, dataEntry) -> {
             if(!(dataEntry instanceof DataObject)){
@@ -277,8 +278,8 @@ public class SimpleDataSchema extends DataSchema {
             T dataEntry,
             DataCollection<T> data,
             EvaluationResults<DS, T> evaluationResults,
-            Map<DataSchemaEntry<DS>, Set<Constraint>> constraints,
-            Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints
+            Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints,
+            Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints
     ){
         Collection<DataSchemaEntry<DS>> schemaEntries = new HashSet<>();
         for (DataSchemaEntry<SimpleDataSchema> dataSchemaEntry : this.getDataSchemaEntries()) {
@@ -292,12 +293,9 @@ public class SimpleDataSchema extends DataSchema {
                 return;
             }
 
-            for (Constraint constraint : v) {
-                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
-                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(dao, constraintVariables);
-
+            for (IConstraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
+                constraint.evaluate(dao, dataEntry, constraintResults);
             }
         });
 
@@ -306,12 +304,9 @@ public class SimpleDataSchema extends DataSchema {
                 return;
             }
 
-            for (Constraint constraint : v) {
-                Set<Variable> constraintVariables = constraint.term().findInvolvedVariables();
-                List<Map<Variable, Node>> valueCombinations = Utils.collectValueCombinations(dao, constraintVariables);
-
+            for (IConstraint constraint : v) {
                 ConstraintResults<T> constraintResults = evaluationResults.getPotentialConstraintResults(k, constraint, data);
-                constraint.applyDataCombinations(valueCombinations, dataEntry, constraintResults);
+                constraint.evaluate(dao, dataEntry, constraintResults);
             }
         });
     }
