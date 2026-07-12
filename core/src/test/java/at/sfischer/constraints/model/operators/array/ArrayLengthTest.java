@@ -2,6 +2,7 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.miner.ConstraintMiner;
 import at.sfischer.constraints.miner.ConstraintMinerFromData;
@@ -90,10 +91,10 @@ public class ArrayLengthTest {
 		DataSchemaEntry<SimpleDataSchema> array2Entry = deeperEntry.dataSchema.stringArrayEntry("array2", true);
 
 		Node term1 = new GreaterThanOrEqualOperator(new ArrayLength(new Variable("a")), new ArrayLength(new Variable("b")));
-		schema.fillSchemaWithConstraints(term1);
+		schema.fillSchemaWithConstraints(term1, Constraint::new);
 
 		Node term2 = new GreaterThanOrEqualOperator(new SubtractionOperator(new ArrayLength(new Variable("a")), new NumberLiteral(1)), new SubtractionOperator(new ArrayLength(new Variable("b")), new NumberLiteral(1)));
-		schema.fillSchemaWithConstraints(term2);
+		schema.fillSchemaWithConstraints(term2, Constraint::new);
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
 				"{data:{inner:{array1:[\"ONE\", \"TWO\"]}, other:{deep:{deeper:{array2:[\"one\", \"two\"]}}}}}",
@@ -104,7 +105,7 @@ public class ArrayLengthTest {
 		EvaluationResults<SimpleDataSchema, DataObject> actual = schema.evaluate(data);
 		assertTrue(actual.getEvaluationResults().isEmpty());
 
-		Set<Constraint> constraints = array1Entry.potentialConstraints;
+		Set<IConstraint> constraints = array1Entry.potentialConstraints;
 		assertEquals(4, constraints.size());
 
 		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new ArrayLength(new DataReference(array1Entry)), new ArrayLength(new DataReference(array2Entry))));

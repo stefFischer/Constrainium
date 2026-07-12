@@ -1,5 +1,6 @@
 package at.sfischer.testing;
 
+import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
@@ -131,10 +132,10 @@ public class PayrollApplicationIntegrationTest {
             constraint.getTerms().getFirst().validate(context);
             assertTrue(context.isValid());
 
-            fullSchema.fillSchemaWithConstraints(constraint.getTerms().getFirst());
+            fullSchema.fillSchemaWithConstraints(constraint.getTerms().getFirst(), Constraint::new);
 
-            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
-            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
+            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst(), Constraint::new);
+            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst(), Constraint::new);
         }
 
         assertConstraintNumber(employeeEntry, 0);

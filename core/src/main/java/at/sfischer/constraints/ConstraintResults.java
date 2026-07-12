@@ -8,29 +8,29 @@ import at.sfischer.constraints.data.DataCollection;
  * @param validConstraintData Data for which the constraint evaluates to true.
  */
 public record ConstraintResults<T>(
-        Constraint constraint,
+        IConstraint constraint,
         DataCollection<T> data,
         DataCollection<T> validConstraintData,
         DataCollection<T> invalidConstraintData,
         DataCollection<T> inapplicableConstraintData,
         DataCollection<T> missingEvidenceConstraintData) {
-    public ConstraintResults(Constraint constraint, DataCollection<T> data) {
+    public ConstraintResults(IConstraint constraint, DataCollection<T> data) {
         this(constraint, data, data.emptyDataCollection());
     }
 
-    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData) {
+    public ConstraintResults(IConstraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData) {
         this(constraint, data, validConstraintData, data.emptyDataCollection());
     }
 
-    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData) {
+    public ConstraintResults(IConstraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData) {
         this(constraint, data, validConstraintData, inapplicableConstraintData, data.emptyDataCollection());
     }
 
-    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
+    public ConstraintResults(IConstraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
         this(constraint, data, validConstraintData, data.emptyDataCollection(), inapplicableConstraintData, missingEvidenceConstraintData);
     }
 
-    public ConstraintResults(Constraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> invalidConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
+    public ConstraintResults(IConstraint constraint, DataCollection<T> data, DataCollection<T> validConstraintData, DataCollection<T> invalidConstraintData, DataCollection<T> inapplicableConstraintData, DataCollection<T> missingEvidenceConstraintData) {
         this.constraint = constraint;
         this.data = data;
         this.validConstraintData = validConstraintData;

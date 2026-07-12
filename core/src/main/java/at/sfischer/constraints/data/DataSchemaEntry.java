@@ -1,6 +1,7 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.model.Type;
 
 import java.util.HashSet;
@@ -18,10 +19,10 @@ public class DataSchemaEntry<T extends DataSchema> {
     public final T dataSchema;
 
     // Constraints that hae been confirmed.
-    public final Set<Constraint> constraints;
+    public final Set<IConstraint> constraints;
 
     // Constraints that could be possible but still need confirmation.
-    public final Set<Constraint> potentialConstraints;
+    public final Set<IConstraint> potentialConstraints;
 
     protected T parentSchema;
 
@@ -71,8 +72,8 @@ public class DataSchemaEntry<T extends DataSchema> {
         return (T) this.parentSchema.getParentEntry().getRootSchema();
     }
 
-    public Constraint getPotentionConstraint(Constraint constraint){
-        for (Constraint potentialConstraint : potentialConstraints) {
+    public IConstraint getPotentionConstraint(IConstraint constraint){
+        for (IConstraint potentialConstraint : potentialConstraints) {
             if(potentialConstraint.equals(constraint)){
                 return potentialConstraint;
             }

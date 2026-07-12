@@ -1,7 +1,6 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.Constraint;
-import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.*;
 import at.sfischer.constraints.miner.AndConstraintPolicy;
 import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.*;
@@ -37,10 +36,10 @@ public abstract class DataSchema {
 
     public abstract <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path);
 
-    public abstract void fillSchemaWithConstraints(Node term);
+    public abstract void fillSchemaWithConstraints(Node term, ConstraintFactory factory);
 
-    public void fillSchemaWithConstraints(Node term, Set<Node> replacementTerms){
-        fillSchemaWithConstraints(term);
+    public void fillSchemaWithConstraints(Node term, ConstraintFactory factory, Set<Node> replacementTerms){
+        fillSchemaWithConstraints(term, factory);
 
         Set<Node> termsToReplace = new HashSet<>();
         termsToReplace.add(term);
@@ -67,7 +66,7 @@ public abstract class DataSchema {
                             Node newTerm = termToReplace.setVariableValue(placeholder.getKey(), replacement);
                             newTerms.add(newTerm);
 
-                            fillSchemaWithConstraints(newTerm);
+                            fillSchemaWithConstraints(newTerm, factory);
                         }
                     }
                 }
@@ -81,7 +80,7 @@ public abstract class DataSchema {
 
     public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
 
-    public abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<Constraint>> constraints, Map<DataSchemaEntry<DS>, Set<Constraint>> potentialConstraints);
+    public abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints);
 
     // TODO Think of a better name for this method.
     public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy... policies){
@@ -91,9 +90,26 @@ public abstract class DataSchema {
     public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy policy){
         evaluationResults.getPotentialConstraintResults().forEach((k, v) -> {
             for (ConstraintResults<T> constraintResults : v) {
-                Constraint constraint = k.getPotentionConstraint(constraintResults.constraint());
+                IConstraint constraint = k.getPotentionConstraint(constraintResults.constraint());
                 k.potentialConstraints.remove(constraint);
                 if(policy.includeConstraint(constraintResults)){
+                    k.constraints.add(constraint);
+                }
+            }
+        });
+    }
+
+    public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintConstruct construct){
+        evaluationResults.getPotentialConstraintResults().forEach((k, v) -> {
+            for (ConstraintResults<T> constraintResults : v) {
+                IConstraint constraintFromResult = constraintResults.constraint();
+                if(constraintFromResult.derivedFrom() != construct){
+                    continue;
+                }
+
+                IConstraint constraint = k.getPotentionConstraint(constraintFromResult);
+                k.potentialConstraints.remove(constraint);
+                if(construct.getRetentionPolicy().includeConstraint(constraintResults)){
                     k.constraints.add(constraint);
                 }
             }
@@ -239,7 +255,7 @@ public abstract class DataSchema {
         }
     }
 
-    protected static <DS extends DataSchema> void fillSchemaWithConstraint(Node term, List<Map<Variable, DataSchemaEntry<DS>>> allCombinations, DataSchemaEntrySelector<DS> selector) {
+    protected static <DS extends DataSchema> void fillSchemaWithConstraint(Node term, ConstraintFactory factory, List<Map<Variable, DataSchemaEntry<DS>>> allCombinations, DataSchemaEntrySelector<DS> selector) {
         // For each combination, fill the term and attach it to the first DataSchemaEntry
         for (Map<Variable, DataSchemaEntry<DS>> combination : allCombinations) {
             Map<Variable, Node> replacement = new HashMap<>();
@@ -251,7 +267,7 @@ public abstract class DataSchema {
             DataSchemaEntry<?> primaryEntry = selector.selectEntry(combination.values());
 
             // Add the filled term to the potentialConstraints of the primary entry
-            primaryEntry.potentialConstraints.add(new Constraint(filledTerm));
+            primaryEntry.potentialConstraints.add(factory.createConstraint(filledTerm));
         }
     }
 

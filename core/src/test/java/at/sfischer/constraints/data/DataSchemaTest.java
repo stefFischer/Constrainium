@@ -30,7 +30,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new GreaterThanOperator(new DataReference(size), new DataReference(objectId)));
 		Constraint constraint2 = new Constraint(new GreaterThanOperator(new DataReference(objectId), new DataReference(size)));
@@ -66,7 +66,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayQuantifier.ELEMENT_NAME))));
 		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new DataReference(size))));
@@ -106,7 +106,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new DataReference(arrayValue)));
 		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(arrayValue), new DataReference(size)));
@@ -148,7 +148,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(add), new DataReference(number)));
 		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(number), new DataReference(add)));
@@ -202,7 +202,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayQuantifier.ELEMENT_NAME))));
 		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new DataReference(size))));
@@ -244,7 +244,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, Constraint::new);
 
 		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new DataReference(arrayNumber)));
 		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(arrayNumber), new DataReference(size)));
@@ -282,7 +282,7 @@ public class DataSchemaTest {
 
 		Node term = new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b"));
 
-		schema.fillSchemaWithConstraints(term, Set.of(replacement));
+		schema.fillSchemaWithConstraints(term, Constraint::new, Set.of(replacement));
 
 		Constraint constraint1 = new Constraint(new GreaterThanOrEqualOperator(new DataReference(size), new ArrayLength(new DataReference(array))));
 		Constraint constraint2 = new Constraint(new GreaterThanOrEqualOperator(new ArrayLength(new DataReference(array)), new DataReference(size)));

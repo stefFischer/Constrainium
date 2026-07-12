@@ -1,6 +1,7 @@
 package at.sfischer.constraints.data.model;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.miner.NoViolationsPolicy;
 import at.sfischer.constraints.model.Variable;
@@ -50,22 +51,25 @@ public class DataFlow {
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = (InOutputDataSchema<SimpleDataSchema>)dataCollection.deriveSchema();
 
-        schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")));
-        schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")));
-        schema.fillSchemaWithConstraints(new EquivalentOperator(new Variable("a"), new Variable("b")));
-        schema.fillSchemaWithConstraints(new ArrayEquals(new Variable("a"), new Variable("b")));
+        schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")), Constraint::new);
+        schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")), Constraint::new);
+        schema.fillSchemaWithConstraints(new EquivalentOperator(new Variable("a"), new Variable("b")), Constraint::new);
+        schema.fillSchemaWithConstraints(new ArrayEquals(new Variable("a"), new Variable("b")), Constraint::new);
         // TODO What to do for cases when elements of an array are passed on individually? Need a constraint that checks if a values exists in the array.
 
         EvaluationResults<DataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(dataCollection);
         schema.applyConstraintRetentionPolicy(results, new NoViolationsPolicy());
 
         // Get references from constraints and link the entries from the edge schemas.
-        Map<DataSchemaEntry<InOutputDataSchema<SimpleDataSchema>>, Set<Constraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<InOutputDataSchema<SimpleDataSchema>>, Set<IConstraint>> constraints = new HashMap<>();
         schema.collectAllConstraints(constraints, null);
 
-        for (Set<Constraint> value : constraints.values()) {
-            for (Constraint constraint : value) {
-                DataSchemaEntry<SimpleDataSchema>[] entries = collectEntries(constraint, fromSchema, toSchema);
+        for (Set<IConstraint> value : constraints.values()) {
+            for (IConstraint constraint : value) {
+                if(!(constraint instanceof Constraint c)){
+                    continue;
+                }
+                DataSchemaEntry<SimpleDataSchema>[] entries = collectEntries(c, fromSchema, toSchema);
                 if(entries[0] == null || entries[1] == null){
                     continue;
                 }
