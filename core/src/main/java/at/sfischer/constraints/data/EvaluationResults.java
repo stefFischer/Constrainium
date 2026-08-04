@@ -47,6 +47,12 @@ public class EvaluationResults<SCHEMA extends DataSchema, DATA> {
         this.results.add(result);
     }
 
+    public void addResults(EvaluationResults<SCHEMA, DATA> results) {
+        this.results.addAll(results.results);
+        this.constraintResults.putAll(results.constraintResults);
+        this.potentialConstraintResults.putAll(results.potentialConstraintResults);
+    }
+
     public Set<EvaluationResult<SCHEMA, DATA>> getEvaluationResults() {
         return results;
     }

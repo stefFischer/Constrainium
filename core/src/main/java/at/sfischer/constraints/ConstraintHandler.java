@@ -5,6 +5,8 @@ import at.sfischer.constraints.data.DataSchema;
 import at.sfischer.constraints.data.EvaluationResults;
 import at.sfischer.constraints.data.InOutputDataSchema;
 
+import java.util.Set;
+
 public class ConstraintHandler implements ConstraintConstructHandler<ConstraintTemplate>{
 
     private final boolean fillSubSchemata;
@@ -24,11 +26,11 @@ public class ConstraintHandler implements ConstraintConstructHandler<ConstraintT
 
     @Override
     public void instantiate(ConstraintTemplate construct, DataSchema schema) {
-        schema.fillSchemaWithConstraints(construct.getTerm(), term -> new Constraint(term, construct));
+        schema.fillSchemaWithConstraints(construct.getTerm(), term -> Set.of(new Constraint(term, construct)));
 
         if(this.fillSubSchemata && schema instanceof InOutputDataSchema<?> inOutputDataSchema){
-            inOutputDataSchema.getInputSchema().fillSchemaWithConstraints(construct.getTerm(), term -> new Constraint(term, construct));
-            inOutputDataSchema.getOutputSchema().fillSchemaWithConstraints(construct.getTerm(), term -> new Constraint(term, construct));
+            inOutputDataSchema.getInputSchema().fillSchemaWithConstraints(construct.getTerm(), term -> Set.of(new Constraint(term, construct)));
+            inOutputDataSchema.getOutputSchema().fillSchemaWithConstraints(construct.getTerm(), term -> Set.of(new Constraint(term, construct)));
         }
     }
 

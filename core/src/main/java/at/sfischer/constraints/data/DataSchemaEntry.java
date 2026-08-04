@@ -1,6 +1,5 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.model.Type;
 
@@ -39,6 +38,24 @@ public class DataSchemaEntry<T extends DataSchema> {
         this.potentialConstraints = new HashSet<>();
     }
 
+    public DataSchemaEntry<T> clone(T newParentSchema) {
+        T nestedClone = null;
+        if (dataSchema != null) {
+            //noinspection unchecked
+            nestedClone = (T) dataSchema.clone();
+        }
+        DataSchemaEntry<T> clone = new DataSchemaEntry<>(
+                newParentSchema,
+                name,
+                type,
+                mandatory,
+                nestedClone
+        );
+        clone.constraints.addAll(constraints);
+        clone.potentialConstraints.addAll(potentialConstraints);
+        return clone;
+    }
+
     public String getQualifiedName(){
         StringBuilder sb = new StringBuilder(this.name);
         DataSchemaEntry<T> parent = this.getParentSchemaEntry();
@@ -57,6 +74,10 @@ public class DataSchemaEntry<T extends DataSchema> {
         }
 
         return this.parentSchema.getParentEntry();
+    }
+
+    public T getParentSchema() {
+        return parentSchema;
     }
 
     public T getRootSchema(){

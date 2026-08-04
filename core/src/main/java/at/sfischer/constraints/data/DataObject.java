@@ -8,7 +8,7 @@ import org.json.JSONTokener;
 
 import java.util.*;
 
-import static at.sfischer.constraints.data.Utils.*;
+import static at.sfischer.constraints.data.Utils.Path;
 
 public class DataObject {
 
@@ -18,48 +18,48 @@ public class DataObject {
         this.dataValues = new HashMap<>();
     }
 
-    public void putValue(String name, boolean value){
-        dataValues.put(name, new DataValue<>(TypeEnum.BOOLEAN, value));
+    public void putValue(String path, boolean value){
+        putDataValue(path, new DataValue<>(TypeEnum.BOOLEAN, value));
     }
 
-    public void putValue(String name, Integer value){
-        dataValues.put(name, new DataValue<>(TypeEnum.INTEGER, value));
+    public void putValue(String path, Integer value){
+        putDataValue(path, new DataValue<>(TypeEnum.INTEGER, value));
     }
 
-    public void putValue(String name, Number value){
-        dataValues.put(name, new DataValue<>(TypeEnum.NUMBER, value));
+    public void putValue(String path, Number value){
+        putDataValue(path, new DataValue<>(TypeEnum.NUMBER, value));
     }
 
-    public void putValue(String name, String value){
-        dataValues.put(name, new DataValue<>(TypeEnum.STRING, value));
+    public void putValue(String path, String value){
+        putDataValue(path, new DataValue<>(TypeEnum.STRING, value));
     }
 
-    public void putValue(String name, DataObject value){
-        dataValues.put(name, new DataValue<>(TypeEnum.COMPLEXTYPE, value));
+    public void putValue(String path, DataObject value){
+        putDataValue(path, new DataValue<>(TypeEnum.COMPLEXTYPE, value));
     }
 
-    public void putValue(String name, boolean[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
+    public void putValue(String path, boolean[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
     }
 
-    public void putValue(String name, Boolean[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
+    public void putValue(String path, Boolean[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.BOOLEAN), value));
     }
 
-    public void putValue(String name, Integer[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.INTEGER), value));
+    public void putValue(String path, Integer[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.INTEGER), value));
     }
 
-    public void putValue(String name, Number[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.NUMBER), value));
+    public void putValue(String path, Number[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.NUMBER), value));
     }
 
-    public void putValue(String name, String[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.STRING), value));
+    public void putValue(String path, String[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.STRING), value));
     }
 
-    public void putValue(String name, DataObject[] value){
-        dataValues.put(name, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
+    public void putValue(String path, DataObject[] value){
+        putDataValue(path, new DataValue<>(new ArrayType(TypeEnum.COMPLEXTYPE), value));
     }
 
     protected void putValue(String name, DataValue<?>[] value) {
@@ -67,20 +67,47 @@ public class DataObject {
         putValue(name, value, nestedArrayType);
     }
 
-    public void putValue(String name, DataValue<?>[] value, Type nestedArrayType) {
-        dataValues.put(name, new DataValue<>(new ArrayType(nestedArrayType), value));
-    }
-
-    protected void putDataValue(String name, DataValue<?> value) {
-        dataValues.put(name, value);
+    public void putValue(String path, DataValue<?>[] value, Type nestedArrayType) {
+        putDataValue(path, new DataValue<>(new ArrayType(nestedArrayType), value));
     }
 
     public void putDataValues(DataObject object) {
         dataValues.putAll(object.dataValues);
     }
 
+    protected void putDataValue(String path, DataValue<?> value) {
+        DataObject target = getObjectForPath(path);
+        target.dataValues.put(lastPathElement(path), value);
+    }
+
     public DataValue<?> getDataValue(String name){
         return dataValues.get(name);
+    }
+
+    private DataObject getOrCreateObject(String name) {
+        DataValue<?> value = dataValues.get(name);
+        if (value != null && value.getType() == TypeEnum.COMPLEXTYPE) {
+            return (DataObject) value.getValue();
+        }
+
+        DataObject object = new DataObject();
+        putValue(name, object);
+        return object;
+    }
+
+    private DataObject getObjectForPath(String path) {
+        String[] parts = path.split("\\.");
+        DataObject current = this;
+        for (int i = 0; i < parts.length - 1; i++) {
+            current = current.getOrCreateObject(parts[i]);
+        }
+
+        return current;
+    }
+
+    private static String lastPathElement(String path) {
+        int index = path.lastIndexOf('.');
+        return index < 0 ? path : path.substring(index + 1);
     }
 
     public List<Value<?>> getValues(String name){
@@ -166,6 +193,17 @@ public class DataObject {
     }
 
     @Override
+    public DataObject clone() {
+        DataObject clone = new DataObject();
+
+        for (Map.Entry<String, DataValue<?>> entry : dataValues.entrySet()) {
+            clone.putDataValue(entry.getKey(), entry.getValue().clone());
+        }
+
+        return clone;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -238,6 +276,63 @@ public class DataObject {
         }
 
         return dataValues;
+    }
+
+    public void putNodeValue(String path, Value<?> value) {
+        Object converted = toDataValue(value);
+
+        if (value.getReturnType() instanceof ArrayType(Type elementType)) {
+            putValue(path, (DataValue<?>[]) converted, elementType);
+        } else if (converted instanceof Boolean b) {
+            putValue(path, b);
+        } else if (converted instanceof Integer i) {
+            putValue(path, i);
+        } else if (converted instanceof Number n) {
+            putValue(path, n);
+        } else if (converted instanceof String s) {
+            putValue(path, s);
+        } else if (converted instanceof DataObject d) {
+            putValue(path, d);
+        } else {
+            throw new IllegalStateException("Unsupported value type: " + value.getClass());
+        }
+    }
+
+    private static Object toDataValue(Value<?> value) {
+        if (value instanceof BooleanLiteral bl) {
+            return bl.getValue();
+        }
+
+        if (value instanceof IntegerLiteral il) {
+            return il.getValue();
+        }
+
+        if (value instanceof NumberLiteral nl) {
+            return nl.getValue();
+        }
+
+        if (value instanceof StringLiteral sl) {
+            return sl.getValue();
+        }
+
+        if (value instanceof ComplexValue cv) {
+            return cv.getValue().clone();
+        }
+
+        if (value instanceof ArrayValues<?> av) {
+            DataValue<?>[] result = new DataValue<?>[av.getValue().length];
+            for (int i = 0; i < result.length; i++) {
+                Value<?> element = av.getValue()[i];
+                result[i] = new DataValue<>(
+                        element.getReturnType(),
+                        toDataValue(element)
+                );
+            }
+
+            return result;
+        }
+
+        throw new IllegalStateException("Unsupported value node: " + value.getClass());
     }
 
     @Override

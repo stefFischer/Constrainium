@@ -91,10 +91,10 @@ public class ArrayLengthTest {
 		DataSchemaEntry<SimpleDataSchema> array2Entry = deeperEntry.dataSchema.stringArrayEntry("array2", true);
 
 		Node term1 = new GreaterThanOrEqualOperator(new ArrayLength(new Variable("a")), new ArrayLength(new Variable("b")));
-		schema.fillSchemaWithConstraints(term1, Constraint::new);
+		schema.fillSchemaWithConstraints(term1, t -> Set.of(new Constraint(t)));
 
 		Node term2 = new GreaterThanOrEqualOperator(new SubtractionOperator(new ArrayLength(new Variable("a")), new NumberLiteral(1)), new SubtractionOperator(new ArrayLength(new Variable("b")), new NumberLiteral(1)));
-		schema.fillSchemaWithConstraints(term2, Constraint::new);
+		schema.fillSchemaWithConstraints(term2, t -> Set.of(new Constraint(t)));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
 				"{data:{inner:{array1:[\"ONE\", \"TWO\"]}, other:{deep:{deeper:{array2:[\"one\", \"two\"]}}}}}",

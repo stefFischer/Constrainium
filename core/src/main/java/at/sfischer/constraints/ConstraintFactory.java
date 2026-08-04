@@ -2,7 +2,9 @@ package at.sfischer.constraints;
 
 import at.sfischer.constraints.model.Node;
 
+import java.util.Set;
+
 public interface ConstraintFactory {
 
-    IConstraint createConstraint(Node term);
+    Set<IConstraint> createConstraint(Node term);
 }

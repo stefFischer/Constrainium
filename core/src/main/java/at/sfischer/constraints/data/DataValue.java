@@ -55,6 +55,36 @@ public class DataValue<T> {
         return value;
     }
 
+    @SuppressWarnings("unchecked")
+    public DataValue<T> clone() {
+        Object clonedValue;
+
+        if (value instanceof DataObject object) {
+            clonedValue = object.clone();
+        } else if (value instanceof DataObject[] objects) {
+            DataObject[] clone = new DataObject[objects.length];
+            for (int i = 0; i < objects.length; i++) {
+                clone[i] = objects[i] == null ? null : objects[i].clone();
+            }
+            clonedValue = clone;
+        } else if (value instanceof DataValue<?>[] values) {
+            DataValue<?>[] clone = new DataValue<?>[values.length];
+            for (int i = 0; i < values.length; i++) {
+                clone[i] = values[i] == null ? null : values[i].clone();
+            }
+            clonedValue = clone;
+        } else if (value instanceof boolean[] array) {
+            clonedValue = array.clone();
+        } else if (value instanceof Object[] array) {
+            clonedValue = array.clone();
+        } else {
+            // Integer, Boolean, Number, String, ...
+            clonedValue = value;
+        }
+
+        return new DataValue<>(type, (T) clonedValue);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -67,6 +97,10 @@ public class DataValue<T> {
     private boolean valuesEqual(Object v1, Object v2) {
         if (v1 == v2) return true;
         if (v1 == null || v2 == null) return false;
+
+        if (v1 instanceof Number n1 && v2 instanceof Number n2) {
+            return n1.doubleValue() == n2.doubleValue();
+        }
 
         if (v1.getClass().isArray() && v2.getClass().isArray()) {
             switch (v1) {

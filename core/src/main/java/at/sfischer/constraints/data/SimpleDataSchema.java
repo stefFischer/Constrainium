@@ -1,5 +1,6 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintFactory;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.IConstraint;
@@ -9,6 +10,7 @@ import at.sfischer.constraints.model.operators.array.ForAll;
 import org.javatuples.Triplet;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SimpleDataSchema extends DataSchema {
 
@@ -24,6 +26,16 @@ public class SimpleDataSchema extends DataSchema {
 
     public SimpleDataSchema() {
         this.schema = new HashMap<>();
+    }
+
+    @Override
+    public SimpleDataSchema clone() {
+        SimpleDataSchema clone = new SimpleDataSchema();
+        for (DataSchemaEntry<SimpleDataSchema> entry : schema.values()) {
+            clone.schema.put(entry.name, entry.clone(clone));
+        }
+
+        return clone;
     }
 
     public DataSchemaEntry<SimpleDataSchema> getSchemaEntry(String entryName) {
@@ -256,12 +268,65 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     @Override
-    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
+    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, ConstraintConstruct derivedFrom){
+        for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
+            if(constraints != null) {
+                Set<IConstraint> derivedConstraints = entry.constraints.stream()
+                        .filter(c -> c.derivedFrom() == derivedFrom)
+                        .collect(Collectors.toSet());
+                if(!derivedConstraints.isEmpty()){
+                    //noinspection unchecked
+                    constraints.put((DataSchemaEntry<DS>) entry, derivedConstraints);
+                }
+            }
+            if(potentialConstraints != null) {
+                Set<IConstraint> derivedPotentialConstraints = entry.potentialConstraints.stream()
+                        .filter(c -> c.derivedFrom() == derivedFrom)
+                        .collect(Collectors.toSet());
+                if(!derivedPotentialConstraints.isEmpty()){
+                    //noinspection unchecked
+                    potentialConstraints.put((DataSchemaEntry<DS>) entry, derivedPotentialConstraints);
+                }
+            }
+
+            if(entry.dataSchema != null) {
+                entry.dataSchema.collectAllConstraints(constraints, potentialConstraints, derivedFrom);
+            }
+        }
+    }
+
+    @Override
+    public <DS extends DataSchema> void collectConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, Collection<? extends IConstraint> toFind) {
+        for (DataSchemaEntry<SimpleDataSchema> entry : this.getDataSchemaEntries()) {
+            if(constraints != null) {
+                Set<IConstraint> derivedConstraints = entry.constraints.stream()
+                        .filter(toFind::contains)
+                        .collect(Collectors.toSet());
+                if(!derivedConstraints.isEmpty()){
+                    //noinspection unchecked
+                    constraints.put((DataSchemaEntry<DS>) entry, derivedConstraints);
+                }
+            }
+            if(potentialConstraints != null) {
+                Set<IConstraint> derivedPotentialConstraints = entry.potentialConstraints.stream()
+                        .filter(toFind::contains)
+                        .collect(Collectors.toSet());
+                if(!derivedPotentialConstraints.isEmpty()){
+                    //noinspection unchecked
+                    potentialConstraints.put((DataSchemaEntry<DS>) entry, derivedPotentialConstraints);
+                }
+            }
+
+            if(entry.dataSchema != null) {
+                entry.dataSchema.collectConstraints(constraints, potentialConstraints, toFind);
+            }
+        }
+    }
+
+    @Override
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data, Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
 
-        Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints = new HashMap<>();
-        Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints = new HashMap<>();
-        collectAllConstraints(constraints, potentialConstraints);
         data.visitDataEntries((values, dataEntry) -> {
             if(!(dataEntry instanceof DataObject)){
                 return;

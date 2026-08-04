@@ -51,10 +51,10 @@ public class DataFlow {
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = (InOutputDataSchema<SimpleDataSchema>)dataCollection.deriveSchema();
 
-        schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")), Constraint::new);
-        schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")), Constraint::new);
-        schema.fillSchemaWithConstraints(new EquivalentOperator(new Variable("a"), new Variable("b")), Constraint::new);
-        schema.fillSchemaWithConstraints(new ArrayEquals(new Variable("a"), new Variable("b")), Constraint::new);
+        schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
+        schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
+        schema.fillSchemaWithConstraints(new EquivalentOperator(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
+        schema.fillSchemaWithConstraints(new ArrayEquals(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
         // TODO What to do for cases when elements of an array are passed on individually? Need a constraint that checks if a values exists in the array.
 
         EvaluationResults<DataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(dataCollection);

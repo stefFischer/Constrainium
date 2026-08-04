@@ -1,5 +1,6 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintFactory;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.IConstraint;
@@ -20,12 +21,26 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
     private final SCHEMA outputSchema;
 
+    private final String inputPrefix;
+    private final String outputPrefix;
+
     public InOutputDataSchema(SCHEMA inputSchema, SCHEMA outputSchema) {
+        this(inputSchema, outputSchema, INPUT_PREFIX, OUTPUT_PREFIX);
+    }
+
+    public InOutputDataSchema(SCHEMA inputSchema, SCHEMA outputSchema, String inputPrefix, String outputPrefix) {
         this.inputSchema = inputSchema;
         this.outputSchema = outputSchema;
+        this.inputPrefix = inputPrefix;
+        this.outputPrefix = outputPrefix;
 
-        this.inputSchema.setParentEntry(new DataSchemaEntry<>(this, INPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.inputSchema));
-        this.outputSchema.setParentEntry(new DataSchemaEntry<>(this, OUTPUT_PREFIX, TypeEnum.COMPLEXTYPE, true, this.outputSchema));
+        this.inputSchema.setParentEntry(new DataSchemaEntry<>(this, inputPrefix, TypeEnum.COMPLEXTYPE, true, this.inputSchema));
+        this.outputSchema.setParentEntry(new DataSchemaEntry<>(this, outputPrefix, TypeEnum.COMPLEXTYPE, true, this.outputSchema));
+    }
+
+    @Override
+    public DataSchema clone() {
+        return new InOutputDataSchema<>(inputSchema.clone(), outputSchema.clone());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -43,13 +58,13 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
     @Override
     public <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path) {
-        if(path.startsWith(INPUT_PREFIX)){
-            path = path.substring(INPUT_PREFIX.length() + 1);
+        if(path.startsWith(this.inputPrefix)){
+            path = path.substring(this.inputPrefix.length() + 1);
             return inputSchema.findDataSchemaEntry(path);
         }
 
-        if(path.startsWith(OUTPUT_PREFIX)){
-            path = path.substring(OUTPUT_PREFIX.length() + 1);
+        if(path.startsWith(this.outputPrefix)){
+            path = path.substring(this.outputPrefix.length() + 1);
             return outputSchema.findDataSchemaEntry(path);
         }
 
@@ -62,6 +77,14 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
 
     public SCHEMA getOutputSchema() {
         return outputSchema;
+    }
+
+    public String getOutputPrefix() {
+        return outputPrefix;
+    }
+
+    public String getInputPrefix() {
+        return inputPrefix;
     }
 
     @Override
@@ -132,12 +155,21 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
     }
 
     @Override
-    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data) {
+    public <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, ConstraintConstruct derivedFrom){
+        this.outputSchema.collectAllConstraints(constraints, potentialConstraints, derivedFrom);
+        this.inputSchema.collectAllConstraints(constraints, potentialConstraints, derivedFrom);
+    }
+
+    @Override
+    public <DS extends DataSchema> void collectConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, Collection<? extends IConstraint> toFind) {
+        this.outputSchema.collectConstraints(constraints, potentialConstraints, toFind);
+        this.inputSchema.collectConstraints(constraints, potentialConstraints, toFind);
+    }
+
+    @Override
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data, Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
 
-        Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints = new HashMap<>();
-        Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints = new HashMap<>();
-        collectAllConstraints(constraints, potentialConstraints);
         data.visitDataEntries((values, dataEntry) -> {
             if(!(dataEntry instanceof Pair)){
                 return;
@@ -158,8 +190,8 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints,
             Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints
     ){
-        evaluateDataObject(inputSchema.getDataSchemaEntries(), InOutputDataCollection.getInputData(dao), dataEntry, evaluationResults);
-        evaluateDataObject(outputSchema.getDataSchemaEntries(), InOutputDataCollection.getOutputData(dao), dataEntry, evaluationResults);
+        evaluateDataObject(inputSchema.getDataSchemaEntries(), InOutputDataCollection.getInputData(dao, this.inputPrefix), dataEntry, evaluationResults);
+        evaluateDataObject(outputSchema.getDataSchemaEntries(), InOutputDataCollection.getOutputData(dao, this.outputPrefix), dataEntry, evaluationResults);
 
         constraints.forEach((k, v) -> {
             if(v == null || v.isEmpty()){

@@ -34,6 +34,8 @@ public abstract class DataSchema {
         // Do nothing by default. This is only required for schema that are used in the entry hierarchy like SimpleDataSchema.
     }
 
+    public abstract DataSchema clone();
+
     public abstract <T extends DataSchema> DataSchemaEntry<T> findDataSchemaEntry(String path);
 
     public abstract void fillSchemaWithConstraints(Node term, ConstraintFactory factory);
@@ -78,9 +80,29 @@ public abstract class DataSchema {
         }
     }
 
-    public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data);
+    public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data){
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints = new HashMap<>();
+        collectAllConstraints(constraints, potentialConstraints);
+
+        return evaluate(data, constraints, potentialConstraints);
+    }
+
+    public abstract <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data, Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints);
 
     public abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints);
+
+    public abstract <DS extends DataSchema> void collectAllConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, ConstraintConstruct derivedFrom);
+
+    public abstract <DS extends DataSchema> void collectConstraints(Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints, Collection<? extends IConstraint> toFind);
+
+    public <DS extends DataSchema> void clearConstrains() {
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints = new HashMap<>();
+        Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraint = new HashMap<>();
+        this.collectAllConstraints(constraints, potentialConstraint);
+        constraints.keySet().forEach(dse -> dse.constraints.clear());
+        potentialConstraint.keySet().forEach(dse -> dse.potentialConstraints.clear());
+    }
 
     // TODO Think of a better name for this method.
     public <DS extends DataSchema, T> void applyConstraintRetentionPolicy(EvaluationResults<DS, T> evaluationResults, ConstraintPolicy... policies){
@@ -267,7 +289,7 @@ public abstract class DataSchema {
             DataSchemaEntry<?> primaryEntry = selector.selectEntry(combination.values());
 
             // Add the filled term to the potentialConstraints of the primary entry
-            primaryEntry.potentialConstraints.add(factory.createConstraint(filledTerm));
+            primaryEntry.potentialConstraints.addAll(factory.createConstraint(filledTerm));
         }
     }
 
