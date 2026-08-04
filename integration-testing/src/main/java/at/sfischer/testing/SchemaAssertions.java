@@ -1,9 +1,13 @@
 package at.sfischer.testing;
 
 import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintConstruct;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.model.Node;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -92,28 +96,35 @@ public class SchemaAssertions {
 
 
     private static boolean containsPotentialConstraintType(DataSchemaEntry<?> entry, Class<?> nodeType) {
-        return containsConstraintType(entry.potentialConstraints, nodeType);
+        return containsConstraintType(getConstraints(entry.potentialConstraints, Constraint.class), nodeType);
     }
 
     private static boolean containsPotentialConstraint(DataSchemaEntry<?> entry, Node term) {
-        return containsConstraint(entry.potentialConstraints, term);
+        return containsConstraint(getConstraints(entry.potentialConstraints, Constraint.class), term);
     }
 
     private static boolean containsConstraintType(DataSchemaEntry<?> entry, Class<?> nodeType) {
-        return containsConstraintType(entry.constraints, nodeType);
+        return containsConstraintType(getConstraints(entry.constraints, Constraint.class), nodeType);
     }
 
     private static boolean containsConstraint(DataSchemaEntry<?> entry, Node term) {
-        return containsConstraint(entry.constraints, term);
+        return containsConstraint(getConstraints(entry.constraints, Constraint.class), term);
     }
 
-    private static boolean containsConstraintType(Set<Constraint> constraints, Class<?> nodeType) {
+    private static boolean containsConstraintType(Collection<Constraint> constraints, Class<?> nodeType) {
         return constraints.stream()
                 .anyMatch(c -> nodeType.isInstance(c.term()));
     }
 
-    private static boolean containsConstraint(Set<Constraint> constraints, Node term) {
+    private static boolean containsConstraint(Collection<Constraint> constraints, Node term) {
         return constraints.stream()
                 .anyMatch(c -> term.equals(c.term()));
+    }
+
+    public static <T extends IConstraint> List<T> getConstraints(Collection<? extends IConstraint> constraints, Class<T> clazz) {
+        return constraints.stream()
+                .filter(clazz::isInstance)
+                .map(clazz::cast)
+                .toList();
     }
 }

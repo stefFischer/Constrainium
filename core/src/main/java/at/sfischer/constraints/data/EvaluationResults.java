@@ -1,7 +1,7 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 
 import java.util.*;
 
@@ -19,7 +19,7 @@ public class EvaluationResults<SCHEMA extends DataSchema, DATA> {
         this.potentialConstraintResults = new HashMap<>();
     }
 
-    public ConstraintResults<DATA> getConstraintResults(DataSchemaEntry<SCHEMA> schemaEntry, Constraint constraint, DataCollection<DATA> data){
+    public ConstraintResults<DATA> getConstraintResults(DataSchemaEntry<SCHEMA> schemaEntry, IConstraint constraint, DataCollection<DATA> data){
         Set<ConstraintResults<DATA>> results = this.constraintResults.computeIfAbsent(schemaEntry, k -> new HashSet<>());
         for (ConstraintResults<DATA> result : results) {
             if(result.constraint().equals(constraint)){
@@ -31,7 +31,7 @@ public class EvaluationResults<SCHEMA extends DataSchema, DATA> {
         return result;
     }
 
-    public ConstraintResults<DATA> getPotentialConstraintResults(DataSchemaEntry<SCHEMA> schemaEntry, Constraint constraint, DataCollection<DATA> data){
+    public ConstraintResults<DATA> getPotentialConstraintResults(DataSchemaEntry<SCHEMA> schemaEntry, IConstraint constraint, DataCollection<DATA> data){
         Set<ConstraintResults<DATA>> results = this.potentialConstraintResults.computeIfAbsent(schemaEntry, k -> new HashSet<>());
         for (ConstraintResults<DATA> result : results) {
             if(result.constraint().equals(constraint)){
@@ -45,6 +45,12 @@ public class EvaluationResults<SCHEMA extends DataSchema, DATA> {
 
     public void addResult(EvaluationResult<SCHEMA, DATA> result) {
         this.results.add(result);
+    }
+
+    public void addResults(EvaluationResults<SCHEMA, DATA> results) {
+        this.results.addAll(results.results);
+        this.constraintResults.putAll(results.constraintResults);
+        this.potentialConstraintResults.putAll(results.potentialConstraintResults);
     }
 
     public Set<EvaluationResult<SCHEMA, DATA>> getEvaluationResults() {

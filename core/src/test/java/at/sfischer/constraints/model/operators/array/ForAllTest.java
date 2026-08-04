@@ -2,6 +2,7 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
@@ -14,6 +15,8 @@ import at.sfischer.constraints.model.operators.strings.StringEquals;
 import at.sfischer.constraints.model.operators.strings.StringLength;
 import at.sfischer.constraints.model.validation.ValidationContext;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -273,7 +276,7 @@ public class ForAllTest {
 		DataSchemaEntry<SimpleDataSchema> array2Entry = schema.stringArrayEntry("array2", true);
 
 		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), new IntegerLiteral(3)));
-		schema.fillSchemaWithConstraints(term);
+		schema.fillSchemaWithConstraints(term, t -> Set.of(new Constraint(t)));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
 				"{array1:[\"ONE\", \"TWO\"], array2:[\"one\", \"two\"]}",
@@ -287,8 +290,8 @@ public class ForAllTest {
 		assertEquals(1, array1Entry.potentialConstraints.size());
 		assertEquals(1, array2Entry.potentialConstraints.size());
 
-		Constraint array1Constraint = array1Entry.potentialConstraints.iterator().next();
-		Constraint array2Constraint = array2Entry.potentialConstraints.iterator().next();
+		IConstraint array1Constraint = array1Entry.potentialConstraints.iterator().next();
+		IConstraint array2Constraint = array2Entry.potentialConstraints.iterator().next();
 
 		ConstraintResults<DataObject> results1 = actual.getPotentialConstraintResults(array1Entry, array1Constraint, data);
 		assertEquals(1.0, results1.applicationRate());

@@ -45,10 +45,14 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     public static DataObject getInputData(Pair<DataObject, DataObject> pair){
+        return getInputData(pair, InOutputDataSchema.INPUT_PREFIX);
+    }
+
+    public static DataObject getInputData(Pair<DataObject, DataObject> pair, String prefix){
         if(pair.getValue0() == null){
             return new DataObject();
         }
-        DataValue<?> val = pair.getValue0().getDataValue(InOutputDataSchema.INPUT_PREFIX);
+        DataValue<?> val = pair.getValue0().getDataValue(prefix);
         if(val == null || val.getType() != TypeEnum.COMPLEXTYPE){
             return new DataObject();
         }
@@ -57,10 +61,14 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     public static DataObject getOutputData(Pair<DataObject, DataObject> pair){
+        return getOutputData(pair, InOutputDataSchema.OUTPUT_PREFIX);
+    }
+
+    public static DataObject getOutputData(Pair<DataObject, DataObject> pair, String prefix){
         if(pair.getValue1() == null){
             return new DataObject();
         }
-        DataValue<?> val = pair.getValue1().getDataValue(InOutputDataSchema.OUTPUT_PREFIX);
+        DataValue<?> val = pair.getValue1().getDataValue(prefix);
         if(val == null || val.getType() != TypeEnum.COMPLEXTYPE){
             return new DataObject();
         }
@@ -186,16 +194,24 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
 
     @Override
     public void addDataEntry(Pair<DataObject, DataObject> dataEntry) {
+        addDataEntry(dataEntry, InOutputDataSchema.INPUT_PREFIX, InOutputDataSchema.OUTPUT_PREFIX);
+    }
+
+    public void addDataEntry(Pair<DataObject, DataObject> dataEntry, String inputPrefix, String outputPrefix) {
         DataObject in = new DataObject();
         DataObject out = new DataObject();
-        in.putValue(InOutputDataSchema.INPUT_PREFIX, dataEntry.getValue0());
-        out.putValue(InOutputDataSchema.OUTPUT_PREFIX, dataEntry.getValue1());
+        in.putValue(inputPrefix, dataEntry.getValue0());
+        out.putValue(outputPrefix, dataEntry.getValue1());
 
         dataCollection.add(new Pair<>(in, out));
     }
 
     public void addDataEntry(DataObject in, DataObject out) {
         addDataEntry(new Pair<>(in, out));
+    }
+
+    public void addDataEntry(DataObject in, DataObject out, String inputPrefix, String outputPrefix) {
+        addDataEntry(new Pair<>(in, out), inputPrefix, outputPrefix);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package at.sfischer.testing;
 
+import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 
 import static at.sfischer.testing.SchemaAssertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -131,10 +133,10 @@ public class PayrollApplicationIntegrationTest {
             constraint.getTerms().getFirst().validate(context);
             assertTrue(context.isValid());
 
-            fullSchema.fillSchemaWithConstraints(constraint.getTerms().getFirst());
+            fullSchema.fillSchemaWithConstraints(constraint.getTerms().getFirst(), t -> Set.of(new Constraint(t)));
 
-            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
-            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst());
+            fullSchema.getInputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst(), t -> Set.of(new Constraint(t)));
+            fullSchema.getOutputSchema().fillSchemaWithConstraints(constraint.getTerms().getFirst(), t -> Set.of(new Constraint(t)));
         }
 
         assertConstraintNumber(employeeEntry, 0);
