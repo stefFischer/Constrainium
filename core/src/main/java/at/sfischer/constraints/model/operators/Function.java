@@ -36,6 +36,10 @@ public abstract class Function implements Operator {
 
         for (int i = 0; i < this.parameters.size(); i++) {
             Node parameter = this.parameters.get(i);
+            if(parameter == null){
+                continue;
+            }
+
             parameter.validate(context);
 
             Type parameterType = parameterTypes.get(i);
