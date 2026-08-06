@@ -1,7 +1,7 @@
 package at.sfischer.constraints.model.operators.strings;
 
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +111,7 @@ public class OneOfStringTest {
 	public void evaluateOneOfStringArrayElement(){
 		Variable value = new Variable("a");
 		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
-		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), numberOfOptions));
+		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayOperation.ELEMENT_NAME), numberOfOptions));
 
 		testArrayValues(operator, value, new ArrayValues[]{
         	ArrayValues.createArrayValuesFromList(List.of(new StringLiteral("ONE"), new StringLiteral("TWO"))),
@@ -131,7 +131,7 @@ public class OneOfStringTest {
 	public void evaluateOneOfStringArrayElementWithViolations(){
 		Variable value = new Variable("a");
 		IntegerLiteral numberOfOptions = new IntegerLiteral(3);
-		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), numberOfOptions));
+		ForAll operator = new ForAll(value, new OneOfString(new Variable(ArrayOperation.ELEMENT_NAME), numberOfOptions));
 
 		testArrayValues(operator, value, new ArrayValues[]{
 				ArrayValues.createArrayValuesFromList(List.of(new StringLiteral("ONE"), new StringLiteral("TWO"))),

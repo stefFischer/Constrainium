@@ -1,9 +1,12 @@
 package at.sfischer.constraints.parser;
 
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ConstraintDslScanner {
 
@@ -31,7 +34,7 @@ public class ConstraintDslScanner {
                 "false", TokenType.FALSE
         ));
 
-        keywords.put(ArrayQuantifier.ELEMENT_NAME, TokenType.ARRAY_ELEMENT);
+        keywords.put(ArrayOperation.ELEMENT_NAME, TokenType.ARRAY_ELEMENT);
 
         // Policies
         keywords.putAll(Map.of(

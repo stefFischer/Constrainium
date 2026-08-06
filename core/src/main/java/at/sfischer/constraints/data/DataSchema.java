@@ -1,10 +1,13 @@
 package at.sfischer.constraints.data;
 
-import at.sfischer.constraints.*;
+import at.sfischer.constraints.ConstraintConstruct;
+import at.sfischer.constraints.ConstraintFactory;
+import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.miner.AndConstraintPolicy;
 import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
@@ -19,8 +22,8 @@ public abstract class DataSchema {
     }
 
     protected static final FieldNodeProvider variableNodeProvider = field -> new Variable(field.getValue0());
-    protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayQuantifier.ELEMENT_NAME);
-    protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(field.getValue0()));
+    protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayOperation.ELEMENT_NAME);
+    protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral(field.getValue0()));
 
     protected abstract <DS extends DataSchema> Collection<DataSchemaEntry<DS>> getDataSchemaEntries();
 

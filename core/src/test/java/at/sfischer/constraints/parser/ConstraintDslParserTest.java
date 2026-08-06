@@ -1,11 +1,10 @@
 package at.sfischer.constraints.parser;
 
 import at.sfischer.constraints.ConstraintConstruct;
-import at.sfischer.constraints.ConstraintTemplate;
 import at.sfischer.constraints.ConstraintTemplateFile;
 import at.sfischer.constraints.GroupDefinition;
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.*;
 import org.junit.jupiter.api.Test;
@@ -221,7 +220,7 @@ class ConstraintDslParserTest {
         Node expectedNode = new ForAll(
                 new Variable("x"),
                 new GreaterThanOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(5.0)
                 )
         );
@@ -245,7 +244,7 @@ class ConstraintDslParserTest {
         Node expectedNode = new ForAll(
                 new Variable("x"),
                 new GreaterThanOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new IntegerLiteral(5)
                 )
         );

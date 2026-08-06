@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ForAllTest {
 	@Test
@@ -27,7 +26,7 @@ public class ForAllTest {
 		Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{ 
 		  new NumberLiteral(1)
 		});
-		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
+		Node condition = new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0)));
 		ForAll f = new ForAll(array, condition);
 		boolean expected = true;
 
@@ -60,7 +59,7 @@ public class ForAllTest {
 		Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
 				new NumberLiteral(1)
 		});
-		Node condition = new NotOperator(new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("string")));
+		Node condition = new NotOperator(new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("string")));
 		ForAll f = new ForAll(array, condition);
 		boolean expected = false;
 
@@ -75,7 +74,7 @@ public class ForAllTest {
 	@Test
 	public void validateNotAnArray() {
 		Node array = new NumberLiteral(1);
-		Node condition = new NotOperator(new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("string")));
+		Node condition = new NotOperator(new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("string")));
 		ForAll f = new ForAll(array, condition);
 		boolean expected = false;
 
@@ -95,7 +94,7 @@ public class ForAllTest {
 				new NumberLiteral(3),
 				new NumberLiteral(1)
 		});
-		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
+		Node condition = new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0)));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -112,7 +111,7 @@ public class ForAllTest {
 				new NumberLiteral(0),
 				new NumberLiteral(1)
 		});
-		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
+		Node condition = new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0)));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -127,7 +126,7 @@ public class ForAllTest {
 				new NumberLiteral(3),
 				new NumberLiteral(3)
 		});
-		Node condition = new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(3));
+		Node condition = new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(3));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -144,7 +143,7 @@ public class ForAllTest {
 				new NumberLiteral(0),
 				new NumberLiteral(1)
 		});
-		Node condition = new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0));
+		Node condition = new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -161,7 +160,7 @@ public class ForAllTest {
 				new StringLiteral("THREE"),
 				new StringLiteral("TWO")
 		});
-		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new IntegerLiteral(3));
+		Node condition = new OneOfString(new Variable(ArrayOperation.ELEMENT_NAME), new IntegerLiteral(3));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -178,7 +177,7 @@ public class ForAllTest {
 				new StringLiteral("THREE"),
 				new StringLiteral("FOUR")
 		});
-		Node condition = new OneOfString(new Variable(ForAll.ELEMENT_NAME), new IntegerLiteral(3));
+		Node condition = new OneOfString(new Variable(ArrayOperation.ELEMENT_NAME), new IntegerLiteral(3));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -194,7 +193,7 @@ public class ForAllTest {
 				new StringLiteral("TWO"),
 				new StringLiteral("TWO")
 		});
-		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new IntegerLiteral(1));
+		Node condition = new OneOfNumber(new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)), new IntegerLiteral(1));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -210,7 +209,7 @@ public class ForAllTest {
 				new StringLiteral("TWO"),
 				new StringLiteral("THREE")
 		});
-		Node condition = new OneOfNumber(new StringLength(new Variable(ForAll.ELEMENT_NAME)), new IntegerLiteral(1));
+		Node condition = new OneOfNumber(new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)), new IntegerLiteral(1));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -226,7 +225,7 @@ public class ForAllTest {
 				new StringLiteral("https://www.wikipedia.org/"),
 				new StringLiteral("https://github.com/")
 		});
-		Node condition = new IsUrl(new Variable(ForAll.ELEMENT_NAME));
+		Node condition = new IsUrl(new Variable(ArrayOperation.ELEMENT_NAME));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -242,7 +241,7 @@ public class ForAllTest {
 				new StringLiteral("https://www.wikipedia.org/"),
 				new StringLiteral("not a url")
 		});
-		Node condition = new IsUrl(new Variable(ForAll.ELEMENT_NAME));
+		Node condition = new IsUrl(new Variable(ArrayOperation.ELEMENT_NAME));
 		ForAll operator = new ForAll(array, condition);
 
 		Node result = operator.evaluate();
@@ -258,8 +257,8 @@ public class ForAllTest {
 
 		Node array = obj.getDataValue("array").getLiteralValue();
 
-		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
-		ForAll innerOperator = new ForAll(new Reference(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("numbers")), condition);
+		Node condition = new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0)));
+		ForAll innerOperator = new ForAll(new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("numbers")), condition);
 		ForAll operator = new ForAll(array, innerOperator);
 
 		Node result = operator.evaluate();
@@ -275,7 +274,7 @@ public class ForAllTest {
 		DataSchemaEntry<SimpleDataSchema> array1Entry = schema.stringArrayEntry("array1", true);
 		DataSchemaEntry<SimpleDataSchema> array2Entry = schema.stringArrayEntry("array2", true);
 
-		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayQuantifier.ELEMENT_NAME), new IntegerLiteral(3)));
+		Node term = new ForAll(new Variable("a"), new OneOfString(new Variable(ArrayOperation.ELEMENT_NAME), new IntegerLiteral(3)));
 		schema.fillSchemaWithConstraints(term, t -> Set.of(new Constraint(t)));
 
 		SimpleDataCollection data = SimpleDataCollection.parseData(
