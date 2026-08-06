@@ -57,7 +57,7 @@ public abstract class Function implements Operator {
                 continue;
             }
 
-            boolean isValidType = parameterType == TypeEnum.ANY || parameter.getReturnType() == parameterType || parameter.getReturnType() == TypeEnum.ANY;
+            boolean isValidType = parameter.getReturnType().canAssignTo(parameterType);
             if(!isValidType){
                 context.error(this, "Wrong parameter type at index " + i + ". " + parameterType + " != " + parameter.getReturnType());
             }
