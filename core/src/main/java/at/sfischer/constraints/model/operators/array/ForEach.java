@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ForEach  extends ArrayOperation {
+public class ForEach extends ArrayOperation {
 
     private static final String FUNCTION_NAME = "arrays.forEach";
 
