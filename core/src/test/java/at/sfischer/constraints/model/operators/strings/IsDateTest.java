@@ -1,7 +1,7 @@
 package at.sfischer.constraints.model.operators.strings;
 
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import org.junit.jupiter.api.Test;
 
@@ -87,7 +87,7 @@ public class IsDateTest {
 				new StringLiteral("2024/01/13"),
 				new StringLiteral("2024-01-13")
 		});
-		ForAll term = new ForAll(value, new IsDate(new Variable(ArrayQuantifier.ELEMENT_NAME), new ArrayValues<>(TypeEnum.STRING, IsDate.YMD_DATE_PATTERNS)));
+		ForAll term = new ForAll(value, new IsDate(new Variable(ArrayOperation.ELEMENT_NAME), new ArrayValues<>(TypeEnum.STRING, IsDate.YMD_DATE_PATTERNS)));
 
 		Node result = term.evaluate();
 

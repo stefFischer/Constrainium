@@ -1,5 +1,6 @@
 package at.sfischer.constraints.model;
 
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.AndOperator;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
@@ -43,7 +44,7 @@ public class NodeTest {
 
 	@Test
 	public void inferVariableTypesTest3() {
-		Node node = new ForAll(new Variable("a"), new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0))));
+		Node node = new ForAll(new Variable("a"), new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0))));
 		Map<Variable, Type> expected = new HashMap<>();
 		expected.put(new Variable("a"), new ArrayType(TypeEnum.NUMBER));
 

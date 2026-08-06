@@ -5,7 +5,7 @@ import at.sfischer.constraints.ConstraintFactory;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
@@ -134,7 +134,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
             } else if(entry.type instanceof ArrayType){
                 if (((ArrayType) entry.type).elementType().canAssignTo(valueType)) {
                     if(recursiveCount <= 0) {
-                        Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayQuantifier.ELEMENT_NAME)));
+                        Node replacedTerm = new ForAll(variable, term.cloneNode().setVariableValue(variable, new Variable(ArrayOperation.ELEMENT_NAME)));
                         fillSchemaWithConstraintsFromTwoSchemas(replacedTerm, factory, schema, otherSchema, recursiveCount + 1);
                     }
                     continue;

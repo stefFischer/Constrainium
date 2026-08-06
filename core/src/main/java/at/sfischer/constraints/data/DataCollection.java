@@ -1,7 +1,7 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
@@ -51,8 +51,8 @@ public abstract class DataCollection<T> {
     }
 
     protected static final FieldNodeProvider variableNodeProvider = field -> new Variable(field.getValue0());
-    protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayQuantifier.ELEMENT_NAME);
-    protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral(field.getValue0()));
+    protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayOperation.ELEMENT_NAME);
+    protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral(field.getValue0()));
 
     protected static void findAssignableFields(List<Pair<Node, Set<Variable>>> terms, Map<Variable, Type> variableTypes, FieldNodeProvider fieldNodeProvider, DataObject[] dataCollection){
         findAssignableFields(terms, variableTypes, fieldNodeProvider, Arrays.asList(dataCollection));

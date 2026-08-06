@@ -6,7 +6,7 @@ import at.sfischer.constraints.model.DataReference;
 import at.sfischer.constraints.model.Node;
 import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.operators.array.ArrayLength;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import at.sfischer.constraints.model.operators.numbers.GreaterThanOrEqualOperator;
@@ -68,8 +68,8 @@ public class DataSchemaTest {
 
 		schema.fillSchemaWithConstraints(term, t -> Set.of(new Constraint(t)));
 
-		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayQuantifier.ELEMENT_NAME))));
-		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new DataReference(size))));
+		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayOperation.ELEMENT_NAME))));
+		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new DataReference(size))));
 
 		assertEquals(1, size.potentialConstraints.size());
 		assertEquals(constraint1, size.potentialConstraints.iterator().next());
@@ -204,8 +204,8 @@ public class DataSchemaTest {
 
 		schema.fillSchemaWithConstraints(term, t -> Set.of(new Constraint(t)));
 
-		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayQuantifier.ELEMENT_NAME))));
-		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new DataReference(size))));
+		Constraint constraint1 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new DataReference(size), new Variable(ArrayOperation.ELEMENT_NAME))));
+		Constraint constraint2 = new Constraint(new ForAll(new DataReference(array), new GreaterThanOrEqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new DataReference(size))));
 
 		assertEquals(2, array.potentialConstraints.size());
 		assertTrue(array.potentialConstraints.contains(constraint1));

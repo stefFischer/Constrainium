@@ -8,9 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ArrayQuantifier extends Function {
-    public static final String ELEMENT_NAME = "ARRAY_ELEMENT";
-
+public abstract class ArrayQuantifier extends ArrayOperation {
     protected Type arrayElementType = TypeEnum.ANY;
 
     public ArrayQuantifier(String functionName, Node array, Node condition) {
@@ -41,7 +39,7 @@ public abstract class ArrayQuantifier extends Function {
         Map<Variable, Type> variableTypes = condition.inferVariableTypes();
         Type elementVariableType = variableTypes.get(new Variable(ELEMENT_NAME));
         if(elementVariableType == null){
-            context.error(this, "Array quantifier condition needs to use the array elements 'ELEMENT_NAME' variable.");
+            context.error(this, "Array quantifier condition needs to use the array elements 'ARRAY_ELEMENT' variable.");
             return;
         }
     }

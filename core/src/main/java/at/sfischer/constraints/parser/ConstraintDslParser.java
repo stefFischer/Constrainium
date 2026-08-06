@@ -7,7 +7,7 @@ import at.sfischer.constraints.GroupDefinition;
 import at.sfischer.constraints.miner.*;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.Function;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.Exists;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.AndOperator;
@@ -365,7 +365,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
         }
 
         if (match(TokenType.ARRAY_ELEMENT)) {
-            return new Variable(ArrayQuantifier.ELEMENT_NAME);
+            return new Variable(ArrayOperation.ELEMENT_NAME);
         }
 
         if (match(TokenType.IDENTIFIER)) {

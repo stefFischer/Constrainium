@@ -16,7 +16,7 @@ public class ExistsTest {
 		Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
 				new NumberLiteral(1)
 		});
-		Node condition = new NotOperator(new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0)));
+		Node condition = new NotOperator(new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0)));
 		Exists f = new Exists(array, condition);
 		boolean expected = true;
 
@@ -35,7 +35,7 @@ public class ExistsTest {
 				new NumberLiteral(0),
 				new NumberLiteral(1)
 		});
-		Node condition = new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0));
+		Node condition = new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0));
 		Exists operator = new Exists(array, condition);
 
 		Node result = operator.evaluate();
@@ -52,7 +52,7 @@ public class ExistsTest {
 				new NumberLiteral(3),
 				new NumberLiteral(1)
 		});
-		Node condition = new EqualOperator(new Variable(ForAll.ELEMENT_NAME), new NumberLiteral(0));
+		Node condition = new EqualOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(0));
 		Exists operator = new Exists(array, condition);
 
 		Node result = operator.evaluate();
@@ -68,7 +68,7 @@ public class ExistsTest {
 				new StringLiteral("TWO"),
 				new StringLiteral("THREE")
 		});
-		Node condition = new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("TWO"));
+		Node condition = new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("TWO"));
 		Exists operator = new Exists(array, condition);
 
 		Node result = operator.evaluate();
@@ -83,7 +83,7 @@ public class ExistsTest {
 				new StringLiteral("ONE"),
 				new StringLiteral("THREE")
 		});
-		Node condition = new StringEquals(new Variable(ForAll.ELEMENT_NAME), new StringLiteral("TWO"));
+		Node condition = new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("TWO"));
 		Exists operator = new Exists(array, condition);
 
 		Node result = operator.evaluate();

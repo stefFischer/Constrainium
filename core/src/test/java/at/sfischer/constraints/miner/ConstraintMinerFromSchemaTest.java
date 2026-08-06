@@ -4,7 +4,7 @@ import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.ConstraintResults;
 import at.sfischer.constraints.data.*;
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.array.ArrayQuantifier;
+import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.Exists;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.logic.NotOperator;
@@ -72,10 +72,10 @@ public class ConstraintMinerFromSchemaTest {
 		schema.numberArrayEntry("array", true);
 
 		Set<Node> terms = new HashSet<>();
-		terms.add(new ForAll(new Variable("a"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
+		terms.add(new ForAll(new Variable("a"), new LessThanOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(10))));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(10))));
 		expected.add(constraint1);
 
 		ConstraintMinerFromSchema c = new ConstraintMinerFromSchema(schema);
@@ -99,7 +99,7 @@ public class ConstraintMinerFromSchemaTest {
 		terms.add(new LessThanOperator(new Variable("a"), new NumberLiteral(10)));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new LessThanOperator(new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10))));
 		expected.add(constraint1);
 		Constraint constraint2 = new Constraint(new LessThanOperator(new Variable("size"), new NumberLiteral(10)));
 		expected.add(constraint2);
@@ -125,7 +125,7 @@ public class ConstraintMinerFromSchemaTest {
 		terms.add(new LessThanOperator(new Variable("a"), new NumberLiteral(10)));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("object"), new ForAll(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("array")), new LessThanOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10)))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("object"), new ForAll(new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("array")), new LessThanOperator(new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("number")), new NumberLiteral(10)))));
 		expected.add(constraint1);
 
 		ConstraintMinerFromSchema c = new ConstraintMinerFromSchema(schema);
@@ -142,10 +142,10 @@ public class ConstraintMinerFromSchemaTest {
 		schema.arrayEntryFor(new ArrayType(TypeEnum.NUMBER), "array", true);
 
 		Set<Node> terms = new HashSet<>();
-		terms.add(new ForAll(new Variable("a"), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10))));
+		terms.add(new ForAll(new Variable("a"), new LessThanOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(10))));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new ForAll(new Variable(ArrayQuantifier.ELEMENT_NAME), new LessThanOperator(new Variable(ArrayQuantifier.ELEMENT_NAME), new NumberLiteral(10)))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new ForAll(new Variable(ArrayOperation.ELEMENT_NAME), new LessThanOperator(new Variable(ArrayOperation.ELEMENT_NAME), new NumberLiteral(10)))));
 		expected.add(constraint1);
 
 		ConstraintMinerFromSchema c = new ConstraintMinerFromSchema(schema);
@@ -198,10 +198,10 @@ public class ConstraintMinerFromSchemaTest {
 		schema.stringArrayEntry("array", true);
 
 		Set<Node> terms = new HashSet<>();
-		terms.add(new Exists(new Variable("a"), new StringEquals(new Variable(ArrayQuantifier.ELEMENT_NAME), new Variable("b"))));
+		terms.add(new Exists(new Variable("a"), new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new Variable("b"))));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new Exists(new Variable("array"), new StringEquals(new Variable(ArrayQuantifier.ELEMENT_NAME), new Variable("element"))));
+		Constraint constraint1 = new Constraint(new Exists(new Variable("array"), new StringEquals(new Variable(ArrayOperation.ELEMENT_NAME), new Variable("element"))));
 		expected.add(constraint1);
 
 		ConstraintMinerFromSchema c = new ConstraintMinerFromSchema(schema);
@@ -293,9 +293,9 @@ public class ConstraintMinerFromSchemaTest {
 		terms.add(new GreaterThanOrEqualOperator(new Variable("a"), new Variable("b")));
 
 		Set<Constraint> expected = new HashSet<>();
-		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")), new Variable("size"))));
+		Constraint constraint1 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("number")), new Variable("size"))));
 		expected.add(constraint1);
-		Constraint constraint2 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Variable("size"), new Reference(new Variable(ArrayQuantifier.ELEMENT_NAME), new StringLiteral("number")))));
+		Constraint constraint2 = new Constraint(new ForAll(new Variable("array"), new GreaterThanOrEqualOperator(new Variable("size"), new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral("number")))));
 		expected.add(constraint2);
 
 		ConstraintMinerFromSchema c = new ConstraintMinerFromSchema(schema);

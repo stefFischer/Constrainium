@@ -18,7 +18,7 @@ public class StringLength extends Function {
     public Node evaluate() {
         String first = this.getStringArgument(0);
         if(first != null){
-            return new NumberLiteral(first.length());
+            return new IntegerLiteral(first.length());
         }
 
         return this;
