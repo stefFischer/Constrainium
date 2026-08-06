@@ -18,7 +18,7 @@ public class ArrayLength extends Function {
     public Node evaluate() {
         ArrayValues<?> first = this.getArrayArgument(0);
         if(first != null){
-            return new NumberLiteral(first.getValue().length);
+            return new IntegerLiteral(first.getValue().length);
         }
 
         return this;
