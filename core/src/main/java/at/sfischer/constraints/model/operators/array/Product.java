@@ -2,15 +2,15 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.*;
 
-public class Sum extends ArrayAggregation {
+public class Product extends ArrayAggregation {
 
-    private static final String FUNCTION_NAME = "arrays.sum";
+    private static final String FUNCTION_NAME = "arrays.product";
 
-    public Sum(Node array) {
+    public Product(Node array) {
         this(array, new Variable(ELEMENT_NAME));
     }
 
-    public Sum(Node array, Node keySelector) {
+    public Product(Node array, Node keySelector) {
         super(FUNCTION_NAME, array, keySelector);
     }
 
@@ -23,8 +23,9 @@ public class Sum extends ArrayAggregation {
             return this;
         }
 
-        double sum = 0;
+        double product = 1;
         boolean integer = true;
+
         for (Value<?> element : arrayValues.getValue()) {
             Node key = keySelector
                     .setVariableNameValue(ELEMENT_NAME, element)
@@ -35,9 +36,9 @@ public class Sum extends ArrayAggregation {
             }
 
             if (value.getReturnType() == TypeEnum.INTEGER) {
-                sum += ((Number) value.getValue()).longValue();
+                product *= ((Number) value.getValue()).longValue();
             } else if (value.getReturnType() == TypeEnum.NUMBER) {
-                sum += ((Number) value.getValue()).doubleValue();
+                product *= ((Number) value.getValue()).doubleValue();
                 integer = false;
             } else {
                 return this;
@@ -45,15 +46,15 @@ public class Sum extends ArrayAggregation {
         }
 
         if (integer) {
-            return new IntegerLiteral((int) sum);
+            return new IntegerLiteral((int) product);
         }
 
-        return new NumberLiteral(sum);
+        return new NumberLiteral(product);
     }
 
     @Override
     protected ArrayAggregation createArrayAggregation(Node array, Node keySelector, Node... parameters) {
-        return new Sum(
+        return new Product(
                 array,
                 keySelector
         );
@@ -63,6 +64,7 @@ public class Sum extends ArrayAggregation {
     public Type getReturnType() {
         Node selector = getParameter(1);
         Type type = selector != null ? selector.getReturnType() : TypeEnum.NUMBER;
+
         if (type == TypeEnum.INTEGER) {
             return TypeEnum.INTEGER;
         }

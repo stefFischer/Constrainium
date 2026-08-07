@@ -63,6 +63,8 @@ public abstract class ArrayAggregation extends ArrayOperation {
         }
     }
 
+    protected abstract ArrayAggregation createArrayAggregation(Node array, Node keySelector, Node... parameters);
+
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
         Node array = getParameter(0);
@@ -71,9 +73,17 @@ public abstract class ArrayAggregation extends ArrayOperation {
         Map<Variable, Node> newValues = new HashMap<>(values);
         newValues.remove(new Variable(ELEMENT_NAME));
 
-        return new Average(
+        return createArrayAggregation(
                 array.setVariableValues(values),
                 selector.setVariableValues(newValues)
+        );
+    }
+
+    @Override
+    public Node cloneNode() {
+        return createArrayAggregation(
+                getParameter(0).cloneNode(),
+                getParameter(1).cloneNode()
         );
     }
 

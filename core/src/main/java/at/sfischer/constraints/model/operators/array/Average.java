@@ -51,10 +51,10 @@ public class Average extends ArrayAggregation {
     }
 
     @Override
-    public Node cloneNode() {
+    protected ArrayAggregation createArrayAggregation(Node array, Node keySelector, Node... parameters) {
         return new Average(
-                getParameter(0).cloneNode(),
-                getParameter(1).cloneNode()
+                array,
+                keySelector
         );
     }
 }
