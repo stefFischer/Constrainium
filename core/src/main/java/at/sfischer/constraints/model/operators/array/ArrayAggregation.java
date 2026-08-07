@@ -4,6 +4,7 @@ import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +76,8 @@ public abstract class ArrayAggregation extends ArrayOperation {
 
         return createArrayAggregation(
                 array.setVariableValues(values),
-                selector.setVariableValues(newValues)
+                selector.setVariableValues(newValues),
+                getAdditionalParameters()
         );
     }
 
@@ -83,8 +85,21 @@ public abstract class ArrayAggregation extends ArrayOperation {
     public Node cloneNode() {
         return createArrayAggregation(
                 getParameter(0).cloneNode(),
-                getParameter(1).cloneNode()
+                getParameter(1).cloneNode(),
+                getAdditionalParameters()
         );
+    }
+
+    private Node[] getAdditionalParameters(){
+        int i = 2;
+        Node parameter = getParameter(i++);
+        List<Node> additionalParameters = new LinkedList<>();
+        while(parameter != null){
+            additionalParameters.add(parameter.cloneNode());
+            parameter = getParameter(i++);
+        }
+
+        return additionalParameters.toArray(new Node[0]);
     }
 
     @Override
