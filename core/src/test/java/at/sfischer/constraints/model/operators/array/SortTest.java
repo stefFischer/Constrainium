@@ -162,7 +162,7 @@ public class SortTest {
 
         Sort sort = new Sort(
                 array,
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 BooleanLiteral.TRUE
         );
 
@@ -185,7 +185,7 @@ public class SortTest {
 
         Sort sort = new Sort(
                 array,
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 BooleanLiteral.FALSE
         );
 

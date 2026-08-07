@@ -20,7 +20,7 @@ public class FilterTest {
                 new NumberLiteral(1)
         });
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         Filter op = new Filter(array, predicate);
@@ -55,7 +55,7 @@ public class FilterTest {
                 new NumberLiteral(1)
         });
         Node predicate = new StringEquals(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new StringLiteral("ONE"));
 
         Filter op = new Filter(array, predicate);
@@ -71,7 +71,7 @@ public class FilterTest {
     public void validateNotAnArray() {
         Node array = new NumberLiteral(1);
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         Filter op = new Filter(array, predicate);
@@ -93,7 +93,7 @@ public class FilterTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         Filter op = new Filter(array, predicate);
@@ -118,7 +118,7 @@ public class FilterTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         Filter op = new Filter(array, predicate);
@@ -142,7 +142,7 @@ public class FilterTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(10));
 
         Filter op = new Filter(array, predicate);
@@ -164,7 +164,7 @@ public class FilterTest {
         });
 
         Node predicate = new IsUrl(
-                new Variable(ArrayQuantifier.ELEMENT_NAME));
+                new Variable(ArrayOperation.ELEMENT_NAME));
 
         Filter op = new Filter(array, predicate);
 
@@ -185,7 +185,7 @@ public class FilterTest {
         });
 
         Node predicate = new EqualOperator(
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 new IntegerLiteral(3));
 
         Filter op = new Filter(array, predicate);
@@ -209,7 +209,7 @@ public class FilterTest {
         });
 
         Node predicate = new IsUrl(
-                new Variable(ArrayQuantifier.ELEMENT_NAME));
+                new Variable(ArrayOperation.ELEMENT_NAME));
 
         Filter op = new Filter(array, predicate);
 
@@ -228,7 +228,7 @@ public class FilterTest {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{});
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         Filter op = new Filter(array, predicate);
@@ -250,10 +250,10 @@ public class FilterTest {
 
         Exists inner = new Exists(
                 new Reference(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new StringLiteral("numbers")),
                 new EqualOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(2)));
 
         Filter outer = new Filter(array, inner);
@@ -273,7 +273,7 @@ public class FilterTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new Variable("x"));
 
         Filter op = new Filter(array, predicate);

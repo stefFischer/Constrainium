@@ -127,7 +127,7 @@ public class Sort extends ArrayOperation {
             elementVariableType = TypeEnum.ANY;
         } else {
             Map<Variable, Type> variableTypes = keySelector.inferVariableTypes();
-            elementVariableType = variableTypes.get(new Variable(ArrayQuantifier.ELEMENT_NAME));
+            elementVariableType = variableTypes.get(new Variable(ELEMENT_NAME));
             if (elementVariableType == null) {
                 context.error(this, "Sort key selector must reference the array element variable.");
                 return;

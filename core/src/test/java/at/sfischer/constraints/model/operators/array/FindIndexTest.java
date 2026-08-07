@@ -20,7 +20,7 @@ public class FindIndexTest {
                 new NumberLiteral(1)
         });
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -55,7 +55,7 @@ public class FindIndexTest {
                 new NumberLiteral(1)
         });
         Node predicate = new StringEquals(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new StringLiteral("ONE"));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -71,7 +71,7 @@ public class FindIndexTest {
     public void validateNotAnArray() {
         Node array = new NumberLiteral(1);
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -93,7 +93,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -113,7 +113,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(5));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -133,7 +133,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(7));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -153,7 +153,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 new IntegerLiteral(5));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -173,7 +173,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new IsUrl(
-                new Variable(ArrayQuantifier.ELEMENT_NAME));
+                new Variable(ArrayOperation.ELEMENT_NAME));
 
         FindIndex op = new FindIndex(array, predicate);
 
@@ -192,7 +192,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(10));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -208,7 +208,7 @@ public class FindIndexTest {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{});
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindIndex op = new FindIndex(array, predicate);
@@ -228,10 +228,10 @@ public class FindIndexTest {
 
         Exists inner = new Exists(
                 new Reference(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new StringLiteral("numbers")),
                 new EqualOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(2)));
 
         FindIndex outer = new FindIndex(array, inner);
@@ -249,7 +249,7 @@ public class FindIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new Variable("x"));
 
         FindIndex op = new FindIndex(array, predicate);
