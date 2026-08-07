@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FindIndexTest {
+public class FilterTest {
 
     @Test
     public void validate() {
@@ -23,7 +23,7 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         ValidationContext context = new ValidationContext();
         op.validate(context);
@@ -40,7 +40,7 @@ public class FindIndexTest {
                 new Variable("a"),
                 new NumberLiteral(1));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         ValidationContext context = new ValidationContext();
         op.validate(context);
@@ -58,7 +58,7 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new StringLiteral("ONE"));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         ValidationContext context = new ValidationContext();
         op.validate(context);
@@ -74,7 +74,7 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         ValidationContext context = new ValidationContext();
         op.validate(context);
@@ -84,107 +84,57 @@ public class FindIndexTest {
     }
 
     @Test
-    public void evaluateFindFirstOccurrence() {
+    public void evaluateFilterNumbers() {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
                 new NumberLiteral(1),
                 new NumberLiteral(2),
                 new NumberLiteral(3),
-                new NumberLiteral(2)
+                new NumberLiteral(4)
         });
 
         Node predicate = new EqualOperator(
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         Node result = op.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(1, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(TypeEnum.NUMBER, resultArray.getElementType());
+        assertEquals(1, resultArray.getValue().length);
+        assertEquals(2, resultArray.getValue()[0].getValue());
     }
 
     @Test
-    public void evaluateFindFirstElement() {
+    public void evaluateFilterMultipleMatches() {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
-                new NumberLiteral(5),
-                new NumberLiteral(6),
-                new NumberLiteral(7)
+                new NumberLiteral(1),
+                new NumberLiteral(2),
+                new NumberLiteral(2),
+                new NumberLiteral(3)
         });
 
         Node predicate = new EqualOperator(
                 new Variable(ArrayOperation.ELEMENT_NAME),
-                new NumberLiteral(5));
+                new NumberLiteral(2));
 
-        FindIndex op = new FindIndex(array, predicate);
-
-        Node result = op.evaluate();
-
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(0, ((IntegerLiteral) result).getValue());
-    }
-
-    @Test
-    public void evaluateFindLastElement() {
-        Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
-                new NumberLiteral(5),
-                new NumberLiteral(6),
-                new NumberLiteral(7)
-        });
-
-        Node predicate = new EqualOperator(
-                new Variable(ArrayOperation.ELEMENT_NAME),
-                new NumberLiteral(7));
-
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         Node result = op.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(2, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(2, resultArray.getValue().length);
+        assertEquals(2, resultArray.getValue()[0].getValue());
+        assertEquals(2, resultArray.getValue()[1].getValue());
     }
 
     @Test
-    public void evaluateStringLength() {
-        Node array = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
-                new StringLiteral("ONE"),
-                new StringLiteral("THREE"),
-                new StringLiteral("TWO")
-        });
-
-        Node predicate = new EqualOperator(
-                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
-                new IntegerLiteral(5));
-
-        FindIndex op = new FindIndex(array, predicate);
-
-        Node result = op.evaluate();
-
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(1, ((IntegerLiteral) result).getValue());
-    }
-
-    @Test
-    public void evaluateIsUrl() {
-        Node array = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
-                new StringLiteral("invalid"),
-                new StringLiteral("https://github.com"),
-                new StringLiteral("https://google.com")
-        });
-
-        Node predicate = new IsUrl(
-                new Variable(ArrayOperation.ELEMENT_NAME));
-
-        FindIndex op = new FindIndex(array, predicate);
-
-        Node result = op.evaluate();
-
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(1, ((IntegerLiteral) result).getValue());
-    }
-
-    @Test
-    public void evaluateNoMatch() {
+    public void evaluateFilterNoMatches() {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
                 new NumberLiteral(1),
                 new NumberLiteral(2),
@@ -195,12 +145,82 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(10));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         Node result = op.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(-1, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(0, resultArray.getValue().length);
+    }
+
+    @Test
+    public void evaluateFilterAllMatches() {
+        Node array = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
+                new StringLiteral("ONE"),
+                new StringLiteral("TWO"),
+                new StringLiteral("THREE")
+        });
+
+        Node predicate = new IsUrl(
+                new Variable(ArrayOperation.ELEMENT_NAME));
+
+        Filter op = new Filter(array, predicate);
+
+        Node result = op.evaluate();
+
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(0, resultArray.getValue().length);
+    }
+
+    @Test
+    public void evaluateFilterStringLength() {
+        Node array = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
+                new StringLiteral("ONE"),
+                new StringLiteral("THREE"),
+                new StringLiteral("TWO")
+        });
+
+        Node predicate = new EqualOperator(
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
+                new IntegerLiteral(3));
+
+        Filter op = new Filter(array, predicate);
+
+        Node result = op.evaluate();
+
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(2, resultArray.getValue().length);
+        assertEquals("ONE", resultArray.getValue()[0].getValue());
+        assertEquals("TWO", resultArray.getValue()[1].getValue());
+    }
+
+    @Test
+    public void evaluateFilterUrls() {
+        Node array = new ArrayValues<>(TypeEnum.STRING, new StringLiteral[]{
+                new StringLiteral("https://github.com"),
+                new StringLiteral("invalid"),
+                new StringLiteral("https://google.com")
+        });
+
+        Node predicate = new IsUrl(
+                new Variable(ArrayOperation.ELEMENT_NAME));
+
+        Filter op = new Filter(array, predicate);
+
+        Node result = op.evaluate();
+
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(2, resultArray.getValue().length);
+        assertEquals("https://github.com", resultArray.getValue()[0].getValue());
+        assertEquals("https://google.com", resultArray.getValue()[1].getValue());
     }
 
     @Test
@@ -211,17 +231,19 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         Node result = op.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(-1, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(0, resultArray.getValue().length);
     }
 
     @Test
-    public void evaluateNestedFindIndex() {
-        String jsonData = "{array:[{numbers:[0]},{numbers:[1,2]},{numbers:[3]}]}";
+    public void evaluateNestedFilter() {
+        String jsonData = "{array:[{numbers:[1,2,3]},{numbers:[2,4]},{numbers:[5]}]}";
         DataObject obj = DataObject.parseData(jsonData);
 
         Node array = obj.getDataValue("array").getLiteralValue();
@@ -234,12 +256,14 @@ public class FindIndexTest {
                         new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(2)));
 
-        FindIndex outer = new FindIndex(array, inner);
+        Filter outer = new Filter(array, inner);
 
         Node result = outer.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(1, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(ArrayValues.class, result);
+
+        ArrayValues<?> resultArray = (ArrayValues<?>) result;
+        assertEquals(2, resultArray.getValue().length);
     }
 
     @Test
@@ -252,7 +276,7 @@ public class FindIndexTest {
                 new Variable(ArrayOperation.ELEMENT_NAME),
                 new Variable("x"));
 
-        FindIndex op = new FindIndex(array, predicate);
+        Filter op = new Filter(array, predicate);
 
         Node result = op.evaluate();
 

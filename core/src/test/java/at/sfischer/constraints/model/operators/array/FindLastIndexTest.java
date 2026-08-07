@@ -20,7 +20,7 @@ public class FindLastIndexTest {
                 new NumberLiteral(1)
         });
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -55,7 +55,7 @@ public class FindLastIndexTest {
                 new NumberLiteral(1)
         });
         Node predicate = new StringEquals(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new StringLiteral("ONE"));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -71,7 +71,7 @@ public class FindLastIndexTest {
     public void validateNotAnArray() {
         Node array = new NumberLiteral(1);
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -93,7 +93,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -113,7 +113,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(5));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -133,7 +133,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(7));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -153,7 +153,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -174,7 +174,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 new IntegerLiteral(5));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -194,7 +194,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new IsUrl(
-                new Variable(ArrayQuantifier.ELEMENT_NAME));
+                new Variable(ArrayOperation.ELEMENT_NAME));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
 
@@ -213,7 +213,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(10));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -229,7 +229,7 @@ public class FindLastIndexTest {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{});
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         FindLastIndex op = new FindLastIndex(array, predicate);
@@ -249,10 +249,10 @@ public class FindLastIndexTest {
 
         Exists inner = new Exists(
                 new Reference(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new StringLiteral("numbers")),
                 new EqualOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(2)));
 
         FindLastIndex outer = new FindLastIndex(array, inner);
@@ -270,7 +270,7 @@ public class FindLastIndexTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new Variable("x"));
 
         FindLastIndex op = new FindLastIndex(array, predicate);

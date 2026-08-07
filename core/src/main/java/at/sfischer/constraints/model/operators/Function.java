@@ -36,6 +36,10 @@ public abstract class Function implements Operator {
 
         for (int i = 0; i < this.parameters.size(); i++) {
             Node parameter = this.parameters.get(i);
+            if(parameter == null){
+                continue;
+            }
+
             parameter.validate(context);
 
             Type parameterType = parameterTypes.get(i);
@@ -53,7 +57,7 @@ public abstract class Function implements Operator {
                 continue;
             }
 
-            boolean isValidType = parameterType == TypeEnum.ANY || parameter.getReturnType() == parameterType || parameter.getReturnType() == TypeEnum.ANY;
+            boolean isValidType = parameter.getReturnType().canAssignTo(parameterType);
             if(!isValidType){
                 context.error(this, "Wrong parameter type at index " + i + ". " + parameterType + " != " + parameter.getReturnType());
             }

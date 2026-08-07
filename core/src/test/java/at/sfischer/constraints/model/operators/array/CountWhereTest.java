@@ -20,7 +20,7 @@ public class CountWhereTest {
                 new NumberLiteral(1)
         });
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -55,7 +55,7 @@ public class CountWhereTest {
                 new NumberLiteral(1)
         });
         Node predicate = new StringEquals(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new StringLiteral("ONE"));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -71,7 +71,7 @@ public class CountWhereTest {
     public void validateNotAnArray() {
         Node array = new NumberLiteral(1);
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -93,7 +93,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(2));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -113,7 +113,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(10));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -133,7 +133,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(5));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -154,7 +154,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new EqualOperator(
-                new StringLength(new Variable(ArrayQuantifier.ELEMENT_NAME)),
+                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME)),
                 new IntegerLiteral(3));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -175,7 +175,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new IsUrl(
-                new Variable(ArrayQuantifier.ELEMENT_NAME));
+                new Variable(ArrayOperation.ELEMENT_NAME));
 
         CountWhere op = new CountWhere(array, predicate);
 
@@ -190,7 +190,7 @@ public class CountWhereTest {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{});
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new NumberLiteral(1));
 
         CountWhere op = new CountWhere(array, predicate);
@@ -210,10 +210,10 @@ public class CountWhereTest {
 
         CountWhere inner = new CountWhere(
                 new Reference(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new StringLiteral("numbers")),
                 new EqualOperator(
-                        new Variable(ArrayQuantifier.ELEMENT_NAME),
+                        new Variable(ArrayOperation.ELEMENT_NAME),
                         new NumberLiteral(2)));
 
         CountWhere outer = new CountWhere(array, new EqualOperator(inner, new NumberLiteral(1)));
@@ -231,7 +231,7 @@ public class CountWhereTest {
         });
 
         Node predicate = new EqualOperator(
-                new Variable(ArrayQuantifier.ELEMENT_NAME),
+                new Variable(ArrayOperation.ELEMENT_NAME),
                 new Variable("x"));
 
         CountWhere op = new CountWhere(array, predicate);

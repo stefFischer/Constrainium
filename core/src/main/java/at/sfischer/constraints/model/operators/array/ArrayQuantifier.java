@@ -1,7 +1,6 @@
 package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.*;
-import at.sfischer.constraints.model.operators.Function;
 import at.sfischer.constraints.model.validation.ValidationContext;
 
 import java.util.HashMap;
