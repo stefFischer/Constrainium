@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SumTest {
+public class AverageTest {
 
     @Test
     public void validate() {
@@ -18,20 +18,20 @@ public class SumTest {
                 new NumberLiteral(2)
         });
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
         ValidationContext context = new ValidationContext();
-        sum.validate(context);
+        average.validate(context);
 
         assertTrue(context.isValid());
     }
 
     @Test
     public void validateNotAnArray() {
-        Sum sum = new Sum(new NumberLiteral(1));
+        Average average = new Average(new NumberLiteral(1));
 
         ValidationContext context = new ValidationContext();
-        sum.validate(context);
+        average.validate(context);
 
         assertFalse(context.isValid());
         assertEquals(1, context.getMessages().size());
@@ -43,10 +43,10 @@ public class SumTest {
                 new NumberLiteral(1)
         });
 
-        Sum sum = new Sum(array, new NumberLiteral(5));
+        Average average = new Average(array, new NumberLiteral(5));
 
         ValidationContext context = new ValidationContext();
-        sum.validate(context);
+        average.validate(context);
 
         assertFalse(context.isValid());
         assertEquals(1, context.getMessages().size());
@@ -55,58 +55,60 @@ public class SumTest {
     @Test
     public void evaluateNumbers() {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{
-                new NumberLiteral(1.5),
                 new NumberLiteral(2.0),
-                new NumberLiteral(3.5)
+                new NumberLiteral(4.0),
+                new NumberLiteral(6.0)
         });
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
         assertInstanceOf(NumberLiteral.class, result);
-        assertEquals(7.0, ((NumberLiteral) result).getValue());
+        assertEquals(4.0, ((NumberLiteral) result).getValue());
     }
 
     @Test
     public void evaluateIntegers() {
         Node array = new ArrayValues<>(TypeEnum.INTEGER, new IntegerLiteral[]{
-                new IntegerLiteral(1),
                 new IntegerLiteral(2),
-                new IntegerLiteral(3),
-                new IntegerLiteral(4)
+                new IntegerLiteral(4),
+                new IntegerLiteral(6)
         });
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(10, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(NumberLiteral.class, result);
+        assertEquals(4.0, ((NumberLiteral) result).getValue());
     }
 
     @Test
-    public void evaluateEmptyNumberArray() {
+    public void evaluateFractionalAverage() {
+        Node array = new ArrayValues<>(TypeEnum.INTEGER, new IntegerLiteral[]{
+                new IntegerLiteral(1),
+                new IntegerLiteral(2)
+        });
+
+        Average average = new Average(array);
+
+        Node result = average.evaluate();
+
+        assertInstanceOf(NumberLiteral.class, result);
+        assertEquals(1.5, ((NumberLiteral) result).getValue());
+    }
+
+    @Test
+    public void evaluateEmptyArray() {
         Node array = new ArrayValues<>(TypeEnum.NUMBER, new NumberLiteral[]{});
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
         assertInstanceOf(NumberLiteral.class, result);
         assertEquals(0, ((NumberLiteral) result).getValue());
-    }
-
-    @Test
-    public void evaluateEmptyIntegerArray() {
-        Node array = new ArrayValues<>(TypeEnum.INTEGER, new IntegerLiteral[]{});
-
-        Sum sum = new Sum(array);
-
-        Node result = sum.evaluate();
-
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(0, ((IntegerLiteral) result).getValue());
     }
 
     @Test
@@ -115,9 +117,9 @@ public class SumTest {
                 new NumberLiteral(42.5)
         });
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
         assertInstanceOf(NumberLiteral.class, result);
         assertEquals(42.5, ((NumberLiteral) result).getValue());
@@ -127,22 +129,22 @@ public class SumTest {
     public void evaluateUsingKeySelector() {
         String json = """
                 { array: [
-                    {value:2}, {value:3}, {value:5}
+                    {value:2}, {value:4}, {value:6}
                 ]}
                 """;
         Node array = DataObject.parseData(json).getDataValue("array").getLiteralValue();
 
-        Sum sum = new Sum(
+        Average average = new Average(
                 array,
                 new Reference(
                         new Variable(ArrayOperation.ELEMENT_NAME),
                         new StringLiteral("value"))
         );
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
         assertInstanceOf(NumberLiteral.class, result);
-        assertEquals(10, ((NumberLiteral) result).getValue());
+        assertEquals(4.0, ((NumberLiteral) result).getValue());
     }
 
     @Test
@@ -153,24 +155,25 @@ public class SumTest {
                 new StringLiteral("CCC")
         });
 
-        Sum sum = new Sum(
+        Average average = new Average(
                 array,
-                new StringLength(new Variable(ArrayOperation.ELEMENT_NAME))
+                new StringLength(
+                        new Variable(ArrayOperation.ELEMENT_NAME))
         );
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
-        assertInstanceOf(IntegerLiteral.class, result);
-        assertEquals(6, ((IntegerLiteral) result).getValue());
+        assertInstanceOf(NumberLiteral.class, result);
+        assertEquals(2.0, ((NumberLiteral) result).getValue());
     }
 
     @Test
     public void evaluateUnevaluatableArray() {
-        Sum sum = new Sum(new Variable("array"));
+        Average average = new Average(new Variable("array"));
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
-        assertSame(sum, result);
+        assertSame(average, result);
     }
 
     @Test
@@ -179,14 +182,14 @@ public class SumTest {
                 new NumberLiteral(1)
         });
 
-        Sum sum = new Sum(
+        Average average = new Average(
                 array,
                 new Variable("other")
         );
 
-        Node result = sum.evaluate();
+        Node result = average.evaluate();
 
-        assertSame(sum, result);
+        assertSame(average, result);
     }
 
     @Test
@@ -197,9 +200,9 @@ public class SumTest {
                 new NumberLiteral(3)
         });
 
-        Sum sum = new Sum(array);
+        Average average = new Average(array);
 
-        sum.evaluate();
+        average.evaluate();
 
         assertEquals(3, array.getValue().length);
         assertEquals(1, array.getValue()[0].getValue());

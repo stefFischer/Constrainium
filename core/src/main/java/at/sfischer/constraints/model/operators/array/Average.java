@@ -2,15 +2,15 @@ package at.sfischer.constraints.model.operators.array;
 
 import at.sfischer.constraints.model.*;
 
-public class Sum extends ArrayAggregation {
+public class Average extends ArrayAggregation {
 
-    private static final String FUNCTION_NAME = "arrays.sum";
+    private static final String FUNCTION_NAME = "arrays.average";
 
-    public Sum(Node array) {
+    public Average(Node array) {
         this(array, new Variable(ELEMENT_NAME));
     }
 
-    public Sum(Node array, Node keySelector) {
+    public Average(Node array, Node keySelector) {
         super(FUNCTION_NAME, array, keySelector);
     }
 
@@ -23,9 +23,13 @@ public class Sum extends ArrayAggregation {
             return this;
         }
 
+        Value<?>[] elements = arrayValues.getValue();
+        if (elements.length == 0) {
+            return new NumberLiteral(0);
+        }
+
         double sum = 0;
-        boolean integer = true;
-        for (Value<?> element : arrayValues.getValue()) {
+        for (Value<?> element : elements) {
             Node key = keySelector
                     .setVariableNameValue(ELEMENT_NAME, element)
                     .evaluate();
@@ -38,35 +42,19 @@ public class Sum extends ArrayAggregation {
                 sum += ((Number) value.getValue()).longValue();
             } else if (value.getReturnType() == TypeEnum.NUMBER) {
                 sum += ((Number) value.getValue()).doubleValue();
-                integer = false;
             } else {
                 return this;
             }
         }
 
-        if (integer) {
-            return new IntegerLiteral((int) sum);
-        }
-
-        return new NumberLiteral(sum);
+        return new NumberLiteral(sum / elements.length);
     }
 
     @Override
     public Node cloneNode() {
-        return new Sum(
+        return new Average(
                 getParameter(0).cloneNode(),
                 getParameter(1).cloneNode()
         );
-    }
-
-    @Override
-    public Type getReturnType() {
-        Node selector = getParameter(1);
-        Type type = selector != null ? selector.getReturnType() : TypeEnum.NUMBER;
-        if (type == TypeEnum.INTEGER) {
-            return TypeEnum.INTEGER;
-        }
-
-        return TypeEnum.NUMBER;
     }
 }
