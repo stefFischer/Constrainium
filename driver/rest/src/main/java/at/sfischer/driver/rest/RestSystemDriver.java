@@ -37,13 +37,15 @@ public class RestSystemDriver implements SystemDriver {
     private final String pathTemplate;
     private final String operation;
     private final Duration duration;
+    private final String httpVersionName;
 
-    public RestSystemDriver(OpenAPI openAPI, URI uri, String path, String operation, Duration duration) {
+    public RestSystemDriver(OpenAPI openAPI, URI uri, String path, String operation, Duration duration, String httpVersionName) {
         this.openAPI = openAPI;
         this.uri = uri;
         this.pathTemplate = path;
         this.operation = operation;
         this.duration = duration;
+        this.httpVersionName = httpVersionName;
     }
 
     @Override
@@ -116,6 +118,14 @@ public class RestSystemDriver implements SystemDriver {
                 case "application/json": {
                     DataValue<?> rootValue = input.getDataValue(bodyName);
                     Object jsonObject = buildJsonFromSchema(schema, rootValue);
+                    if(jsonObject instanceof DataObject){
+                        try {
+                            requestBody = ((DataObject) jsonObject).toJson();
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    }
                     ObjectMapper mapper = new ObjectMapper();
                     try {
                         requestBody = mapper.writeValueAsString(jsonObject);
@@ -192,7 +202,8 @@ public class RestSystemDriver implements SystemDriver {
 
         LOGGER.debug("Created request: {} with body: {}", request, requestBody);
 
-        try (HttpClient client = HttpClient.newHttpClient()) {
+        HttpClient.Version httpVersion = HttpClient.Version.valueOf(httpVersionName);
+        try (HttpClient client = HttpClient.newBuilder().version(httpVersion).build()) {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             LOGGER.debug("Response: {} with body: {}", response, response.body());
@@ -234,7 +245,12 @@ public class RestSystemDriver implements SystemDriver {
             return null;
         }
 
-        return switch (schema.getType()) {
+        String type = schema.getType();
+        if(type == null){
+            return raw;
+        }
+
+        return switch (type) {
             case "object" -> {
                 if (!(raw instanceof DataObject obj)) {
                     throw new DriverException("Expected object for schema");

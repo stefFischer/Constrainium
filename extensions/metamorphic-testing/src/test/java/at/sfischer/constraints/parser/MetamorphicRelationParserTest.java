@@ -32,7 +32,7 @@ public class MetamorphicRelationParserTest {
     @Test
     void parsesBasicMetamorphicRelation() throws IOException, ParseException {
         String source = """
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1
                     validation: sourceOutput <= followUpOutput
                 """;
@@ -53,7 +53,7 @@ public class MetamorphicRelationParserTest {
     @Test
     void usesDefaultPolicyWhenNoneSpecified() throws IOException, ParseException {
         String source = """
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1
                     validation: sourceOutput <= followUpOutput
                 """;
@@ -69,7 +69,7 @@ public class MetamorphicRelationParserTest {
         String source = """
                 policy STRICT: minApplications = 3
 
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1
                     validation: sourceOutput <= followUpOutput
                     policy = STRICT
@@ -89,11 +89,11 @@ public class MetamorphicRelationParserTest {
                 constraint C1:
                     forall x: ARRAY_ELEMENT > 5.0
 
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1
                     validation: sourceOutput <= followUpOutput
 
-                metamorphic M2:
+                MR M2:
                     transformation: input * 2
                     validation: sourceOutput <= followUpOutput
                 """;
@@ -113,7 +113,7 @@ public class MetamorphicRelationParserTest {
     void metamorphicRelationInsideGroupIsParsed() throws IOException, ParseException {
         String source = """
                 group G1 {
-                    metamorphic M1:
+                    MR M1:
                         transformation: input + 1
                         validation: sourceOutput <= followUpOutput
                 }
@@ -130,7 +130,7 @@ public class MetamorphicRelationParserTest {
     @Test
     void missingTransformationKeywordThrowsParseException() {
         String source = """
-                metamorphic M1:
+                MR M1:
                     validation: sourceOutput <= followUpOutput
                 """;
 
@@ -140,7 +140,7 @@ public class MetamorphicRelationParserTest {
     @Test
     void missingValidationKeywordThrowsParseException() {
         String source = """
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1
                 """;
 
@@ -150,7 +150,7 @@ public class MetamorphicRelationParserTest {
     @Test
     void missingRelationNameThrowsParseException() {
         String source = """
-                metamorphic :
+                MR :
                     transformation: input + 1
                     validation: sourceOutput <= followUpOutput
                 """;
@@ -163,7 +163,7 @@ public class MetamorphicRelationParserTest {
         // Assumes an "abs" function is registered in FunctionRegistry; swap for
         // whatever built-in/test function is actually available in your registry.
         String source = """
-                metamorphic M1:
+                MR M1:
                     transformation: input + 1 * 2
                     validation: sourceOutput <= followUpOutput
                 """;

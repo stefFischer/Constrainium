@@ -48,6 +48,10 @@ public class MetamorphicRelationHandler implements ConstraintConstructHandler<Me
                     for (Variable variable : variables) {
                         String name = variable.getName();
                         DataSchemaEntry<?> entry = inout.findDataSchemaEntry(inputPrefix + "." + name);
+                        if(entry == null){
+                            continue;
+                        }
+
                         values.put(variable, new DataReference(entry));
                     }
 
@@ -119,7 +123,7 @@ public class MetamorphicRelationHandler implements ConstraintConstructHandler<Me
 
                                 //  4. Use System driver with transformed input to get transformed output
                                 try {
-                                    DataObject transformedOutput = this.driver.execute(transformedInput);
+                                    DataObject transformedOutput = this.driver.execute((DataObject) transformedInput.getDataValue(inout.getInputPrefix()).getValue());
                                     DataObject sourceOutput = (DataObject)dataEntry.getValue1().getDataValue(inout.getOutputPrefix()).getValue();
 
                                     //  5. Create a data collection of only using the outputs, with the prefixes as decided above.

@@ -6,6 +6,8 @@ import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public abstract class DataCollection<T> {
@@ -160,4 +162,6 @@ public abstract class DataCollection<T> {
         terms.clear();
         terms.addAll(replacedTerms);
     }
+
+    public abstract void toJsonl(File jsonl) throws IOException;
 }

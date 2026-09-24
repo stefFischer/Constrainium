@@ -1,6 +1,8 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -279,60 +281,118 @@ public class DataObject {
     }
 
     public void putNodeValue(String path, Value<?> value) {
-        Object converted = toDataValue(value);
-
-        if (value.getReturnType() instanceof ArrayType(Type elementType)) {
-            putValue(path, (DataValue<?>[]) converted, elementType);
-        } else if (converted instanceof Boolean b) {
-            putValue(path, b);
-        } else if (converted instanceof Integer i) {
-            putValue(path, i);
-        } else if (converted instanceof Number n) {
-            putValue(path, n);
-        } else if (converted instanceof String s) {
-            putValue(path, s);
-        } else if (converted instanceof DataObject d) {
-            putValue(path, d);
-        } else {
-            throw new IllegalStateException("Unsupported value type: " + value.getClass());
-        }
+        putDataValue(path, toDataValue(value));
     }
 
-    private static Object toDataValue(Value<?> value) {
+    private static DataValue<?> toDataValue(Value<?> value) {
         if (value instanceof BooleanLiteral bl) {
-            return bl.getValue();
+            return new DataValue<>(TypeEnum.BOOLEAN, bl.getValue());
         }
 
         if (value instanceof IntegerLiteral il) {
-            return il.getValue();
+            return new DataValue<>(TypeEnum.INTEGER, il.getValue());
         }
 
         if (value instanceof NumberLiteral nl) {
-            return nl.getValue();
+            return new DataValue<>(TypeEnum.NUMBER, nl.getValue());
         }
 
         if (value instanceof StringLiteral sl) {
-            return sl.getValue();
+            return new DataValue<>(TypeEnum.STRING, sl.getValue());
         }
 
         if (value instanceof ComplexValue cv) {
-            return cv.getValue().clone();
+            return new DataValue<>(
+                    TypeEnum.COMPLEXTYPE,
+                    cv.getValue().clone()
+            );
         }
 
         if (value instanceof ArrayValues<?> av) {
-            DataValue<?>[] result = new DataValue<?>[av.getValue().length];
-            for (int i = 0; i < result.length; i++) {
-                Value<?> element = av.getValue()[i];
-                result[i] = new DataValue<>(
-                        element.getReturnType(),
-                        toDataValue(element)
-                );
-            }
-
-            return result;
+            return toArrayDataValue(av);
         }
 
-        throw new IllegalStateException("Unsupported value node: " + value.getClass());
+        throw new IllegalStateException(
+                "Unsupported value node: " + value.getClass()
+        );
+    }
+
+    private static DataValue<?> toArrayDataValue(ArrayValues<?> array) {
+        Type elementType = array.getElementType();
+        Value<?>[] values = array.getValue();
+        if (elementType == TypeEnum.BOOLEAN) {
+            boolean[] result = new boolean[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = ((BooleanLiteral) values[i]).getValue();
+            }
+
+            return new DataValue<>(
+                    new ArrayType(TypeEnum.BOOLEAN),
+                    result
+            );
+        }
+
+        if (elementType == TypeEnum.INTEGER) {
+            Integer[] result = new Integer[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = ((IntegerLiteral) values[i]).getValue();
+            }
+
+            return new DataValue<>(
+                    new ArrayType(TypeEnum.INTEGER),
+                    result
+            );
+        }
+
+        if (elementType == TypeEnum.NUMBER) {
+            Number[] result = new Number[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = ((NumberLiteral) values[i]).getValue();
+            }
+
+            return new DataValue<>(
+                    new ArrayType(TypeEnum.NUMBER),
+                    result
+            );
+        }
+
+        if (elementType == TypeEnum.STRING) {
+            String[] result = new String[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = ((StringLiteral) values[i]).getValue();
+            }
+
+            return new DataValue<>(
+                    new ArrayType(TypeEnum.STRING),
+                    result
+            );
+        }
+
+        if (elementType == TypeEnum.COMPLEXTYPE) {
+            DataObject[] result = new DataObject[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = ((ComplexValue) values[i]).getValue().clone();
+            }
+
+            return new DataValue<>(
+                    new ArrayType(TypeEnum.COMPLEXTYPE),
+                    result
+            );
+        }
+
+        if (elementType instanceof ArrayType) {
+            DataValue<?>[] result = new DataValue<?>[values.length];
+            for (int i = 0; i < values.length; i++) {
+                result[i] = toDataValue(values[i]);
+            }
+
+            return new DataValue<>(
+                    new ArrayType(elementType),
+                    result
+            );
+        }
+
+        throw new IllegalStateException("Unsupported array element type: " + elementType);
     }
 
     @Override
@@ -467,5 +527,59 @@ public class DataObject {
         }
 
         return elementType;
+    }
+
+    public String toJson() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(toJsonValue());
+    }
+
+    private Map<String, Object> toJsonValue() {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<String, DataValue<?>> entry : dataValues.entrySet()) {
+            result.put(entry.getKey(), toJsonValue(entry.getValue()));
+        }
+
+        return result;
+    }
+
+    private Object toJsonValue(DataValue<?> dataValue) {
+        Object value = dataValue.getValue();
+        if (value instanceof DataObject object) {
+            return object.toJsonValue();
+        }
+
+        if (value instanceof DataObject[] objects) {
+            List<Object> result = new ArrayList<>(objects.length);
+            for (DataObject object : objects) {
+                result.add(object == null ? null : object.toJsonValue());
+            }
+
+            return result;
+        }
+
+        if (value instanceof DataValue<?>[] values) {
+            List<Object> result = new ArrayList<>(values.length);
+            for (DataValue<?> nestedValue : values) {
+                result.add(toJsonValue(nestedValue));
+            }
+
+            return result;
+        }
+
+        if (value instanceof boolean[] values) {
+            List<Boolean> result = new ArrayList<>(values.length);
+            for (boolean v : values) {
+                result.add(v);
+            }
+
+            return result;
+        }
+
+        if (value instanceof Object[] values) {
+            return Arrays.asList(values);
+        }
+
+        return value;
     }
 }

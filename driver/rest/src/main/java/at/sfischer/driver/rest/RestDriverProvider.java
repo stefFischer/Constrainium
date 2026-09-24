@@ -51,7 +51,13 @@ public class RestDriverProvider implements SystemDriverProvider {
                         "timeoutSeconds",
                         Integer.class,
                         false,
-                        "HTTP timeout in seconds")
+                        "HTTP timeout in seconds"),
+
+                new ConfigurationField(
+                        "httpVersion",
+                        String.class,
+                        false,
+                        "HTTP version (HTTP_1_1 or HTTP_2)")
         ));
     }
 
@@ -62,6 +68,7 @@ public class RestDriverProvider implements SystemDriverProvider {
         String operation = (String) configValues.get("operation");
         String path = (String) configValues.get("path");
         Integer timeout = (Integer) configValues.getOrDefault("timeoutSeconds", 5);
+        String httpVersionName = (String) configValues.getOrDefault("httpVersion", "HTTP_1_1");
 
         OpenAPI openAPI = new OpenAPIV3Parser().read(specPath);
         return new RestSystemDriver(
@@ -69,6 +76,7 @@ public class RestDriverProvider implements SystemDriverProvider {
                 URI.create(baseUrl),
                 path,
                 operation,
-                Duration.ofSeconds(timeout));
+                Duration.ofSeconds(timeout),
+                httpVersionName);
     }
 }

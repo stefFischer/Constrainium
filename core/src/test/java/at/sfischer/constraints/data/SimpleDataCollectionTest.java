@@ -2,6 +2,10 @@ package at.sfischer.constraints.data;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleDataCollectionTest {
@@ -95,5 +99,27 @@ public class SimpleDataCollectionTest {
 		DataSchema actual = data.deriveSchema(new DefaultTypePromotionPolicy());
 
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void jsonlRoundTrip() throws IOException {
+		SimpleDataCollection original = SimpleDataCollection.parseData(
+				"{value:1,name:\"one\"}",
+				"{value:2,name:\"two\"}",
+				"{value:3,name:\"three\"}"
+		);
+
+		File file = File.createTempFile("data-", ".jsonl");
+		try {
+			original.toJsonl(file);
+
+			SimpleDataCollection parsed = SimpleDataCollection.parseData(file);
+
+			assertThat(parsed).
+					usingRecursiveComparison().
+					isEqualTo(original);
+		} finally {
+			assertTrue(file.delete());
+		}
 	}
 }
