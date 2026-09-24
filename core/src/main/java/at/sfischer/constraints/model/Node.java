@@ -121,18 +121,19 @@ public interface Node {
             int i = 0;
             for (Node child : children) {
                 if(childrenToExclude.contains(child)){
+                    i++;
                     continue;
                 }
 
                 if (child instanceof Variable){
                     Type variableType = types.get(i);
-                    Type t = variableTypes.get((Variable)child);
+                    Type t = variableTypes.putIfAbsent((Variable) child, variableType);
                     if(t != null && !t.equals(variableType)){
-                        throw new IllegalStateException("Variable " + child + " has inconsistent types: " + t + " and " + variableType);
-                    }
-
-                    if(t == null){
-                        variableTypes.put((Variable)child, variableType);
+                        if (variableType.canAssignTo(t)) {
+                            variableTypes.put((Variable)child, variableType);
+                        } else if(!t.canAssignTo(variableType)) {
+                            throw new IllegalStateException("Variable " + child + " has inconsistent types: " + t + " and " + variableType);
+                        }
                     }
                 }
                 i++;
@@ -146,7 +147,11 @@ public interface Node {
                     }
 
                     if(!t.equals(childEntry.getValue())){
-                        throw new IllegalStateException("Variable " + childEntry.getKey() + " has inconsistent types: " + t + " and " + childEntry.getValue());
+                        if (childEntry.getValue().canAssignTo(t)){
+                            variableTypes.put(childEntry.getKey(), childEntry.getValue());
+                        } else if(!t.canAssignTo(childEntry.getValue())){
+                            throw new IllegalStateException("Variable " + childEntry.getKey() + " has inconsistent types: " + t + " and " + childEntry.getValue());
+                        }
                     }
                 }
             }

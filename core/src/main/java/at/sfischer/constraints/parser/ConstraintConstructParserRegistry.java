@@ -8,7 +8,7 @@ public final class ConstraintConstructParserRegistry {
     private static volatile Map<TokenKind, ConstraintConstructParser<?>> parsers;
     private static volatile Map<String, TokenKind> keywords;
 
-    private static synchronized Map<TokenKind, ConstraintConstructParser<?>> load() {
+    public static synchronized Map<TokenKind, ConstraintConstructParser<?>> load() {
         if (parsers == null) {
             Map<TokenKind, ConstraintConstructParser<?>> map = new HashMap<>();
             Map<String, TokenKind> kwMap = new HashMap<>();

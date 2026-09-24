@@ -2,7 +2,15 @@ package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
 import org.javatuples.Pair;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
 public class InOutputDataCollection extends DataCollection<Pair<DataObject, DataObject>> {
@@ -249,5 +257,53 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         }
 
         return dataCollection;
+    }
+
+    public static InOutputDataCollection parseData(File jsonl) throws IOException {
+        InOutputDataCollection dataCollection = new InOutputDataCollection();
+        try (BufferedReader reader = Files.newBufferedReader(
+                jsonl.toPath(),
+                StandardCharsets.UTF_8)) {
+
+            String line;
+            int lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    JSONObject object = new JSONObject(new JSONTokener(line));
+                    JSONObject input = object.getJSONObject("input");
+                    JSONObject output = object.getJSONObject("output");
+
+                    DataObject inputData = DataObject.parseData(input.toString());
+                    DataObject outputData = DataObject.parseData(output.toString());
+
+                    dataCollection.dataCollection.add(new Pair<>(inputData, outputData));
+                } catch (RuntimeException e) {
+                    throw new IOException("Could not parse JSONL line " + lineNumber + " in file " + jsonl, e);
+                }
+            }
+        }
+
+        return dataCollection;
+    }
+
+    public void toJsonl(File jsonl) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                jsonl.toPath(),
+                StandardCharsets.UTF_8)) {
+
+            for (Pair<DataObject, DataObject> data : dataCollection) {
+                JSONObject object = new JSONObject();
+                object.put("input", new JSONObject(data.getValue0().toJson()));
+                object.put("output", new JSONObject(data.getValue1().toJson()));
+                writer.write(object.toString());
+                writer.newLine();
+            }
+        }
     }
 }

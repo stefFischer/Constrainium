@@ -17,7 +17,7 @@ public class MetamorphicRelationParser implements ConstraintConstructParser<Meta
     @Override
     public Map<String, TokenKind> keywords() {
         return Map.of(
-        "metamorphic", MetamorphicTokenType.METAMORPHIC,
+        "MR", MetamorphicTokenType.METAMORPHIC,
         "transformation", MetamorphicTokenType.TRANSFORMATION,
         "validation", MetamorphicTokenType.VALIDATION
         );
@@ -25,7 +25,7 @@ public class MetamorphicRelationParser implements ConstraintConstructParser<Meta
 
     @Override
     public MetamorphicRelationTemplate parse(ExtensionParserContext context, ConstraintPolicy defaultPolicy, ConstraintPolicy groupPolicy, Map<String, ConstraintPolicy> policies) throws IOException, ParseException {
-        context.consume(MetamorphicTokenType.METAMORPHIC, "Expected 'metamorphic'");
+        context.consume(MetamorphicTokenType.METAMORPHIC, "Expected 'MR'");
         String name = context.consume(TokenType.IDENTIFIER, "Expected metamorphic relation name").getLexeme();
 
         context.consume(TokenType.COLON, "Expected ':'");

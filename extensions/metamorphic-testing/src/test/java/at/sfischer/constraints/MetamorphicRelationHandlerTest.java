@@ -90,9 +90,9 @@ public class MetamorphicRelationHandlerTest {
         InOutputDataSchema<SimpleDataSchema> schema = data.deriveSchema(null);
 
         SystemDriver driver = Mockito.mock(SystemDriver.class);
-        when(driver.execute(DataObject.parseData("{input:{value:2.0}}")))
+        when(driver.execute(DataObject.parseData("{value:2.0}")))
                 .thenReturn(DataObject.parseData("{result:3}"));
-        when(driver.execute(DataObject.parseData("{input:{value:3.0}}")))
+        when(driver.execute(DataObject.parseData("{value:3.0}")))
                 .thenReturn(DataObject.parseData("{result:4}"));
 
         MetamorphicRelationHandler handler = new MetamorphicRelationHandler(driver);
@@ -102,8 +102,8 @@ public class MetamorphicRelationHandlerTest {
         verify(driver, times(2)).execute((DataObject)any());
         assertNotNull(results);
 
-        verify(driver).execute(DataObject.parseData("{input:{value:2.0}}"));
-        verify(driver).execute(DataObject.parseData("{input:{value:3.0}}"));
+        verify(driver).execute(DataObject.parseData("{value:2.0}"));
+        verify(driver).execute(DataObject.parseData("{value:3.0}"));
 
         assertNotNull(results);
         assertEquals(0, results.getEvaluationResults().size());

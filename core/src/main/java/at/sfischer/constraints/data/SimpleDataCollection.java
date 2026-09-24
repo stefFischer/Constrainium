@@ -6,6 +6,12 @@ import at.sfischer.constraints.model.Value;
 import at.sfischer.constraints.model.Variable;
 import org.javatuples.Pair;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
 public class SimpleDataCollection extends DataCollection<DataObject> {
@@ -166,6 +172,45 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
         }
 
         return dataCollection;
+    }
+
+    public static SimpleDataCollection parseData(File jsonl) throws IOException {
+        SimpleDataCollection dataCollection = new SimpleDataCollection();
+        try (BufferedReader reader = Files.newBufferedReader(
+                jsonl.toPath(),
+                StandardCharsets.UTF_8)) {
+
+            String line;
+            int lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    dataCollection.addDataEntry(DataObject.parseData(line));
+                } catch (RuntimeException e) {
+                    throw new IOException("Could not parse JSONL line " + lineNumber + " in file " + jsonl, e);
+                }
+            }
+        }
+
+        return dataCollection;
+    }
+
+    @Override
+    public void toJsonl(File jsonl) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                jsonl.toPath(),
+                StandardCharsets.UTF_8)) {
+
+            for (DataObject data : dataCollection) {
+                writer.write(data.toJson());
+                writer.newLine();
+            }
+        }
     }
 
     @Override

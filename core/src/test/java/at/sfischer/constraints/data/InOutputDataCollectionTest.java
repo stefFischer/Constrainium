@@ -3,7 +3,12 @@ package at.sfischer.constraints.data;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InOutputDataCollectionTest {
 	@Test
@@ -50,5 +55,27 @@ public class InOutputDataCollectionTest {
         DataSchema actual = data.deriveSchema();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void inOutputJsonlRoundTrip() throws IOException {
+        InOutputDataCollection original = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}"),
+                new Pair<>("{value:3}",	"{result:4}")
+        );
+
+        File file = File.createTempFile("inout-", ".jsonl");
+        try {
+            original.toJsonl(file);
+
+            InOutputDataCollection parsed = InOutputDataCollection.parseData(file);
+
+            assertThat(parsed).
+                    usingRecursiveComparison().
+                    isEqualTo(original);
+        } finally {
+            assertTrue(file.delete());
+        }
     }
 }

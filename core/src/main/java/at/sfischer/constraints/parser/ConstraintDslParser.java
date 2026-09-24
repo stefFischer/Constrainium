@@ -35,6 +35,8 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
     public ConstraintDslParser(ConstraintDslScanner scanner) throws IOException {
         this.scanner = scanner;
+        // Initialize parser extensions.
+        ConstraintConstructParserRegistry.load();
         advance(); // load first token
     }
 
