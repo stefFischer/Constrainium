@@ -35,6 +35,9 @@ public class ConstraintDslScanner {
         ));
 
         keywords.put(ArrayOperation.ELEMENT_NAME, TokenType.ARRAY_ELEMENT);
+        keywords.put(ArrayOperation.INDEX_NAME, TokenType.INDEX_NAME);
+        keywords.put(ArrayOperation.LEFT_ELEMENT_NAME, TokenType.LEFT_ELEMENT_NAME);
+        keywords.put(ArrayOperation.RIGHT_ELEMENT_NAME, TokenType.RIGHT_ELEMENT_NAME);
 
         // Policies
         keywords.putAll(Map.of(

@@ -369,6 +369,15 @@ public class ConstraintDslParser implements ExtensionParserContext {
         if (match(TokenType.ARRAY_ELEMENT)) {
             return new Variable(ArrayOperation.ELEMENT_NAME);
         }
+        if (match(TokenType.INDEX_NAME)) {
+            return new Variable(ArrayOperation.INDEX_NAME);
+        }
+        if (match(TokenType.LEFT_ELEMENT_NAME)) {
+            return new Variable(ArrayOperation.LEFT_ELEMENT_NAME);
+        }
+        if (match(TokenType.RIGHT_ELEMENT_NAME)) {
+            return new Variable(ArrayOperation.RIGHT_ELEMENT_NAME);
+        }
 
         if (match(TokenType.IDENTIFIER)) {
             String name = previous.getLexeme();
