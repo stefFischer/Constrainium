@@ -98,8 +98,11 @@ public class ConstraintDslScanner {
     // =============================
 
     private void scanToken() throws IOException {
-
         skipWhitespace();
+        while(currentChar == '#'){
+            skipComment();
+            skipWhitespace();
+        }
 
         if (isAtEnd()) return;
 
@@ -296,6 +299,12 @@ public class ConstraintDslScanner {
             } else {
                 break;
             }
+        }
+    }
+
+    private void skipComment() throws IOException {
+        while (!isAtEnd() && currentChar != '\n') {
+            advance();
         }
     }
 

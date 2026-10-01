@@ -192,5 +192,60 @@ class ConstraintDslScannerTest {
 
         assertTrue(exception.getMessage().contains("Unterminated string"));
     }
+
+    @Test
+    void testSingleLineComment() throws Exception {
+        List<Token> tokens = scan("""
+            # this is a comment
+            123
+            """);
+
+        assertToken(tokens.get(0), TokenType.INTEGER, "123");
+        assertToken(tokens.get(1), TokenType.EOF, "");
+    }
+
+    @Test
+    void testCommentAfterToken() throws Exception {
+        List<Token> tokens = scan("""
+            123 # this is a comment
+            456
+            """);
+
+        assertToken(tokens.get(0), TokenType.INTEGER, "123");
+        assertToken(tokens.get(1), TokenType.INTEGER, "456");
+        assertToken(tokens.get(2), TokenType.EOF, "");
+    }
+
+    @Test
+    void testHashInsideStringIsNotAComment() throws Exception {
+        List<Token> tokens = scan("""
+            "hello # world"
+            """);
+
+        assertToken(tokens.get(0), TokenType.STRING, "hello # world");
+        assertToken(tokens.get(1), TokenType.EOF, "");
+    }
+
+    @Test
+    void testCommentAtEndOfFile() throws Exception {
+        List<Token> tokens = scan("# comment");
+
+        assertToken(tokens.getFirst(), TokenType.EOF, "");
+    }
+
+    @Test
+    void testMultipleComments() throws Exception {
+        List<Token> tokens = scan("""
+            # first comment
+            # second comment
+            123
+            # third comment
+            456
+            """);
+
+        assertToken(tokens.get(0), TokenType.INTEGER, "123");
+        assertToken(tokens.get(1), TokenType.INTEGER, "456");
+        assertToken(tokens.get(2), TokenType.EOF, "");
+    }
 }
 
