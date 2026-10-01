@@ -13,6 +13,9 @@ public enum TokenType implements TokenKind {
     TRUE,
     FALSE,
     ARRAY_ELEMENT,
+    INDEX_NAME,
+    LEFT_ELEMENT_NAME,
+    RIGHT_ELEMENT_NAME,
 
     // ===== constraint retention policies =====
     NO_VIOLATIONS,
