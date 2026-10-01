@@ -49,7 +49,7 @@ public abstract class Function implements Operator {
                     continue;
                 }
 
-                boolean isValidType = ((ArrayType) parameterType).elementType() == TypeEnum.ANY || ((ArrayType) parameter.getReturnType()).elementType() == ((ArrayType) parameterType).elementType() || ((ArrayType) parameter.getReturnType()).elementType() == TypeEnum.ANY;
+                boolean isValidType = parameter.getReturnType().canAssignTo(parameterType);
                 if(!isValidType){
                     context.error(this, "Array element type does not match parameter element type at index " + i + ". " + ((ArrayType) parameterType).elementType() + " != " + ((ArrayType) parameter.getReturnType()).elementType());
                 }

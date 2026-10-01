@@ -20,9 +20,22 @@ public class FunctionRegistry {
 
     static {
         autoRegister(Function.class.getPackageName());
+        registerProviders();
     }
 
     private FunctionRegistry() {}
+
+    private static void registerProviders() {
+        ServiceLoader<FunctionProvider> loader = ServiceLoader.load(FunctionProvider.class);
+        for (FunctionProvider provider : loader) {
+            try {
+                LOGGER.debug("Registering functions from provider {}", provider.getClass().getName());
+                provider.registerFunctions();
+            } catch (Exception e) {
+                LOGGER.error("Failed to register functions from provider {}", provider.getClass().getName(), e);
+            }
+        }
+    }
 
     public static void register(String name, FunctionCreator creator) {
         FUNCTIONS.put(name.toLowerCase(), creator);
