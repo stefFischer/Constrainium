@@ -32,7 +32,7 @@ public class Min extends NumberFunction {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new Min(getParameter(0), getParameter(1));
+        return new Min(getParameter(0).setVariableValues(values), getParameter(1).setVariableValues(values));
     }
 
     @Override
