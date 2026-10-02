@@ -31,7 +31,7 @@ public class Tan extends NumberFunction {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new Tan(getParameter(0));
+        return new Tan(getParameter(0).setVariableValues(values));
     }
 
     @Override

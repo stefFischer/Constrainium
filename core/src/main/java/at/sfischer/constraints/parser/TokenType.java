@@ -61,5 +61,8 @@ public enum TokenType implements TokenKind {
 
     AT,          // @
 
+    // ===== Numbers =====
+    PI,
+
     EOF
 }

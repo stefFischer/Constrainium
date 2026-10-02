@@ -32,7 +32,7 @@ public class Max extends NumberFunction {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new Max(getParameter(0), getParameter(1));
+        return new Max(getParameter(0).setVariableValues(values), getParameter(1).setVariableValues(values));
     }
 
     @Override

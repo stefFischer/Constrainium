@@ -31,7 +31,7 @@ public class Abs extends NumberFunction {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new Abs(getParameter(0));
+        return new Abs(getParameter(0).setVariableValues(values));
     }
 
     @Override

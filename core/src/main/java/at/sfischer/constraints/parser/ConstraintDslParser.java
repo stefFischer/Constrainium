@@ -359,6 +359,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
     private Node parsePrimary() throws IOException, ParseException {
         if (check(TokenType.INTEGER)
             || check(TokenType.NUMBER)
+            || check(TokenType.PI)
             || check(TokenType.STRING)
             || check(TokenType.TRUE)
             || check(TokenType.FALSE)
@@ -413,6 +414,10 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
         if (match(TokenType.NUMBER)) {
             return new NumberLiteral(Double.parseDouble(previous.getLexeme()));
+        }
+
+        if (match(TokenType.PI)) {
+            return PiLiteral.INSTANCE;
         }
 
         if (match(TokenType.STRING)) {
