@@ -137,6 +137,25 @@ class ConstraintDslParserTest {
     }
 
     @Test
+    void parsePi() throws Exception {
+        String input = """
+            constraint C1:
+                x > PI
+            """;
+
+        ConstraintTemplateFile file = parse(input);
+        assertEquals(1, file.getConstraints().size());
+
+        ConstraintConstruct c = file.getConstraints().getFirst();
+        Node actualNode = c.getTerms().getFirst();
+        Node expectedNode = new GreaterThanOperator(
+                new Variable("x"),
+                PiLiteral.INSTANCE
+        );
+        assertEquals(expectedNode, actualNode);
+    }
+
+    @Test
     void parseArithmeticOperations() throws Exception {
         String input = """
             constraint C1:

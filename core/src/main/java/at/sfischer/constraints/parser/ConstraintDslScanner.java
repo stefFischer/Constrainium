@@ -39,6 +39,10 @@ public class ConstraintDslScanner {
         keywords.put(ArrayOperation.LEFT_ELEMENT_NAME, TokenType.LEFT_ELEMENT_NAME);
         keywords.put(ArrayOperation.RIGHT_ELEMENT_NAME, TokenType.RIGHT_ELEMENT_NAME);
 
+        keywords.putAll(Map.of(
+                "PI", TokenType.PI
+        ));
+
         // Policies
         keywords.putAll(Map.of(
                 "noViolations", TokenType.NO_VIOLATIONS,
