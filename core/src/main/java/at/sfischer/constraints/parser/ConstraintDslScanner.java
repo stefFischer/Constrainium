@@ -130,6 +130,7 @@ public class ConstraintDslScanner {
             case '/' -> addSimple(TokenType.SLASH, startLine, startColumn);
             case '%' -> addSimple(TokenType.MODULO, startLine, startColumn);
             case '^' -> addSimple(TokenType.POWER, startLine, startColumn);
+            case '@' -> addSimple(TokenType.AT, startLine, startColumn);
 
             case '!' -> {
                 if (peek() == '=') {

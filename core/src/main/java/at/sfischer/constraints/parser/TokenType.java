@@ -59,5 +59,7 @@ public enum TokenType implements TokenKind {
     COLON,          // :
     COMMA,          // ,
 
+    AT,          // @
+
     EOF
 }

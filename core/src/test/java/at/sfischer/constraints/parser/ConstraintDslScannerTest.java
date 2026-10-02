@@ -177,7 +177,7 @@ class ConstraintDslScannerTest {
     void testUnexpectedCharacterThrows() {
         Exception exception = assertThrows(
                 RuntimeException.class,
-                () -> scan("@")
+                () -> scan("€")
         );
 
         assertTrue(exception.getMessage().contains("Unexpected character"));

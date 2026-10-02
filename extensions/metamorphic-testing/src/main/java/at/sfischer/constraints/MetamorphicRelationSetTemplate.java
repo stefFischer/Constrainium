@@ -9,14 +9,14 @@ import java.util.stream.Stream;
 public class MetamorphicRelationSetTemplate implements ConstraintConstruct {
 
     private final String name;
-    private final List<Node> transformations;
-    private final List<Node> validations;
+    private final List<NamedExpression> transformations;
+    private final List<NamedExpression> validations;
     private final ConstraintPolicy retentionPolicy;
 
     public MetamorphicRelationSetTemplate(
             String name,
-            List<Node> transformations,
-            List<Node> validations,
+            List<NamedExpression> transformations,
+            List<NamedExpression> validations,
             ConstraintPolicy retentionPolicy) {
 
         this.name = name;
@@ -29,11 +29,11 @@ public class MetamorphicRelationSetTemplate implements ConstraintConstruct {
         return name;
     }
 
-    public List<Node> getTransformations() {
+    public List<NamedExpression> getTransformations() {
         return transformations;
     }
 
-    public List<Node> getValidations() {
+    public List<NamedExpression> getValidations() {
         return validations;
     }
 
@@ -43,6 +43,9 @@ public class MetamorphicRelationSetTemplate implements ConstraintConstruct {
 
     @Override
     public List<Node> getTerms() {
-        return Stream.concat(transformations.stream(), validations.stream()).toList();
+        return Stream.concat(
+                transformations.stream().map(NamedExpression::expression),
+                validations.stream().map(NamedExpression::expression)
+        ).toList();
     }
 }
