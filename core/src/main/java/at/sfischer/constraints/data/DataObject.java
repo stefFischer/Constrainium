@@ -496,12 +496,18 @@ public class DataObject {
             if(elementType == null){
                 return Integer.class;
             } else if(!elementType.equals(Integer.class)) {
+                if(elementType.equals(Number.class)){
+                    return Number.class;
+                }
                 return Object.class;
             }
         } else if(value instanceof Number){
             if(elementType == null){
                 return Number.class;
             } else if(!elementType.equals(Number.class)) {
+                if(elementType.equals(Integer.class)){
+                    return Number.class;
+                }
                 return Object.class;
             }
         } else if (value instanceof Boolean){
