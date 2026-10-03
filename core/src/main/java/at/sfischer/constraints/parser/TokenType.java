@@ -3,6 +3,7 @@ package at.sfischer.constraints.parser;
 public enum TokenType implements TokenKind {
 
     // ===== Keywords =====
+    FUNCTION,
     POLICY,
     GROUP,
     CONSTRAINT,

@@ -31,7 +31,7 @@ public class ArrayValues<T extends Value<?>> extends Value<T[]> {
     @Override
     public void validate(ValidationContext context) {
         for (T val : getValue()) {
-            if(!val.getReturnType().equals(elementType)){
+            if(!val.getReturnType().canAssignTo(elementType)){
                 context.error(this, "Element types do not match");
             }
         }

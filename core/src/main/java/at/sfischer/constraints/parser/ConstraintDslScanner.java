@@ -23,6 +23,7 @@ public class ConstraintDslScanner {
 
     static {
         keywords.putAll(Map.of(
+                "function", TokenType.FUNCTION,
                 "policy", TokenType.POLICY,
                 "group", TokenType.GROUP,
                 "constraint", TokenType.CONSTRAINT,

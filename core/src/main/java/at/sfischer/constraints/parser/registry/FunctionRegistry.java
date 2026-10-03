@@ -41,6 +41,10 @@ public class FunctionRegistry {
         FUNCTIONS.put(name.toLowerCase(), creator);
     }
 
+    public static FunctionCreator getCreator(String name) {
+        return FUNCTIONS.get(name.toLowerCase());
+    }
+
     public static Function create(String name, List<Node> args) throws FunctionCreateException {
         FunctionCreator creator = FUNCTIONS.get(name.toLowerCase());
 
