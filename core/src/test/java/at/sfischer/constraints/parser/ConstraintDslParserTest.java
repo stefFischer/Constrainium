@@ -10,8 +10,12 @@ import at.sfischer.constraints.model.operators.numbers.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConstraintDslParserTest {
@@ -311,5 +315,289 @@ class ConstraintDslParserTest {
                 })
         );
         assertEquals(expectedNode, actualNode);
+    }
+
+    @Test
+    void parsesFunctionDefinition() throws Exception {
+        String input = """
+            function difference(a, b){
+                abs(a-b)
+            }
+            
+            constraint C1: difference(5, 2) > 0
+            constraint C2: difference(a, 2) > 0
+            """;
+
+        ConstraintTemplateFile file = parse(input);
+        assertEquals(2, file.getConstraints().size());
+
+        ConstraintConstruct c1 = file.getConstraints().getFirst();
+        assertEquals("C1", c1.getName());
+
+        Node actualNode = c1.getTerms().getFirst();
+        Node expectedNode = new GreaterThanOperator(
+                new UserFunction("difference", List.of(new IntegerLiteral(5), new IntegerLiteral(2)), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
+                        new Abs(new SubtractionOperator(new IntegerLiteral(5), new IntegerLiteral(2)))
+                        ),
+                new IntegerLiteral(0)
+        );
+        assertEquals(expectedNode, actualNode);
+
+        Node result = actualNode.evaluate();
+        BooleanLiteral resultValue = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(resultValue.getValue());
+
+        ConstraintConstruct c2 = file.getConstraints().getLast();
+        assertEquals("C2", c2.getName());
+
+        actualNode = c2.getTerms().getFirst();
+        expectedNode = new GreaterThanOperator(
+                new UserFunction("difference", List.of(new Variable("a"), new IntegerLiteral(2)), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
+                        new Abs(new SubtractionOperator(new Variable("a"), new IntegerLiteral(2)))
+                ),
+                new IntegerLiteral(0)
+        );
+        assertEquals(expectedNode, actualNode);
+
+        result = actualNode.evaluate();
+        assertThat(actualNode)
+                .usingRecursiveComparison()
+                .withComparatorForType(
+                        Comparator.comparing(a -> new BigDecimal(String.valueOf(a.getValue()))),
+                        NumberLiteral.class)
+                .isEqualTo(result);
+    }
+
+    @Test
+    void functionDefinedInGroupIsAvailableToGroupConstraints() throws Exception {
+        String input = """
+        group G {
+            function difference(a, b) {
+                abs(a - b)
+            }
+
+            constraint C1: difference(5, 2) > 0
+        }
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        assertEquals(1, file.getGroups().size());
+
+        GroupDefinition group = file.getGroups().getFirst();
+        assertEquals("G", group.getName());
+        assertEquals(1, group.getConstraints().size());
+
+        ConstraintConstruct constraint = group.getConstraints().getFirst();
+        Node actualNode = constraint.getTerms().getFirst();
+
+        assertInstanceOf(GreaterThanOperator.class, actualNode);
+
+        Node result = actualNode.evaluate();
+        BooleanLiteral resultValue = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(resultValue.getValue());
+    }
+
+    @Test
+    void fileFunctionIsAvailableInsideGroup() throws Exception {
+        String input = """
+        function difference(a, b) {
+            abs(a - b)
+        }
+
+        group G {
+            constraint C1: difference(5, 2) > 0
+        }
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        ConstraintConstruct constraint = file.getGroups()
+                .getFirst()
+                .getConstraints()
+                .getFirst();
+
+        Node result = constraint.getTerms().getFirst().evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    void nestedFunctionCanUseFunctionDefinedInOuterFunction() throws Exception {
+        String input = """
+        function outer(x) {
+            function difference(a, b) {
+                abs(a - b)
+            }
+
+            difference(x, 2)
+        }
+
+        constraint C1: outer(5) > 0
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        Node actualNode = file.getConstraints()
+                .getFirst()
+                .getTerms()
+                .getFirst();
+
+        Node result = actualNode.evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    void innerFunctionShadowsOuterFunction() throws Exception {
+        String input = """
+        function f(a, b) {
+            a - b
+        }
+
+        group G {
+            function f(a, b) {
+                a + b
+            }
+
+            constraint C1: f(2, 5) > 0
+        }
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        ConstraintConstruct constraint = file.getGroups()
+                .getFirst()
+                .getConstraints()
+                .getFirst();
+
+        Node actualNode = constraint.getTerms().getFirst();
+
+        Node result = actualNode.evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    void innerFunctionDoesNotReplaceOuterFunction() throws Exception {
+        String input = """
+        function f(a, b) {
+            a - b
+        }
+
+        group G {
+            function f(a, b) {
+                a + b
+            }
+
+            constraint C1: f(5, 2) == 3
+        }
+
+        constraint C2: f(5, 2) == 3
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        ConstraintConstruct outerConstraint = file.getConstraints().getFirst();
+
+        Node result = outerConstraint.getTerms().getFirst().evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    void innermostFunctionShadowsAllOuterDefinitions() throws Exception {
+        String input = """
+        function calculate(x) {
+            x + 1
+        }
+
+        function outer(x) {
+            function calculate(x) {
+                x + 2
+            }
+
+            function inner(x) {
+                function calculate(x) {
+                    x + 3
+                }
+
+                calculate(x)
+            }
+
+            inner(x)
+        }
+
+        constraint C1: outer(1) == 4
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+
+        Node actualNode = file.getConstraints()
+                .getFirst()
+                .getTerms()
+                .getFirst();
+
+        Node result = actualNode.evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    void functionDefinedInGroupIsNotAvailableOutsideGroup() throws Exception {
+        String input = """
+        group G {
+            function difference(a, b) {
+                abs(a - b)
+            }
+
+            constraint C1: difference(5, 2) > 0
+        }
+
+        constraint C2: difference(5, 2) > 0
+        """;
+
+        assertThrows(ParseException.class, () -> parse(input));
+    }
+
+    @Test
+    void functionDefinedInsideFunctionIsNotAvailableOutside() throws Exception {
+        String input = """
+        function outer(x) {
+            function difference(a, b) {
+                abs(a - b)
+            }
+
+            difference(x, 2)
+        }
+
+        constraint C1: difference(5, 2) > 0
+        """;
+
+        assertThrows(ParseException.class, () -> parse(input));
+    }
+
+    @Test
+    void functionIsNotVisibleInSiblingGroup() throws Exception {
+        String input = """
+        group G1 {
+            function difference(a, b) {
+                a - b
+            }
+
+            constraint C1: difference(5, 2) == 3
+        }
+
+        group G2 {
+            constraint C2: difference(5, 2) == 3
+        }
+        """;
+
+        assertThrows(ParseException.class, () -> parse(input));
     }
 }

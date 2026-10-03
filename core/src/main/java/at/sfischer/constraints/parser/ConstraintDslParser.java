@@ -18,10 +18,7 @@ import at.sfischer.constraints.parser.registry.FunctionCreateException;
 import at.sfischer.constraints.parser.registry.FunctionRegistry;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConstraintDslParser implements ExtensionParserContext {
 
@@ -33,8 +30,11 @@ public class ConstraintDslParser implements ExtensionParserContext {
     private Token current;
     private Token previous;
 
+    private Scope scope;
+
     public ConstraintDslParser(ConstraintDslScanner scanner) throws IOException {
         this.scanner = scanner;
+        this.scope = new Scope();
         // Initialize parser extensions.
         ConstraintConstructParserRegistry.load();
         advance(); // load first token
@@ -104,6 +104,8 @@ public class ConstraintDslParser implements ExtensionParserContext {
                 groups.add(parseGroupDecl(defaultPolicy, policies));
             } else if (check(TokenType.CONSTRAINT)) {
                 constraints.add(parseConstraintDecl(defaultPolicy, null, policies));
+            } else if (check(TokenType.FUNCTION)) {
+                parseFunctionDefinition();
             } else {
                 ConstraintConstructParser<?> ext = ConstraintConstructParserRegistry.forStartToken(current.getType());
                 if (ext == null) {
@@ -193,6 +195,8 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
         consume(TokenType.LEFT_BRACE, "Expected '{'");
 
+        this.scope = this.scope.push();
+
         ConstraintPolicy groupPolicy = null;
         if (match(TokenType.POLICY)) {
             consume(TokenType.ASSIGN, "Expected '='");
@@ -204,6 +208,8 @@ public class ConstraintDslParser implements ExtensionParserContext {
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
             if (check(TokenType.CONSTRAINT)) {
                 constraints.add(parseConstraintDecl(defaultPolicy, groupPolicy, policies));
+            } else if (check(TokenType.FUNCTION)) {
+                parseFunctionDefinition();
             } else {
                 ConstraintConstructParser<?> ext = ConstraintConstructParserRegistry.forStartToken(current.getType());
                 if (ext == null) {
@@ -214,6 +220,8 @@ public class ConstraintDslParser implements ExtensionParserContext {
         }
 
         consume(TokenType.RIGHT_BRACE, "Expected '}'");
+
+        this.scope = this.scope.pop();
 
         return new GroupDefinition(name, constraints);
     }
@@ -454,6 +462,34 @@ public class ConstraintDslParser implements ExtensionParserContext {
         return ArrayValues.createArrayValuesFromList(elements);
     }
 
+    private void parseFunctionDefinition() throws IOException, ParseException {
+        consume(TokenType.FUNCTION,"Expected 'function' keyword");
+        String name = consume(TokenType.IDENTIFIER, "Expected function name").getLexeme();
+        consume(TokenType.LEFT_PAREN,"Expected '('");
+
+        List<String> parameters = new LinkedList<>();
+        if (!check(TokenType.RIGHT_PAREN)){
+            do {
+                String parameterName = consume(TokenType.IDENTIFIER, "Expected parameter name").getLexeme();
+                parameters.add(parameterName);
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')'");
+        consume(TokenType.LEFT_BRACE, "Expected '{'");
+        this.scope = this.scope.push();
+
+        while (check(TokenType.FUNCTION) && !isAtEnd()) {
+            parseFunctionDefinition();
+        }
+
+        Node node = parseExpression();
+
+        this.scope = this.scope.pop();
+        consume(TokenType.RIGHT_BRACE, "Expected '}'");
+
+        this.scope.register(name, new UserFunctionCreator(node, name, parameters));
+    }
+
     private Node parseFunctionCall(String name) throws IOException, ParseException {
 
         List<Node> arguments = new ArrayList<>();
@@ -467,7 +503,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
         consume(TokenType.RIGHT_PAREN, "Expected ')'");
 
         try {
-            Function function = FunctionRegistry.create(name, arguments);
+            Function function = this.scope.create(name, arguments);
             if(function == null){
                 throw new ParseException("Could not create function: " + name, current);
             }
