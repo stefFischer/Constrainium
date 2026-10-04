@@ -336,7 +336,7 @@ class ConstraintDslParserTest {
 
         Node actualNode = c1.getTerms().getFirst();
         Node expectedNode = new GreaterThanOperator(
-                new UserFunction("difference", List.of(new IntegerLiteral(5), new IntegerLiteral(2)), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
+                new UserFunction("difference", List.of(new IntegerLiteral(5), new IntegerLiteral(2)), List.of("a", "b"), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
                         new Abs(new SubtractionOperator(new IntegerLiteral(5), new IntegerLiteral(2)))
                         ),
                 new IntegerLiteral(0)
@@ -352,7 +352,7 @@ class ConstraintDslParserTest {
 
         actualNode = c2.getTerms().getFirst();
         expectedNode = new GreaterThanOperator(
-                new UserFunction("difference", List.of(new Variable("a"), new IntegerLiteral(2)), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
+                new UserFunction("difference", List.of(new Variable("a"), new IntegerLiteral(2)), List.of("a", "b"), List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
                         new Abs(new SubtractionOperator(new Variable("a"), new IntegerLiteral(2)))
                 ),
                 new IntegerLiteral(0)
@@ -599,5 +599,56 @@ class ConstraintDslParserTest {
         """;
 
         assertThrows(ParseException.class, () -> parse(input));
+    }
+
+    @Test
+    public void testFunctionEvaluation() throws Exception {
+        String input = """
+            function sum(a, b){
+                a + b
+            }
+
+            constraint C1: sum(5, 2) == 5 + 2
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+        assertEquals(1, file.getConstraints().size());
+
+        Node actualNode = file.getConstraints()
+                .getFirst()
+                .getTerms()
+                .getFirst();
+        Node result = actualNode.evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
+    }
+
+    @Test
+    public void testFunctionEvaluationInsideFor() throws Exception {
+        String input = """
+            function addOffset(x){
+                arrays.forEach(x, ARRAY_ELEMENT + (0.5 * arrays.standardDeviation(x)))
+            }
+
+            function sineWave(amplitude, frequency, sampleRate, length){
+                arrays.generate(amplitude * sin(2 * PI * frequency * ARRAY_INDEX / sampleRate), length)
+            }
+
+            constraint C1: arrays.length(addOffset(sineWave(0.5, 5, 100, 1000))) == 1000
+        """;
+
+        ConstraintTemplateFile file = parse(input);
+        assertEquals(1, file.getConstraints().size());
+
+        Node actualNode = file.getConstraints()
+                .getFirst()
+                .getTerms()
+                .getFirst();
+
+        Node result = actualNode.evaluate();
+
+        BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
+        assertTrue(value.getValue());
     }
 }

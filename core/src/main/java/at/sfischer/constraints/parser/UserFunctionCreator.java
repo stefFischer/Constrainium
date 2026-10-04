@@ -41,14 +41,6 @@ public class UserFunctionCreator implements FunctionCreator {
             }
         }
 
-        // Replace the parameters in node with the arguments passed.
-        Map<String, Node> parameterValues = new HashMap<>();
-        for (int i = 0; i < parameters.size(); i++) {
-            String parameterName = parameters.get(i);
-            Node argument = arguments.get(i);
-            parameterValues.put(parameterName, argument);
-        }
-        Node instance = node.setVariableNameValues(parameterValues);
-        return new UserFunction(name, arguments, parameterTypes, instance);
+        return new UserFunction(name, arguments, parameters, parameterTypes, node);
     }
 }
