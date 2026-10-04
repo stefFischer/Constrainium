@@ -27,6 +27,7 @@ public class ForEach extends ArrayOperation {
         if(arrayValues != null && operation != null){
             List<Value<?>> resultValues = new ArrayList<>();
             Value<?>[] elements = arrayValues.getValue();
+            operation = operation.evaluate();
             for (Value<?> element : elements) {
                 Node op = operation.setVariableNameValue(ELEMENT_NAME, element);
                 Node result = op.evaluate();

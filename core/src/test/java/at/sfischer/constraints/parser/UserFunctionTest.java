@@ -20,6 +20,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "difference",
                 List.of(new IntegerLiteral(5), new IntegerLiteral(2)),
+                List.of("a", "b"),
                 List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
                 new SubtractionOperator(
                         new IntegerLiteral(5),
@@ -37,10 +38,12 @@ public class UserFunctionTest {
     void evaluateReturnsThisWhenBodyCannotBeEvaluated() {
         Node body = mock(Node.class);
 
+        when(body.setVariableNameValues(anyMap())).thenReturn(body);
         when(body.evaluate()).thenReturn(body);
 
         UserFunction function = new UserFunction(
                 "test",
+                List.of(),
                 List.of(),
                 List.of(),
                 body
@@ -56,10 +59,12 @@ public class UserFunctionTest {
         Node body = mock(Node.class);
         Node evaluated = new IntegerLiteral(42);
 
+        when(body.setVariableNameValues(anyMap())).thenReturn(body);
         when(body.evaluate()).thenReturn(evaluated);
 
         UserFunction function = new UserFunction(
                 "test",
+                List.of(),
                 List.of(),
                 List.of(),
                 body
@@ -78,6 +83,7 @@ public class UserFunctionTest {
 
         UserFunction function = new UserFunction(
                 "test",
+                List.of(),
                 List.of(),
                 List.of(),
                 body
@@ -99,6 +105,7 @@ public class UserFunctionTest {
                 "test",
                 List.of(),
                 List.of(),
+                List.of(),
                 body
         );
 
@@ -114,6 +121,7 @@ public class UserFunctionTest {
 
         UserFunction function = new UserFunction(
                 "test",
+                List.of(),
                 List.of(),
                 parameterTypes,
                 new IntegerLiteral(42)
@@ -132,6 +140,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "difference",
                 arguments,
+                List.of("a", "b"),
                 List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
                 new SubtractionOperator(
                         new IntegerLiteral(5),
@@ -148,6 +157,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "identity",
                 List.of(a),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 a
         );
@@ -170,6 +180,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "identity",
                 List.of(a),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 new IntegerLiteral(42)
         );
@@ -195,6 +206,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "difference",
                 List.of(a, b),
+                List.of("a", "b"),
                 List.of(TypeEnum.NUMBER, TypeEnum.NUMBER),
                 new SubtractionOperator(a, b)
         );
@@ -230,6 +242,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "identity",
                 List.of(a),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 a
         );
@@ -268,6 +281,7 @@ public class UserFunctionTest {
                         new IntegerLiteral(5),
                         new StringLiteral("hello")
                 ),
+                List.of("a", "b"),
                 List.of(
                         TypeEnum.NUMBER,
                         TypeEnum.STRING
@@ -285,6 +299,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new IntegerLiteral(5)),
+                List.of("a", "b"),
                 List.of(
                         TypeEnum.NUMBER,
                         TypeEnum.STRING
@@ -308,6 +323,7 @@ public class UserFunctionTest {
                         new StringLiteral("hello"),
                         new IntegerLiteral(10)
                 ),
+                List.of("a", "b"),
                 List.of(
                         TypeEnum.NUMBER,
                         TypeEnum.STRING
@@ -327,6 +343,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new IntegerLiteral(5)),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 BooleanLiteral.TRUE
         );
@@ -341,6 +358,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new StringLiteral("hello")),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 BooleanLiteral.TRUE
         );
@@ -359,6 +377,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new StringLiteral("hello")),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 BooleanLiteral.TRUE
         );
@@ -384,6 +403,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(argument),
+                List.of("a"),
                 List.of(new ArrayType(TypeEnum.NUMBER)),
                 BooleanLiteral.TRUE
         );
@@ -402,6 +422,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new IntegerLiteral(5)),
+                List.of("a"),
                 List.of(new ArrayType(TypeEnum.NUMBER)),
                 BooleanLiteral.TRUE
         );
@@ -428,6 +449,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(argument),
+                List.of("a"),
                 List.of(new ArrayType(TypeEnum.NUMBER)),
                 BooleanLiteral.TRUE
         );
@@ -448,6 +470,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(new StringLiteral("hello")),
+                List.of("a"),
                 List.of(TypeEnum.ANY),
                 BooleanLiteral.TRUE
         );
@@ -469,6 +492,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "test",
                 List.of(argument),
+                List.of("a"),
                 List.of(new ArrayType(TypeEnum.ANY)),
                 BooleanLiteral.TRUE
         );
@@ -483,6 +507,7 @@ public class UserFunctionTest {
         UserFunction invalidArgument = new UserFunction(
                 "inner",
                 List.of(new StringLiteral("not a number")),
+                List.of("a"),
                 List.of(TypeEnum.NUMBER),
                 BooleanLiteral.TRUE
         );
@@ -490,6 +515,7 @@ public class UserFunctionTest {
         UserFunction function = new UserFunction(
                 "outer",
                 List.of(invalidArgument),
+                List.of("a"),
                 List.of(TypeEnum.BOOLEAN),
                 BooleanLiteral.TRUE
         );

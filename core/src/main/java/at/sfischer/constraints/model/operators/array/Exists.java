@@ -25,6 +25,7 @@ public class Exists extends ArrayQuantifier {
 
         if(arrayValues != null){
             Value<?>[] elements = arrayValues.getValue();
+            condition = condition.evaluate();
             for (Value<?> element : elements) {
                 Node cond = condition.setVariableNameValue(ELEMENT_NAME, element);
                 Node result = cond.evaluate();
