@@ -43,4 +43,16 @@ public class UserFunctionCreator implements FunctionCreator {
 
         return new UserFunction(name, arguments, parameters, parameterTypes, node);
     }
+
+    public Node getNode() {
+        return node;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<String> getParameters() {
+        return parameters;
+    }
 }
