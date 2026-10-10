@@ -1,15 +1,13 @@
 package at.sfischer.constraints.parser.registry;
 
 import at.sfischer.constraints.model.Node;
+import at.sfischer.constraints.model.operators.DslFunctionCreator;
 import at.sfischer.constraints.model.operators.Function;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class FunctionRegistry {
@@ -61,15 +59,29 @@ public class FunctionRegistry {
 
     public static void autoRegister(String basePackage) {
         Reflections reflections = new Reflections(basePackage);
-
-        Set<Class<? extends Function>> classes =
-                reflections.getSubTypesOf(Function.class);
-
+        Set<Class<? extends Function>> classes = reflections.getSubTypesOf(Function.class);
         for (Class<? extends Function> clazz : classes) {
             if(Modifier.isAbstract(clazz.getModifiers())){
                 continue;
             }
+
             registerFunctionClass(clazz);
+        }
+
+        Set<Class<? extends DslFunctionCreator>> creatorClasses = reflections.getSubTypesOf(DslFunctionCreator.class);
+        for (Class<? extends DslFunctionCreator> clazz : creatorClasses) {
+            if(Modifier.isAbstract(clazz.getModifiers())){
+                continue;
+            }
+
+            try {
+                Constructor<?> constructor = clazz.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                DslFunctionCreator creator = (DslFunctionCreator) constructor.newInstance();
+                register(creator.getFunctionName(), creator);
+            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                LOGGER.warn("Could not register function creator class: {}", clazz.getCanonicalName(), e);
+            }
         }
     }
 

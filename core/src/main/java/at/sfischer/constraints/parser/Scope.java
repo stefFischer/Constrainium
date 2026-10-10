@@ -6,6 +6,7 @@ import at.sfischer.constraints.parser.registry.FunctionCreateException;
 import at.sfischer.constraints.parser.registry.FunctionCreator;
 import at.sfischer.constraints.parser.registry.FunctionRegistry;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,10 @@ public class Scope {
 
     public void register(String name, FunctionCreator creator) {
         functions.put(name.toLowerCase(), creator);
+    }
+
+    public Collection<FunctionCreator> getFunctions() {
+        return functions.values();
     }
 
     public FunctionCreator getCreator(String name) {

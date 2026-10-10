@@ -12,4 +12,6 @@ public interface ExtensionParserContext {
     Token consume(TokenKind type, String message) throws IOException, ParseException;
     void advance() throws IOException;
     Node parseExpression() throws IOException, ParseException;
+    void pushScope();
+    void popScope();
 }

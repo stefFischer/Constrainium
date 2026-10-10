@@ -15,6 +15,7 @@ import at.sfischer.constraints.model.operators.logic.NotOperator;
 import at.sfischer.constraints.model.operators.logic.OrOperator;
 import at.sfischer.constraints.model.operators.numbers.*;
 import at.sfischer.constraints.parser.registry.FunctionCreateException;
+import at.sfischer.constraints.parser.registry.FunctionCreator;
 import at.sfischer.constraints.parser.registry.FunctionRegistry;
 
 import java.io.IOException;
@@ -80,6 +81,16 @@ public class ConstraintDslParser implements ExtensionParserContext {
             return token;
         }
         throw new ParseException(message, current);
+    }
+
+    @Override
+    public void pushScope() {
+        this.scope = this.scope.push();
+    }
+
+    @Override
+    public void popScope() {
+        this.scope = this.scope.pop();
     }
 
     private boolean isAtEnd() {
@@ -195,7 +206,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
         consume(TokenType.LEFT_BRACE, "Expected '{'");
 
-        this.scope = this.scope.push();
+        pushScope();
 
         ConstraintPolicy groupPolicy = null;
         if (match(TokenType.POLICY)) {
@@ -221,7 +232,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
         consume(TokenType.RIGHT_BRACE, "Expected '}'");
 
-        this.scope = this.scope.pop();
+        popScope();
 
         return new GroupDefinition(name, constraints);
     }
@@ -462,6 +473,20 @@ public class ConstraintDslParser implements ExtensionParserContext {
         return ArrayValues.createArrayValuesFromList(elements);
     }
 
+    public FunctionCreator parseFunctionDefinitionOnly() throws IOException, ParseException {
+        parseFunctionDefinition();
+        if (!isAtEnd()) {
+            throw new ParseException("Expected end of input after function definition.", current);
+        }
+
+        FunctionCreator function = this.scope.getFunctions().iterator().next();
+        if (function == null) {
+            throw new ParseException("Function definition was not registered in the top-level scope.", current);
+        }
+
+        return function;
+    }
+
     private void parseFunctionDefinition() throws IOException, ParseException {
         consume(TokenType.FUNCTION,"Expected 'function' keyword");
         String name = consume(TokenType.IDENTIFIER, "Expected function name").getLexeme();
@@ -476,7 +501,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
         }
         consume(TokenType.RIGHT_PAREN, "Expected ')'");
         consume(TokenType.LEFT_BRACE, "Expected '{'");
-        this.scope = this.scope.push();
+        pushScope();
 
         while (check(TokenType.FUNCTION) && !isAtEnd()) {
             parseFunctionDefinition();
@@ -484,7 +509,7 @@ public class ConstraintDslParser implements ExtensionParserContext {
 
         Node node = parseExpression();
 
-        this.scope = this.scope.pop();
+        popScope();
         consume(TokenType.RIGHT_BRACE, "Expected '}'");
 
         this.scope.register(name, new UserFunctionCreator(node, name, parameters));
