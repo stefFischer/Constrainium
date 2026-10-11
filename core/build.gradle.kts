@@ -10,17 +10,17 @@ repositories {
 }
 
 dependencies {
-    implementation("org.json:json:20240303")
+    implementation("org.json:json:20260814")
     implementation("org.javatuples:javatuples:1.2")
 
     implementation("org.reflections:reflections:0.10.2")
 
-    implementation("com.fasterxml.jackson.core:jackson-core:2.19.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.19.0")
+    implementation("tools.jackson.core:jackson-core:3.2.3")
+    implementation("tools.jackson.core:jackson-databind:3.2.3")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.26.0")
+    testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.mockito:mockito-core:5.21.0")
 }
 

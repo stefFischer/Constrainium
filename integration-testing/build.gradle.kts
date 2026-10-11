@@ -20,7 +20,7 @@ dependencies {
 
     implementation(platform("org.junit:junit-bom:5.10.0"))
     implementation("org.junit.jupiter:junit-jupiter")
-    implementation("org.assertj:assertj-core:3.26.0")
+    testImplementation("org.assertj:assertj-core:3.27.7")
 
     testImplementation(project(":test-systems:TestSystemRunner"))
 }

@@ -1,12 +1,11 @@
 package at.sfischer.constraints.data;
 
 import at.sfischer.constraints.model.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
@@ -535,7 +534,7 @@ public class DataObject {
         return elementType;
     }
 
-    public String toJson() throws JsonProcessingException {
+    public String toJson() {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(toJsonValue());
     }
