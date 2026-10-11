@@ -14,13 +14,13 @@ dependencies {
 
     implementation("org.javatuples:javatuples:1.2")
 
-    implementation("io.swagger.parser.v3:swagger-parser:2.1.38")
+    implementation("io.swagger.parser.v3:swagger-parser:2.1.47")
 
     testImplementation(project(":test-systems:TestSystemRunner"))
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.26.0")
+    testImplementation("org.assertj:assertj-core:3.27.7")
 }
 
 tasks.test {

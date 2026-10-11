@@ -119,11 +119,7 @@ public class RestSystemDriver implements SystemDriver {
                     DataValue<?> rootValue = input.getDataValue(bodyName);
                     Object jsonObject = buildJsonFromSchema(schema, rootValue);
                     if(jsonObject instanceof DataObject){
-                        try {
-                            requestBody = ((DataObject) jsonObject).toJson();
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
+                        requestBody = ((DataObject) jsonObject).toJson();
                         break;
                     }
                     ObjectMapper mapper = new ObjectMapper();
