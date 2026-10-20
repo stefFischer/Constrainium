@@ -4,12 +4,15 @@ import at.sfischer.constraints.ConstraintConstruct;
 import at.sfischer.constraints.ConstraintTemplateFile;
 import at.sfischer.constraints.GroupDefinition;
 import at.sfischer.constraints.model.*;
+import at.sfischer.constraints.model.operators.Function;
 import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.numbers.*;
+import at.sfischer.constraints.parser.registry.FunctionCreator;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
@@ -650,5 +653,37 @@ class ConstraintDslParserTest {
 
         BooleanLiteral value = assertInstanceOf(BooleanLiteral.class, result);
         assertTrue(value.getValue());
+    }
+
+    @Test
+    public void testParseFunctionOnly() throws Exception {
+        String input = """
+            function len(x){
+                arrays.length(x)
+            }
+        """;
+
+        ConstraintDslScanner scanner = new ConstraintDslScanner(new StringReader(input));
+        ConstraintDslParser parser = new ConstraintDslParser(scanner);
+        FunctionCreator functionCreator = parser.parseFunctionDefinitionOnly();
+        Function function = functionCreator.create(List.of(new ArrayValues<>(TypeEnum.NUMBER, new IntegerLiteral[]{})));
+        Node result = function.evaluate();
+
+        IntegerLiteral value = assertInstanceOf(IntegerLiteral.class, result);
+        assertEquals(0, value.getValue());
+    }
+
+    @Test
+    public void testParseOnelineFunctionOnly() throws Exception {
+        String input = "function len(x){arrays.length(x)}";
+
+        ConstraintDslScanner scanner = new ConstraintDslScanner(new StringReader(input));
+        ConstraintDslParser parser = new ConstraintDslParser(scanner);
+        FunctionCreator functionCreator = parser.parseFunctionDefinitionOnly();
+        Function function = functionCreator.create(List.of(new ArrayValues<>(TypeEnum.NUMBER, new IntegerLiteral[]{})));
+        Node result = function.evaluate();
+
+        IntegerLiteral value = assertInstanceOf(IntegerLiteral.class, result);
+        assertEquals(0, value.getValue());
     }
 }

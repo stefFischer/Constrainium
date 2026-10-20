@@ -87,15 +87,19 @@ public class ConstraintDslScanner {
     }
 
     public Token nextToken() throws IOException {
-        if(isAtEnd()){
-            if(!lastTokenIsEOF()) {
-                tokens.add(new Token(TokenType.EOF, "", line, column));
-            }
-        } else {
+        if (lastTokenIsEOF()) {
+            return this.tokens.getLast();
+        }
+
+        int sizeBefore = tokens.size();
+        if (!isAtEnd()) {
             scanToken();
-            if(isAtEnd()){
-                tokens.add(new Token(TokenType.EOF, "", line, column));
-            }
+        }
+
+        if (tokens.size() == sizeBefore) {
+            // No token was produced, so the input only had trailing
+            // whitespace/comments left (or was already empty).
+            tokens.add(new Token(TokenType.EOF, "", line, column));
         }
 
         return this.tokens.getLast();
