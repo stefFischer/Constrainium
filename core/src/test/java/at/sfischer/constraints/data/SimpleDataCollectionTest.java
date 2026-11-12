@@ -1,5 +1,10 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.IConstraint;
+import at.sfischer.constraints.model.NumberLiteral;
+import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -121,5 +126,89 @@ public class SimpleDataCollectionTest {
 		} finally {
 			assertTrue(file.delete());
 		}
+	}
+
+	@Test
+	void filterKeepsMatchingEntries() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1}",
+				"{value:2}",
+				"{value:3}",
+				"{value:4}"
+		);
+
+		IConstraint constraint = new Constraint(
+				new GreaterThanOperator(
+						new Variable("value"),
+						new NumberLiteral(2)
+				)
+		);
+
+		DataCollection<DataObject> filtered = data.filter(constraint);
+
+		assertEquals(2, filtered.size());
+		assertEquals(
+				SimpleDataCollection.parseData("{value:3}", "{value:4}"),
+				filtered
+		);
+	}
+
+	@Test
+	void filterReturnsEmptyCollectionWhenNothingMatches() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1}",
+				"{value:2}"
+		);
+
+		IConstraint constraint = new Constraint(
+				new GreaterThanOperator(
+						new Variable("value"),
+						new NumberLiteral(10)
+				)
+		);
+
+		DataCollection<DataObject> filtered = data.filter(constraint);
+
+        assertEquals(0, filtered.size());
+	}
+
+	@Test
+	void filterReturnsAllEntriesWhenEverythingMatches() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1}",
+				"{value:2}",
+				"{value:3}"
+		);
+
+		IConstraint constraint = new Constraint(
+				new GreaterThanOperator(
+						new Variable("value"),
+						new NumberLiteral(0)
+				)
+		);
+
+		DataCollection<DataObject> filtered = data.filter(constraint);
+
+		assertEquals(data, filtered);
+	}
+
+	@Test
+	void filterDoesNotModifyOriginalCollection() {
+		SimpleDataCollection data = SimpleDataCollection.parseData(
+				"{value:1}",
+				"{value:2}",
+				"{value:3}"
+		);
+
+		IConstraint constraint = new Constraint(
+				new GreaterThanOperator(
+						new Variable("value"),
+						new NumberLiteral(1)
+				)
+		);
+
+		data.filter(constraint);
+
+		assertEquals(3, data.size());
 	}
 }
