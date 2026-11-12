@@ -17,6 +17,8 @@
             <option value="$PROJECT_DIR$/generator" />
             <option value="$PROJECT_DIR$/generator/random" />
             <option value="$PROJECT_DIR$/integration-testing" />
+            <option value="$PROJECT_DIR$/projects" />
+            <option value="$PROJECT_DIR$/projects/traceon" />
             <option value="$PROJECT_DIR$/test-systems" />
             <option value="$PROJECT_DIR$/test-systems/EMB" />
             <option value="$PROJECT_DIR$/test-systems/EMB/rest-ncs" />
