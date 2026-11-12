@@ -201,6 +201,28 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
     }
 
     @Override
+    public void visitDataObjects(DataObjectVisitor<Pair<DataObject, DataObject>> visitor) {
+        this.visitDataEntries((values, dataEntry) -> {
+            DataObject combinedDao = new DataObject();
+            combinedDao.putDataValues(dataEntry.getValue0());
+            combinedDao.putDataValues(dataEntry.getValue1());
+            visitor.visitDataValues(combinedDao, dataEntry);
+        });
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        InOutputDataCollection that = (InOutputDataCollection) o;
+        return Objects.equals(dataCollection, that.dataCollection);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(dataCollection);
+    }
+
+    @Override
     public void addDataEntry(Pair<DataObject, DataObject> dataEntry) {
         addDataEntry(dataEntry, InOutputDataSchema.INPUT_PREFIX, InOutputDataSchema.OUTPUT_PREFIX);
     }

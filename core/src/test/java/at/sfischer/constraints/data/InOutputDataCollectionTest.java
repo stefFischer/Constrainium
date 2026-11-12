@@ -1,5 +1,10 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.IConstraint;
+import at.sfischer.constraints.model.NumberLiteral;
+import at.sfischer.constraints.model.Variable;
+import at.sfischer.constraints.model.operators.numbers.GreaterThanOperator;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -77,5 +82,105 @@ public class InOutputDataCollectionTest {
         } finally {
             assertTrue(file.delete());
         }
+    }
+
+    @Test
+    void filterKeepsMatchingEntries() {
+        InOutputDataCollection data = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}"),
+                new Pair<>("{value:3}", "{result:4}"),
+                new Pair<>("{value:4}", "{result:1}")
+        );
+
+        IConstraint constraint = new Constraint(
+                new GreaterThanOperator(
+                        new Variable("output.result"),
+                        new NumberLiteral(2)
+                )
+        );
+
+        DataCollection<Pair<DataObject, DataObject>> filtered = data.filter(constraint);
+
+        assertEquals(2, filtered.size());
+    }
+
+    @Test
+    void filterReturnsEmptyCollectionWhenNothingMatches() {
+        InOutputDataCollection data = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}")
+        );
+
+        IConstraint constraint = new Constraint(
+                new GreaterThanOperator(
+                        new Variable("output.result"),
+                        new NumberLiteral(10)
+                )
+        );
+
+        DataCollection<Pair<DataObject, DataObject>> filtered = data.filter(constraint);
+
+        assertEquals(0, filtered.size());
+    }
+
+    @Test
+    void filterReturnsAllEntriesWhenEverythingMatches() {
+        InOutputDataCollection data = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}"),
+                new Pair<>("{value:3}", "{result:4}")
+        );
+
+        IConstraint constraint = new Constraint(
+                new GreaterThanOperator(
+                        new Variable("output.result"),
+                        new NumberLiteral(0)
+                )
+        );
+
+        DataCollection<Pair<DataObject, DataObject>> filtered = data.filter(constraint);
+
+        assertEquals(3, filtered.size());
+    }
+
+    @Test
+    void filterCanUseInputAndOutputValues() {
+        InOutputDataCollection data = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}"),
+                new Pair<>("{value:3}", "{result:2}")
+        );
+
+        IConstraint constraint = new Constraint(
+                new GreaterThanOperator(
+                        new Variable("output.result"),
+                        new Variable("input.value")
+                )
+        );
+
+        DataCollection<Pair<DataObject, DataObject>> filtered = data.filter(constraint);
+
+        assertEquals(2, filtered.size());
+    }
+
+    @Test
+    void filterDoesNotModifyOriginalCollection() {
+        InOutputDataCollection data = InOutputDataCollection.parseData(
+                new Pair<>("{value:1}", "{result:2}"),
+                new Pair<>("{value:2}", "{result:3}"),
+                new Pair<>("{value:3}", "{result:4}")
+        );
+
+        IConstraint constraint = new Constraint(
+                new GreaterThanOperator(
+                        new Variable("output.result"),
+                        new NumberLiteral(2)
+                )
+        );
+
+        data.filter(constraint);
+
+        assertEquals(3, data.size());
     }
 }

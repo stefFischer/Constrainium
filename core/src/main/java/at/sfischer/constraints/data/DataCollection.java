@@ -1,5 +1,8 @@
 package at.sfischer.constraints.data;
 
+import at.sfischer.constraints.Constraint;
+import at.sfischer.constraints.ConstraintResults;
+import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayOperation;
 import at.sfischer.constraints.model.operators.array.ForAll;
@@ -27,6 +30,8 @@ public abstract class DataCollection<T> {
     }
 
     public abstract void visitDataEntries(Set<String> fieldNames, DataEntryVisitor<T> visitor);
+
+    public abstract void visitDataObjects(DataObjectVisitor<T> visitor);
 
     public void addAll(DataCollection<T> collection){
         collection.visitDataEntries(new HashSet<>(), (values, dataEntry) -> addDataEntry(dataEntry));
@@ -164,4 +169,13 @@ public abstract class DataCollection<T> {
     }
 
     public abstract void toJsonl(File jsonl) throws IOException;
+
+    public DataCollection<T> filter(IConstraint constraint){
+        ConstraintResults<T> results = new ConstraintResults<>(constraint, this);
+        visitDataObjects((dataObject, dataEntry) -> {
+            constraint.evaluate(dataObject, dataEntry, results);
+        });
+
+        return results.validConstraintData();
+    }
 }

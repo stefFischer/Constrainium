@@ -41,6 +41,18 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleDataCollection that = (SimpleDataCollection) o;
+        return Objects.equals(dataCollection, that.dataCollection);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(dataCollection);
+    }
+
+    @Override
     public void addDataEntry(DataObject dataObject){
         dataCollection.add(dataObject);
     }
@@ -71,6 +83,11 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
             }
             visitor.visitDataValues(values, dataObject);
         }
+    }
+
+    @Override
+    public void visitDataObjects(DataObjectVisitor<DataObject> visitor) {
+        this.visitDataEntries((values, dataEntry) -> visitor.visitDataValues(dataEntry, dataEntry));
     }
 
     @Override
