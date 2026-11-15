@@ -18,6 +18,7 @@ public class TraceAbstractor implements TraceProcessor<Span, AbstractSpan> {
         AbstractSpan abstractRoot = applyAbstraction(root);
         if(abstractRoot == null){
             abstractRoot = new AbstractSpan(root.getName(), root.getKind());
+            abstractRoot.setSyntheticRoot(true);
         }
         abstractTrace(root, abstractRoot);
         return abstractRoot;
