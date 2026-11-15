@@ -24,3 +24,6 @@ include("test-systems:Rest:SpringPayrollTestSystem")
 findProject(":test-systems:Rest:SpringPayrollTestSystem")?.name = "SpringPayrollTestSystem"
 include("extensions:metamorphic-testing")
 findProject(":extensions:metamorphic-testing")?.name = "metamorphic-testing"
+
+include("projects:traceon")
+findProject(":projects:traceon")?.name = "traceon"
