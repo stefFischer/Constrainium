@@ -6,6 +6,8 @@ import at.sfischer.traces.otel.dataextraction.SpanData;
 
 public class AbstractSpan extends TraceNode<AbstractSpan> {
 
+    private boolean syntheticRoot;
+
     private SpanData spanData;
 
     public AbstractSpan(String name, String kind) {
@@ -18,6 +20,14 @@ public class AbstractSpan extends TraceNode<AbstractSpan> {
 
     public void setSpanData(SpanData spanData) {
         this.spanData = spanData;
+    }
+
+    public boolean isSyntheticRoot() {
+        return syntheticRoot;
+    }
+
+    public void setSyntheticRoot(boolean syntheticRoot) {
+        this.syntheticRoot = syntheticRoot;
     }
 
     @Override
