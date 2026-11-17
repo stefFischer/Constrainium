@@ -94,14 +94,14 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
         SimpleDataSchema outputSchema = null;
         for (Pair<DataObject, DataObject> pair : dataCollection) {
             if(inputSchema == null){
-                inputSchema = SimpleDataSchema.deriveFromData(getInputData(pair));
+                inputSchema = SimpleDataSchema.deriveFromData(getInputData(pair), typePromotionPolicy);
             } else {
-                inputSchema.unify(SimpleDataSchema.deriveFromData(getInputData(pair)), typePromotionPolicy);
+                inputSchema.unify(SimpleDataSchema.deriveFromData(getInputData(pair), typePromotionPolicy), typePromotionPolicy);
             }
             if(outputSchema == null){
-                outputSchema = SimpleDataSchema.deriveFromData(getOutputData(pair));
+                outputSchema = SimpleDataSchema.deriveFromData(getOutputData(pair), typePromotionPolicy);
             } else {
-                outputSchema.unify(SimpleDataSchema.deriveFromData(getOutputData(pair)), typePromotionPolicy);
+                outputSchema.unify(SimpleDataSchema.deriveFromData(getOutputData(pair), typePromotionPolicy), typePromotionPolicy);
             }
         }
 
@@ -202,12 +202,12 @@ public class InOutputDataCollection extends DataCollection<Pair<DataObject, Data
 
     @Override
     public void visitDataObjects(DataObjectVisitor<Pair<DataObject, DataObject>> visitor) {
-        this.visitDataEntries((values, dataEntry) -> {
+        for (Pair<DataObject, DataObject> dataEntry : this.dataCollection) {
             DataObject combinedDao = new DataObject();
             combinedDao.putDataValues(dataEntry.getValue0());
             combinedDao.putDataValues(dataEntry.getValue1());
             visitor.visitDataValues(combinedDao, dataEntry);
-        });
+        }
     }
 
     @Override

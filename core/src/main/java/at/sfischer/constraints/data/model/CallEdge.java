@@ -2,6 +2,7 @@ package at.sfischer.constraints.data.model;
 
 import at.sfischer.constraints.data.DataCollection;
 import at.sfischer.constraints.data.DataSchema;
+import at.sfischer.constraints.data.TypePromotionPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,11 @@ public abstract class CallEdge extends Edge {
         this.dataFlows.add(dataFlow);
     }
 
-    public abstract void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData);
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData){
+        inferDataFlows(traceId, fromData, to , toData, null);
+    }
+
+    public abstract void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy);
 
     public abstract DataSchema getSchema();
 }

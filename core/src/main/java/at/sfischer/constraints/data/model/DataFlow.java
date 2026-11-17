@@ -47,9 +47,9 @@ public class DataFlow {
         return dataFlows;
     }
 
-    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema, SimpleDataSchema toSchema){
+    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema, SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy){
         //noinspection unchecked
-        InOutputDataSchema<SimpleDataSchema> schema = (InOutputDataSchema<SimpleDataSchema>)dataCollection.deriveSchema();
+        InOutputDataSchema<SimpleDataSchema> schema = dataCollection.deriveSchema(typePromotionPolicy);
 
         schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
         schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));

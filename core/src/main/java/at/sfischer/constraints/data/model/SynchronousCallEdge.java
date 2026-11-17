@@ -17,7 +17,7 @@ public class SynchronousCallEdge extends CallEdge {
     }
 
     @Override
-    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData) {
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
         if(to instanceof SynchronousCallEdge){
             if(fromData instanceof InOutputDataCollection && toData instanceof InOutputDataCollection){
                 InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(
@@ -25,14 +25,14 @@ public class SynchronousCallEdge extends CallEdge {
                         ((InOutputDataCollection) toData).getOutputDataCollection()
                 );
                 DataFlow dataFlow = new DataFlow(traceId, to, this);
-                dataFlow.inferDataFlows(inOut, ((SynchronousCallEdge) to).getSchema().getOutputSchema(), this.schema.getOutputSchema());
+                dataFlow.inferDataFlows(inOut, ((SynchronousCallEdge) to).getSchema().getOutputSchema(), this.schema.getOutputSchema(), typePromotionPolicy);
                 to.addDataFlow(dataFlow);
             }
         }
 
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
         DataFlow dataFlow = new DataFlow(traceId, this, to);
-        dataFlow.inferDataFlows(inOut, schema.getInputSchema(), getSchema(to.getSchema()));
+        dataFlow.inferDataFlows(inOut, schema.getInputSchema(), getSchema(to.getSchema()), typePromotionPolicy);
         this.addDataFlow(dataFlow);
     }
 

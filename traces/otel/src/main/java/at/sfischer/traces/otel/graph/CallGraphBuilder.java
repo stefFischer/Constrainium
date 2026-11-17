@@ -1,6 +1,7 @@
 package at.sfischer.traces.otel.graph;
 
 import at.sfischer.constraints.data.InOutputDataCollection;
+import at.sfischer.constraints.data.TypePromotionPolicy;
 import at.sfischer.constraints.data.model.CallEdge;
 import at.sfischer.constraints.data.model.Edge;
 import at.sfischer.constraints.data.model.Graph;
@@ -20,6 +21,10 @@ public class CallGraphBuilder {
     }
 
     public Graph build(ClusteredAbstractSpan root) {
+        return build(root, null);
+    }
+
+    public Graph build(ClusteredAbstractSpan root, TypePromotionPolicy typePromotionPolicy) {
         String traceId = UUID.randomUUID().toString();
         Graph graph = new Graph();
         Map<ClusteredAbstractSpan, GraphFragment> fragmentMap = new IdentityHashMap<>();
@@ -28,7 +33,7 @@ public class CallGraphBuilder {
         fragmentMap.put(root, rootFragment);
         graph.addEntryNode(rootFragment.entryNode());
 
-        traverse(root, rootFragment, graph, fragmentMap, traceId);
+        traverse(root, rootFragment, graph, fragmentMap, traceId, typePromotionPolicy);
 
         return graph;
     }
@@ -42,7 +47,8 @@ public class CallGraphBuilder {
             GraphFragment parentFragment,
             Graph graph,
             Map<ClusteredAbstractSpan, GraphFragment> fragmentMap,
-            String traceId
+            String traceId,
+            TypePromotionPolicy typePromotionPolicy
     ) {
         for (ClusteredAbstractSpan childSpan : parentSpan.getChildren()) {
             GraphFragment childFragment = fragmentBuilder.buildFragment(childSpan, graph);
@@ -54,9 +60,9 @@ public class CallGraphBuilder {
                     graph
             );
 
-            inferDataFlows(parentSpan, parentFragment, childSpan, childFragment, edges, fragmentMap, traceId);
+            inferDataFlows(parentSpan, parentFragment, childSpan, childFragment, edges, fragmentMap, traceId, typePromotionPolicy);
 
-            traverse(childSpan, childFragment, graph, fragmentMap, traceId);
+            traverse(childSpan, childFragment, graph, fragmentMap, traceId, typePromotionPolicy);
         }
     }
 
@@ -71,7 +77,8 @@ public class CallGraphBuilder {
             GraphFragment childFragment,
             List<CallEdge> edges,
             Map<ClusteredAbstractSpan, GraphFragment> fragmentMap,
-            String traceId
+            String traceId,
+            TypePromotionPolicy typePromotionPolicy
     ) {
 
         InOutputDataCollection parentData = parentSpan.getSpanDataCollection();
@@ -82,7 +89,7 @@ public class CallGraphBuilder {
             }
 
             for (CallEdge targetEdge : edges) {
-                callEdge.inferDataFlows(traceId, parentData, targetEdge, childData);
+                callEdge.inferDataFlows(traceId, parentData, targetEdge, childData, typePromotionPolicy);
             }
         }
 
@@ -105,7 +112,7 @@ public class CallGraphBuilder {
                 }
 
                 for (CallEdge targetEdge : edges) {
-                    callEdge.inferDataFlows(traceId, sourceData, targetEdge, childData);
+                    callEdge.inferDataFlows(traceId, sourceData, targetEdge, childData, typePromotionPolicy);
                 }
             }
         }

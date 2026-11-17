@@ -377,16 +377,20 @@ public class SimpleDataSchema extends DataSchema {
     }
 
     public static SimpleDataSchema deriveFromData(DataObject dao){
+        return deriveFromData(dao, null);
+    }
+
+    public static SimpleDataSchema deriveFromData(DataObject dao, TypePromotionPolicy typePromotionPolicy){
         SimpleDataSchema schema = new SimpleDataSchema();
         for (String fieldName : dao.getFieldNames()) {
             DataValue<?> value = dao.getDataValue(fieldName);
-            schema.createEntry(fieldName, value);
+            schema.createEntry(fieldName, value, typePromotionPolicy);
         }
 
         return schema;
     }
 
-    private DataSchemaEntry<SimpleDataSchema> createEntry(String fieldName, DataValue<?> value){
+    private DataSchemaEntry<SimpleDataSchema> createEntry(String fieldName, DataValue<?> value, TypePromotionPolicy typePromotionPolicy){
         if(value.getType() instanceof TypeEnum) {
             switch ((TypeEnum) value.getType()){
                 case INTEGER:
@@ -424,7 +428,7 @@ public class SimpleDataSchema extends DataSchema {
                             if(nestedSchema == null){
                                 nestedSchema = schema;
                             } else {
-                                nestedSchema.unify(schema, null);
+                                nestedSchema.unify(schema, typePromotionPolicy);
                             }
                         }
 
