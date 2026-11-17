@@ -107,6 +107,73 @@ class OpenTelemetryJsonlParserTest {
         assertTrue(batches.isEmpty(), "A malformed file must not publish its valid prefix as a complete batch");
     }
 
+    @Test
+    void parsesPersistenceLogsAsSeparateEventsWithNanosecondTimestamps() {
+        Span span = parseOne("""
+                {"operationName":"kafka.consume","spanID":"span","startTime":1794222715392984,
+                 "logs":[
+                   {"timestamp":1794222715409033,"fields":[
+                     {"key":"event","type":"string","value":"order persisted"},
+                     {"key":"order_id","type":"string","value":"01a1c001-f201-7720-a7e5-9b1f6c3b4f88"},
+                     {"key":"cart_id","type":"string","value":"f56ac64e-2146-4166-9894-66d6fcf544fc"},
+                     {"key":"level","type":"string","value":"INFO"},
+                     {"key":"code@lineno","type":"int64","value":"90"}]},
+                   {"timestamp":1794222715410000,"fields":[
+                     {"key":"event","type":"string","value":"order published"},
+                     {"key":"order_id","type":"string","value":"another-order"}]}]}
+                """);
+        assertEquals(2, span.getEvents().size());
+        var persisted = span.getEvents().get(0);
+        assertEquals("order persisted", persisted.getName());
+        assertEquals(1794222715409033000L, persisted.getEpochNanos());
+        assertEquals("order persisted", persisted.getAttribute("event"));
+        assertEquals("01a1c001-f201-7720-a7e5-9b1f6c3b4f88", persisted.getAttribute("order_id"));
+        assertEquals("f56ac64e-2146-4166-9894-66d6fcf544fc", persisted.getAttribute("cart_id"));
+        assertEquals("INFO", persisted.getAttribute("level"));
+        assertEquals(Long.valueOf(90), persisted.<Object>getAttribute("code.lineno"));
+        assertEquals("order published", span.getEvents().get(1).getName());
+        assertEquals("another-order", span.getEvents().get(1).getAttribute("order_id"));
+        assertNull(span.getAttribute("order_id"));
+        assertEquals(1794222715392984L, span.getStart());
+    }
+
+    @Test
+    void decodesDeclaredLogTypesAndPreservesUnknownOrInvalidValues() {
+        Span span = parseOne("""
+                {"logs":[{"timestamp":100,"fields":[
+                  {"key":"count","type":"int64","value":4294967296},
+                  {"key":"ratio","type":"float64","value":"1.25"},
+                  {"key":"enabled","type":"bool","value":"true"},
+                  {"key":"disabled","type":"bool","value":false},
+                  {"key":"opaque","type":"binary","value":"AQID"},
+                  {"key":"badNumber","type":"int64","value":"not-a-number"},
+                  {"key":"badBoolean","type":"bool","value":"unknown"},
+                  {"key":"optional","type":"string","value":null}]}]}
+                """);
+        var event = span.getEvents().getFirst();
+        assertEquals("log", event.getName());
+        assertEquals(Long.valueOf(4294967296L), event.<Object>getAttribute("count"));
+        assertEquals(Double.valueOf(1.25), event.<Object>getAttribute("ratio"));
+        assertEquals(Boolean.TRUE, event.getAttribute("enabled"));
+        assertEquals(Boolean.FALSE, event.getAttribute("disabled"));
+        assertEquals("AQID", event.getAttribute("opaque"));
+        assertEquals("not-a-number", event.getAttribute("badNumber"));
+        assertEquals("unknown", event.getAttribute("badBoolean"));
+        assertNull(event.getAttribute("optional"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"logs\":[]}", "{\"logs\":null}"})
+    void acceptsSpansWithoutLogs(String record) {
+        assertTrue(parseOne(record).getEvents().isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"timestamp\":\"invalid\"}", "{\"timestamp\":9223372036854775807}"})
+    void rejectsMissingInvalidOrOverflowingLogTimestamps(String log) {
+        assertThrows(IllegalArgumentException.class, () -> parseOne("{\"logs\":[" + log + "]}"));
+    }
+
     private Span parseOne(String json) {
         List<Span> spans = new ArrayList<>();
         TraceListener<Span> listener = spans::addAll;

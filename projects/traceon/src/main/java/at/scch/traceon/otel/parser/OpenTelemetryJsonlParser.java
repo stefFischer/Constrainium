@@ -1,6 +1,7 @@
 package at.scch.traceon.otel.parser;
 
 import at.sfischer.traces.otel.Attributes;
+import at.sfischer.traces.otel.Event;
 import at.sfischer.traces.otel.Span;
 import at.sfischer.traces.otel.collector.TraceListener;
 import at.sfischer.traces.otel.parser.TraceParser;
@@ -135,6 +136,7 @@ public class OpenTelemetryJsonlParser implements TraceParser {
                 );
 
                 span.putAttributes(attributes);
+                parseLogs(spanNode.path("logs"), span);
                 spans.add(span);
             }
 
@@ -143,6 +145,65 @@ public class OpenTelemetryJsonlParser implements TraceParser {
         }
 
         listener.spansCollected(spans);
+    }
+
+    private void parseLogs(JsonNode logs, Span span) {
+        if (!logs.isArray()) {
+            return;
+        }
+        for (JsonNode log : logs) {
+            // Source timestamps are epoch microseconds; Event stores epoch nanoseconds.
+            // Do not silently turn missing/invalid timestamps into epoch zero.
+            long epochNanos;
+            try {
+                JsonNode timestamp = log.path("timestamp");
+                if (!timestamp.isIntegralNumber() && !timestamp.isTextual()) {
+                    throw new NumberFormatException("Expected an integer timestamp");
+                }
+                epochNanos = Math.multiplyExact(Long.parseLong(timestamp.asText()), 1_000L);
+            } catch (NumberFormatException | ArithmeticException e) {
+                throw new IllegalArgumentException("Invalid log timestamp for span " + span.getSpanId(), e);
+            }
+
+            Attributes attributes = new Attributes();
+            JsonNode fields = log.path("fields");
+            if (fields.isArray()) {
+                for (JsonNode field : fields) {
+                    String key = field.path("key").asText(null);
+                    if (key != null) {
+                        putLogAttribute(attributes, key.replace('@', '.'), field);
+                    }
+                }
+            }
+            Object eventName = attributes.get("event");
+            Event event = new Event(eventName instanceof String name && !name.isBlank() ? name : "log", epochNanos);
+            event.putAttributes(attributes);
+            span.addEvent(event);
+        }
+    }
+
+    private void putLogAttribute(Attributes attributes, String key, JsonNode field) {
+        JsonNode value = field.get("value");
+        if (value == null || value.isNull()) {
+            return;
+        }
+        try {
+            switch (field.path("type").asText()) {
+                case "int64" -> attributes.put(key, Long.parseLong(value.asText()));
+                case "float64" -> attributes.put(key, Double.parseDouble(value.asText()));
+                case "bool", "boolean" -> {
+                    String text = value.asText();
+                    if (!"true".equalsIgnoreCase(text) && !"false".equalsIgnoreCase(text)) {
+                        throw new IllegalArgumentException("Invalid boolean value");
+                    }
+                    attributes.put(key, Boolean.parseBoolean(text));
+                }
+                default -> putAttribute(attributes, key, value);
+            }
+        } catch (IllegalArgumentException e) {
+            // Preserve unparseable typed values instead of losing correlation data.
+            putAttribute(attributes, key, value);
+        }
     }
 
     private void putAttribute(
