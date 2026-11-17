@@ -95,6 +95,28 @@ class HttpUrlParameterExtractorTest {
         return new Span(name, "span", "trace", null, "server", "test", 0, 1);
     }
 
+    @Test
+    void infersRouteUsingTheSameParameterNamesAsDataExtraction() throws Exception {
+        Span span = span("GET /products/HAY-002");
+        span.getAttributes().put("url.path", "/products/HAY-002");
+        assertEquals("/products/{productId}", extractor.inferRoute(span));
+        assertEquals("HAY-002", tree(extractor.extract(span)).path("path_params").path("productId").asText());
+        span.getAttributes().put("url.path", "/carts/f56ac64e-2146-4166-9894-66d6fcf544fc/items/STRW-001");
+        assertEquals("/carts/{cartId}/items/{itemId}", extractor.inferRoute(span));
+    }
+
+    @Test
+    void prefersDeclaredRoutesAndDoesNotGeneralizeStaticPaths() {
+        Span span = span("GET");
+        span.getAttributes().put("url.full", "http://products:8080/products/HAY-002?quantity=1");
+        span.getAttributes().put("http.route", "/products/:sku");
+        assertEquals("/products/{sku}", extractor.inferRoute(span));
+        span.removeAttribute("http.route");
+        span.getAttributes().put("url.full", "http://products:8080/products?category=roughage");
+        assertEquals("/products", extractor.inferRoute(span));
+        assertNull(extractor.inferRoute(span("GET")));
+    }
+
     private JsonNode tree(DataObject data) throws Exception {
         assertNotNull(data);
         return json.readTree(data.toJson());

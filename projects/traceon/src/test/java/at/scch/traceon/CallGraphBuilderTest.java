@@ -13,6 +13,22 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CallGraphBuilderTest {
     @Test
+    void normalizesHttpNamesAndRoutesWithoutChangingOriginalSpans() {
+        for (String kind : List.of("server", "client")) {
+            var source = new at.sfischer.traces.otel.Span("GET /products/HAY-002", "span", "trace", null,
+                    kind, "product-service", 0, 1);
+            source.getAttributes().put("http.request.method", "GET");
+            source.getAttributes().put("url.path", "/products/HAY-002");
+            AbstractSpan result = Main.createHttpAbstractSpan(source);
+            assertEquals("GET /products/{productId}", result.getName());
+            assertEquals("/products/{productId}", result.getAttribute("http.route"));
+            assertEquals(kind, result.getKind());
+            assertEquals("GET /products/HAY-002", source.getName());
+            assertEquals("/products/HAY-002", source.getAttribute("url.path"));
+        }
+    }
+
+    @Test
     void buildsReachableGraphForAllTraceonSpanTypes() {
         AbstractSpan root = http("GET /checkout", "server", "checkout-service");
         AbstractSpan client = http("GET /products", "client", "checkout-service");
