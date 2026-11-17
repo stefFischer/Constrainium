@@ -10,7 +10,7 @@ export function createGraph(container: HTMLElement, model: Model, onSelect: (id:
       ...model.services.map(n => ({ data: { id: nodeId(n.id), label: n.name || n.id } })),
       ...model.edges.map(e => ({ data: { id: edgeId(e.id), originalId: e.id, source: nodeId(e.source), target: nodeId(e.target), label: `${e.id} · ${e.type.replace('-call', '')}` } })),
     ],
-    layout: { name: 'circle', padding: 35, radius: Math.max(110, model.services.length * 22) },
+    layout: { name: 'preset' },
     style: [
       { selector: 'node', style: { label: 'data(label)', shape: 'round-rectangle', width: 128, height: 46, 'background-color': '#e7effa', color: '#132c48', 'font-size': 13, 'font-weight': 'bold', 'text-valign': 'center', 'text-wrap': 'wrap', 'text-max-width': '116px', 'border-width': 1, 'border-color': '#bdcde2' } },
       { selector: 'edge', style: { label: 'data(label)', width: 2, 'curve-style': 'bezier', 'control-point-step-size': 65, 'target-arrow-shape': 'triangle', 'line-color': '#8b9eb7', 'target-arrow-color': '#8b9eb7', 'font-size': 10, color: '#405470', 'text-rotation': 'autorotate', 'text-background-color': '#f7f9fc', 'text-background-opacity': 1, 'text-background-padding': '3px' } },

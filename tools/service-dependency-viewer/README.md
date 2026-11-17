@@ -40,6 +40,16 @@ Direction defaults to **Both directions**, depth to **Direct**. Upstream follows
 
 Drag nodes to arrange them, drag the canvas to pan, scroll or use buttons to zoom, and use **Fit view** to fit. Selection changes preserve layout and viewport. Drag panel dividers to resize; focused dividers support arrow keys, Home and End. All actions have native keyboard controls. Schema expand buttons and headings toggle with Enter/Space; field buttons also support Left/Right to collapse/expand. Tab traverses visible fields and references.
 
+The **Layout** selector rearranges all services and fits the graph, preserving the selected edge, active field, and highlights:
+
+- **Hierarchy →** (default): Dagre arranges dependencies from left to right.
+- **Hierarchy ↓**: the same arrangement from top to bottom.
+- **Force-directed**: Cytoscape CoSE groups connected services using a spring simulation, useful for cyclic topologies.
+- **Circle**: services around a circle.
+- **Grid**: evenly spaced rows and columns.
+
+Hierarchical layouts support cycles by drawing feedback edges against the main direction; edge directions and connections are unchanged. Parallel edges, self-loops and disconnected services remain present. **Apply again** restores the chosen layout after manual dragging (force-directed can produce a different arrangement). **Fit view** changes only the viewport. The chosen layout stays selected when loading another file; ordinary selection, tracing and panel resizing never rerun it. Layouts run locally without animation or additional network requests.
+
 ## Export contract and assumptions
 
 Inspected `core/.../data/model/Graph.java`, its edge and flow classes, `SimpleDataSchema`, `InOutputDataSchema`, `DataSchemaEntry`, `TypeEnum`, and `GraphJsonExporter` plus its tests before implementation. No existing exported fixture was found among tracked project resources. This viewer consumes **the existing format**, not a new graph format:
@@ -60,7 +70,7 @@ Known gaps and deliberate assumptions:
 
 ## Modules
 
-`src/data/exportFormat.ts` defines validated exporter types; `adapter.ts` handles reference checks and normalization. `model.ts` defines the internal graph. `state.ts` synchronizes selection and navigation; `highlighting.ts` performs pure traversal. `graph/cytoscape.ts` owns Cytoscape construction, styles, resize observation, and cleanup. Components handle file feedback, graph controls, details, schemas, connections and resizable panels independently. Only model replacement recreates Cytoscape; selection updates classes.
+`src/data/exportFormat.ts` defines validated exporter types; `adapter.ts` handles reference checks and normalization. `model.ts` defines the internal graph. `state.ts` synchronizes selection and navigation; `highlighting.ts` performs pure traversal. `graph/cytoscape.ts` owns Cytoscape construction, styles, resize observation, and cleanup; `graph/layouts.ts` configures and runs the available layouts. Components handle file feedback, graph controls, details, schemas, connections and resizable panels independently. Only model replacement recreates Cytoscape; selection updates classes.
 
 ## Regenerate the sample
 
