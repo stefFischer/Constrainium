@@ -170,7 +170,7 @@ public class InOutputDataSchema<SCHEMA extends DataSchema> extends DataSchema {
     public <DS extends DataSchema, T> EvaluationResults<DS, T> evaluate(DataCollection<T> data, Map<DataSchemaEntry<DS>, Set<IConstraint>> constraints, Map<DataSchemaEntry<DS>, Set<IConstraint>> potentialConstraints) {
         EvaluationResults<DS, T> evaluationResults = new EvaluationResults<>();
 
-        data.visitDataEntries((values, dataEntry) -> {
+        data.visitDataObjects((values, dataEntry) -> {
             if(!(dataEntry instanceof Pair)){
                 return;
             }

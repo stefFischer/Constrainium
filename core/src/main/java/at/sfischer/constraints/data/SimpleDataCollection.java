@@ -87,7 +87,7 @@ public class SimpleDataCollection extends DataCollection<DataObject> {
 
     @Override
     public void visitDataObjects(DataObjectVisitor<DataObject> visitor) {
-        this.visitDataEntries((values, dataEntry) -> visitor.visitDataValues(dataEntry, dataEntry));
+        this.dataCollection.forEach(dataEntry -> visitor.visitDataValues(dataEntry, dataEntry));
     }
 
     @Override
