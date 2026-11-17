@@ -1,0 +1,441 @@
+{
+  "format" : "constrainium-call-graph",
+  "version" : 1,
+  "entryNodes" : [ "gateway" ],
+  "nodes" : [ {
+    "id" : "database",
+    "name" : "Orders Database",
+    "incoming" : [ "edge-0" ],
+    "outgoing" : [ ]
+  }, {
+    "id" : "events",
+    "name" : "Event Worker",
+    "incoming" : [ "edge-3", "edge-2" ],
+    "outgoing" : [ "edge-1", "edge-2" ]
+  }, {
+    "id" : "gateway",
+    "name" : "API Gateway",
+    "incoming" : [ "edge-1" ],
+    "outgoing" : [ "edge-4", "edge-5" ]
+  }, {
+    "id" : "inventory",
+    "name" : "Inventory",
+    "incoming" : [ "edge-6" ],
+    "outgoing" : [ ]
+  }, {
+    "id" : "isolated",
+    "name" : "Disconnected Service",
+    "incoming" : [ ],
+    "outgoing" : [ ]
+  }, {
+    "id" : "orders",
+    "name" : "Order Service",
+    "incoming" : [ "edge-4", "edge-5" ],
+    "outgoing" : [ "edge-6", "edge-0", "edge-3" ]
+  } ],
+  "edges" : [ {
+    "id" : "edge-0",
+    "kind" : "database-query",
+    "from" : "orders",
+    "to" : "database",
+    "schema" : "schema-0",
+    "dataFlows" : [ "flow-0" ],
+    "query" : "SELECT id FROM orders WHERE id = ?"
+  }, {
+    "id" : "edge-1",
+    "kind" : "dependency",
+    "from" : "events",
+    "to" : "gateway"
+  }, {
+    "id" : "edge-2",
+    "kind" : "dependency",
+    "from" : "events",
+    "to" : "events"
+  }, {
+    "id" : "edge-3",
+    "kind" : "asynchronous-call",
+    "from" : "orders",
+    "to" : "events",
+    "schema" : "schema-4",
+    "dataFlows" : [ "flow-1" ]
+  }, {
+    "id" : "edge-4",
+    "kind" : "synchronous-call",
+    "from" : "gateway",
+    "to" : "orders",
+    "schema" : "schema-5",
+    "dataFlows" : [ "flow-2", "flow-3", "flow-4" ]
+  }, {
+    "id" : "edge-5",
+    "kind" : "synchronous-call",
+    "from" : "gateway",
+    "to" : "orders",
+    "schema" : null,
+    "dataFlows" : [ ]
+  }, {
+    "id" : "edge-6",
+    "kind" : "synchronous-call",
+    "from" : "orders",
+    "to" : "inventory",
+    "schema" : "schema-9",
+    "dataFlows" : [ ]
+  } ],
+  "schemas" : [ {
+    "id" : "schema-0",
+    "kind" : "input-output",
+    "inputPrefix" : "input",
+    "outputPrefix" : "output",
+    "input" : "schema-1",
+    "output" : "schema-2",
+    "parentEntry" : null
+  }, {
+    "id" : "schema-1",
+    "kind" : "simple",
+    "entries" : [ "field-0" ],
+    "parentEntry" : "field-1"
+  }, {
+    "id" : "schema-2",
+    "kind" : "simple",
+    "entries" : [ "field-2" ],
+    "parentEntry" : "field-4"
+  }, {
+    "id" : "schema-3",
+    "kind" : "simple",
+    "entries" : [ "field-3" ],
+    "parentEntry" : "field-2"
+  }, {
+    "id" : "schema-4",
+    "kind" : "simple",
+    "entries" : [ "field-5" ],
+    "parentEntry" : null
+  }, {
+    "id" : "schema-5",
+    "kind" : "input-output",
+    "inputPrefix" : "request",
+    "outputPrefix" : "response",
+    "input" : "schema-6",
+    "output" : "schema-8",
+    "parentEntry" : null
+  }, {
+    "id" : "schema-6",
+    "kind" : "simple",
+    "entries" : [ "field-6", "field-7" ],
+    "parentEntry" : "field-11"
+  }, {
+    "id" : "schema-7",
+    "kind" : "simple",
+    "entries" : [ "field-8", "field-9", "field-10" ],
+    "parentEntry" : "field-7"
+  }, {
+    "id" : "schema-8",
+    "kind" : "simple",
+    "entries" : [ "field-12", "field-13" ],
+    "parentEntry" : "field-14"
+  }, {
+    "id" : "schema-9",
+    "kind" : "input-output",
+    "inputPrefix" : "input",
+    "outputPrefix" : "output",
+    "input" : "schema-10",
+    "output" : "schema-11",
+    "parentEntry" : null
+  }, {
+    "id" : "schema-10",
+    "kind" : "simple",
+    "entries" : [ "field-15" ],
+    "parentEntry" : "field-16"
+  }, {
+    "id" : "schema-11",
+    "kind" : "simple",
+    "entries" : [ "field-17" ],
+    "parentEntry" : "field-18"
+  } ],
+  "schemaEntries" : [ {
+    "id" : "field-0",
+    "name" : "id",
+    "qualifiedName" : "input.id",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-1",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-1",
+    "name" : "input",
+    "qualifiedName" : "input",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-0",
+    "nestedSchema" : "schema-1",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-2",
+    "name" : "rows",
+    "qualifiedName" : "output.rows",
+    "type" : {
+      "kind" : "ARRAY",
+      "elementType" : {
+        "kind" : "COMPLEXTYPE"
+      }
+    },
+    "mandatory" : false,
+    "parentSchema" : "schema-2",
+    "nestedSchema" : "schema-3",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-3",
+    "name" : "id",
+    "qualifiedName" : "output.rows.id",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-3",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-4",
+    "name" : "output",
+    "qualifiedName" : "output",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-0",
+    "nestedSchema" : "schema-2",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-5",
+    "name" : "id",
+    "qualifiedName" : "id",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-4",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-6",
+    "name" : "id",
+    "qualifiedName" : "request.id",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-6",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-7",
+    "name" : "products",
+    "qualifiedName" : "request.products",
+    "type" : {
+      "kind" : "ARRAY",
+      "elementType" : {
+        "kind" : "COMPLEXTYPE"
+      }
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-6",
+    "nestedSchema" : "schema-7",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-8",
+    "name" : "matrix",
+    "qualifiedName" : "request.products.matrix",
+    "type" : {
+      "kind" : "ARRAY",
+      "elementType" : {
+        "kind" : "ARRAY",
+        "elementType" : {
+          "kind" : "INTEGER"
+        }
+      }
+    },
+    "mandatory" : false,
+    "parentSchema" : "schema-7",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-9",
+    "name" : "quantity",
+    "qualifiedName" : "request.products.quantity",
+    "type" : {
+      "kind" : "INTEGER"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-7",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-10",
+    "name" : "sku",
+    "qualifiedName" : "request.products.sku",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-7",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-11",
+    "name" : "request",
+    "qualifiedName" : "request",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-5",
+    "nestedSchema" : "schema-6",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-12",
+    "name" : "id",
+    "qualifiedName" : "response.id",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-8",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-13",
+    "name" : "status",
+    "qualifiedName" : "response.status",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-8",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-14",
+    "name" : "response",
+    "qualifiedName" : "response",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-5",
+    "nestedSchema" : "schema-8",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-15",
+    "name" : "sku",
+    "qualifiedName" : "input.sku",
+    "type" : {
+      "kind" : "STRING"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-10",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-16",
+    "name" : "input",
+    "qualifiedName" : "input",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-9",
+    "nestedSchema" : "schema-10",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-17",
+    "name" : "available",
+    "qualifiedName" : "output.available",
+    "type" : {
+      "kind" : "BOOLEAN"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-11",
+    "nestedSchema" : null,
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  }, {
+    "id" : "field-18",
+    "name" : "output",
+    "qualifiedName" : "output",
+    "type" : {
+      "kind" : "COMPLEXTYPE"
+    },
+    "mandatory" : true,
+    "parentSchema" : "schema-9",
+    "nestedSchema" : "schema-11",
+    "constraints" : [ ],
+    "potentialConstraints" : [ ]
+  } ],
+  "dataFlows" : [ {
+    "id" : "flow-0",
+    "traceId" : "trace-order-001",
+    "from" : "edge-0",
+    "to" : "edge-4",
+    "mappings" : [ {
+      "from" : "field-3",
+      "to" : "field-12"
+    } ]
+  }, {
+    "id" : "flow-1",
+    "traceId" : "trace-cycle-002",
+    "from" : "edge-3",
+    "to" : "edge-4",
+    "mappings" : [ {
+      "from" : "field-5",
+      "to" : "field-12"
+    } ]
+  }, {
+    "id" : "flow-2",
+    "traceId" : "trace-order-001",
+    "from" : "edge-4",
+    "to" : "edge-6",
+    "mappings" : [ {
+      "from" : "field-10",
+      "to" : "field-15"
+    } ]
+  }, {
+    "id" : "flow-3",
+    "traceId" : "trace-order-001",
+    "from" : "edge-4",
+    "to" : "edge-0",
+    "mappings" : [ {
+      "from" : "field-6",
+      "to" : "field-0"
+    } ]
+  }, {
+    "id" : "flow-4",
+    "traceId" : "trace-order-001",
+    "from" : "edge-4",
+    "to" : "edge-3",
+    "mappings" : [ {
+      "from" : "field-12",
+      "to" : "field-5"
+    } ]
+  } ],
+  "objects" : [ ]
+}

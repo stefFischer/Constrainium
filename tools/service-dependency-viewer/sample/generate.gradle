@@ -1,0 +1,17 @@
+// Apply with: gradlew -I tools/service-dependency-viewer/sample/generate.gradle :core:generateViewerSample
+gradle.projectsEvaluated {
+    rootProject.project(':core') {
+        tasks.register('compileViewerSample', JavaCompile) {
+            dependsOn tasks.named('classes')
+            source = files(rootProject.file('tools/service-dependency-viewer/sample/GenerateSample.java'))
+            classpath = sourceSets.main.runtimeClasspath
+            destinationDirectory = layout.buildDirectory.dir('viewer-sample')
+        }
+        tasks.register('generateViewerSample', JavaExec) {
+            dependsOn tasks.named('compileViewerSample')
+            classpath = files(layout.buildDirectory.dir('viewer-sample')) + sourceSets.main.runtimeClasspath
+            mainClass = 'GenerateSample'
+            args rootProject.file('tools/service-dependency-viewer/public/sample.json').absolutePath
+        }
+    }
+}
