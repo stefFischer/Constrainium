@@ -50,6 +50,8 @@ The **Layout** selector rearranges all services and fits the graph, preserving t
 
 Hierarchical layouts support cycles by drawing feedback edges against the main direction; edge directions and connections are unchanged. Parallel edges, self-loops and disconnected services remain present. **Apply again** restores the chosen layout after manual dragging (force-directed can produce a different arrangement). **Fit view** changes only the viewport. The chosen layout stays selected when loading another file; ordinary selection, tracing and panel resizing never rerun it. Layouts run locally without animation or additional network requests.
 
+**Full screen**, at the far right of the graph controls, expands just the graph panel, including its layout and viewport controls. Use **Exit full screen** or the browser's Escape shortcut to return to the three-panel view. The canvas resizes automatically, preserving node positions, selection and highlighting; **Fit view** can fit the graph to the larger space. The button is disabled if the browser or embedding page does not support full screen, and rejected requests show an inline error.
+
 ## Export contract and assumptions
 
 Inspected `core/.../data/model/Graph.java`, its edge and flow classes, `SimpleDataSchema`, `InOutputDataSchema`, `DataSchemaEntry`, `TypeEnum`, and `GraphJsonExporter` plus its tests before implementation. No existing exported fixture was found among tracked project resources. This viewer consumes **the existing format**, not a new graph format:

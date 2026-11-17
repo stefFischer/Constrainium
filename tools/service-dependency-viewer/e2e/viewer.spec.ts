@@ -41,6 +41,52 @@ test('static build loads, navigates, resizes and replaces snapshots locally', as
   expect(errors).toEqual([]);
 });
 
+test('graph full screen resizes the canvas and preserves layout and tracing on exit', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Load sample' }).click();
+  await expect(page.getByText('6 services', { exact: true })).toBeVisible();
+  await page.getByRole('region', { name: 'Field connections' }).getByRole('button').filter({ hasText: 'rows[]' }).first().click();
+  const selectedEdge = await page.getByLabel('Select an edge').inputValue();
+  const state = () => page.locator('.graph').evaluate(el => {
+    const cy = (el as unknown as { _cyreg: { cy: import('cytoscape').Core } })._cyreg.cy;
+    return { width: cy.width(), height: cy.height(), positions: cy.nodes().map(n => n.position()), selected: cy.edges('.active').map(e => e.data('originalId')), related: cy.edges('.related').length };
+  });
+  const before = await state();
+  await page.getByRole('button', { name: 'Full screen', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Exit full screen', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => document.fullscreenElement?.classList.contains('graph-panel'))).toBe(true);
+  await expect.poll(async () => (await state()).width).toBeGreaterThan(before.width);
+  await expect.poll(async () => (await state()).height).toBeGreaterThan(before.height);
+  expect((await state()).positions).toEqual(before.positions);
+  expect((await state()).selected).toEqual([selectedEdge]);
+  expect((await state()).related).toBe(before.related);
+  await expect(page.getByRole('combobox', { name: 'Graph layout' })).toBeVisible();
+  await page.getByRole('button', { name: 'Exit full screen', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
+  await expect.poll(async () => (await state()).width).toBe(before.width);
+  await expect(page.getByLabel('Select an edge')).toHaveValue(selectedEdge);
+  expect((await state()).positions).toEqual(before.positions);
+  // Browser-driven exit must also update the toggle, without clicking it.
+  await page.getByRole('button', { name: 'Full screen', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Exit full screen', exact: true })).toBeVisible();
+  await page.evaluate(() => document.exitFullscreen());
+  await expect(page.getByRole('button', { name: 'Full screen', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  expect(errors).toEqual([]);
+});
+
+test('a rejected full-screen request displays an actionable error', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'fullscreenEnabled', { value: true });
+    Element.prototype.requestFullscreen = () => Promise.reject(new Error('Denied'));
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Full screen', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Check your browser');
+  await expect(page.getByRole('button', { name: 'Full screen', exact: true })).toBeEnabled();
+});
+
 test('layout changes preserve tracing and handle cycles, parallel edges and disconnected services', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
