@@ -49,7 +49,8 @@ describe('linked field navigation', () => {
     expect(screen.getByRole('button', { pressed: true }).dataset.field).toBe(field.id);
   });
   it('resets all selection and mode state on a valid replacement', () => {
-    const s = selectionReducer({ edge: 'e', field: 'f', direction: 'upstream', depth: 'transitive', navigation: 9 }, { type: 'reset' });
+    const s = selectionReducer({ edge: 'e', field: 'f', direction: 'upstream', depth: 'direct', navigation: 9 }, { type: 'reset' });
     expect(s).toEqual(initialSelection);
+    expect(s.depth).toBe('transitive');
   });
 });

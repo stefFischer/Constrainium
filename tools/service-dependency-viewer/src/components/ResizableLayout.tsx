@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
 export function ResizableLayout({ graph, details, connections }: { graph: ReactNode; details: ReactNode; connections: ReactNode }) {
-  const root = useRef<HTMLDivElement>(null), [left, setLeft] = useState(60), [top, setTop] = useState(65);
+  const root = useRef<HTMLDivElement>(null), [left, setLeft] = useState(70), [top, setTop] = useState(65);
   function separator(vertical: boolean) {
     const value = vertical ? left : top, change = vertical ? setLeft : setTop;
     const clamp = (n: number) => Math.max(25, Math.min(80, n));

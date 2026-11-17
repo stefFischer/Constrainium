@@ -6,6 +6,7 @@ test('static build loads, navigates, resizes and replaces snapshots locally', as
   await page.goto('/');
   await page.getByRole('button', { name: 'Load sample' }).click();
   await expect(page.getByText('6 services', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Transitive', { exact: true })).toBeChecked();
   await expect(page.locator('.graph canvas').first()).toBeVisible();
   // Cytoscape's container registry is used only to observe the actual rendered camera in this test.
   const camera = () => page.locator('.graph').evaluate(el => {
@@ -20,11 +21,11 @@ test('static build loads, navigates, resizes and replaces snapshots locally', as
   await expect(active).toBeFocused();
   expect(await camera()).toEqual(before);
   await expect(page.getByRole('button', { name: 'Collapse rows' })).toBeVisible();
-  await page.getByLabel('Transitive', { exact: true }).check();
+  await page.getByLabel('Direct', { exact: true }).check();
   await page.getByLabel('Downstream', { exact: true }).check();
   const divider = page.getByRole('separator', { name: 'Resize graph and details' });
   await divider.focus(); await divider.press('ArrowLeft');
-  await expect(divider).toHaveAttribute('aria-valuenow', '58');
+  await expect(divider).toHaveAttribute('aria-valuenow', '68');
   await page.getByRole('button', { name: 'Fit view' }).click();
   await page.getByLabel('Open GraphJsonExporter JSON file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"version":99}') });
   await expect(page.getByRole('alert')).toContainText('version');
@@ -32,7 +33,7 @@ test('static build loads, navigates, resizes and replaces snapshots locally', as
   await page.getByLabel('Open GraphJsonExporter JSON file').setInputFiles({ name: 'replacement.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(sample)) });
   await expect(page.getByRole('button', { pressed: true })).toHaveCount(0);
   await expect(page.getByLabel('Both directions')).toBeChecked();
-  await expect(page.getByLabel('Direct', { exact: true })).toBeChecked();
+  await expect(page.getByLabel('Transitive', { exact: true })).toBeChecked();
   await expect(page.getByRole('alert')).toHaveCount(0);
   await connections.getByRole('button').filter({ hasText: 'rows[]' }).first().click();
   await expect(page.getByRole('button', { pressed: true })).toBeFocused();
