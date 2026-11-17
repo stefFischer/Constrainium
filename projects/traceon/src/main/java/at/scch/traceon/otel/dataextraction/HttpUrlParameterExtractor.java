@@ -42,6 +42,27 @@ public class HttpUrlParameterExtractor {
         return extract(resolvePath(span), resolveRoute(span), resolveQueryString(span));
     }
 
+    /** Returns the declared route, or a route inferred using the same ID rules as extraction. */
+    public String inferRoute(Span span) {
+        String route = resolveRoute(span);
+        if (route != null) {
+            String[] segments = splitPath(route);
+            for (int i = 0; i < segments.length; i++) {
+                String parameter = extractParamName(segments[i]);
+                if (parameter != null) segments[i] = "{" + parameter + "}";
+            }
+            return "/" + String.join("/", segments);
+        }
+        String path = resolvePath(span);
+        if (path == null) return null;
+        String[] segments = splitPath(path);
+        String[] pattern = segments.clone();
+        for (int i = 0; i < segments.length; i++) {
+            if (isIdLike(segments[i])) pattern[i] = "{" + deriveParamName(segments, i) + "}";
+        }
+        return "/" + String.join("/", pattern);
+    }
+
     /** Extracts only URL business parameters from the matched request's :path header. */
     public DataObject extract(Span span, DataObject capture) {
         DataValue<?> headers = capture.getDataValue("headers");
