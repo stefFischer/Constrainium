@@ -56,6 +56,42 @@ class CallGraphBuilderTest {
     }
 
     @Test
+    void mergesHttpClientWithObservedServerEndpoint() {
+        AbstractSpan root = http("POST /checkout/{cartId}/pay", "server", "checkout-service");
+        root.getAttributes().put("http.request.method", "POST");
+        AbstractSpan client = http("GET /carts/123", "client", "checkout-service");
+        client.getAttributes().put("server.address", "cart.internal");
+        client.getAttributes().put("server.port", 8080);
+        AbstractSpan server = http("GET /carts/{cartId}", "server", "cart-service");
+        root.addChild(client);
+        client.addChild(server);
+
+        Graph graph = Main.CALL_GRAPH_BUILDER.build(new ClusteredAbstractSpan(root));
+        assertEquals(4, graph.getNodes().size());
+        GraphNode checkout = graph.getNodes().stream()
+                .filter(node -> node.getName().equals("checkout-service")).findFirst().orElseThrow();
+        GraphNode endpoint = checkout.getOutgoing().getFirst().getTo();
+        assertEquals("cart-service / GET /carts/{cartId}", endpoint.getName());
+        assertEquals("cart-service", endpoint.getOutgoing().getFirst().getTo().getName());
+        assertTrue(graph.getNodes().stream().flatMap(node -> node.getOutgoing().stream())
+                .allMatch(edge -> edge.getFrom() != edge.getTo()));
+    }
+
+    @Test
+    void preservesHttpClientWithoutObservedServer() {
+        AbstractSpan root = http("GET /checkout", "server", "checkout-service");
+        AbstractSpan client = http("GET /carts", "client", "checkout-service");
+        client.getAttributes().put("server.address", "cart-service");
+        client.getAttributes().put("server.port", 8080);
+        root.addChild(client);
+
+        Graph graph = Main.CALL_GRAPH_BUILDER.build(new ClusteredAbstractSpan(root));
+        assertEquals(3, graph.getNodes().size());
+        assertTrue(graph.getNodes().stream().anyMatch(node ->
+                node.getName().equals("checkout-service / cart-service / 8080 / GET /carts")));
+    }
+
+    @Test
     void doesNotMergeIdenticallyNamedEndpointsAcrossServices() {
         AbstractSpan root = http("GET /health", "server", "first-service");
         root.addChild(http("GET /health", "server", "second-service"));

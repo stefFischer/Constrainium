@@ -27,6 +27,15 @@ public final class TraceonSpanFragmentBuilders {
 
     public static final class HttpServer extends SynchronousBuilder {
         @Override
+        public List<CallEdge> connectFragments(GraphFragment parent, ClusteredAbstractSpan parentSpan,
+                                              GraphFragment child, ClusteredAbstractSpan childSpan, Graph graph) {
+            // The client already enters this endpoint. Continue into its service
+            // without introducing an endpoint-to-itself call.
+            if (parent.exitNode() == child.entryNode()) return child.internalEdges();
+            return super.connectFragments(parent, parentSpan, child, childSpan, graph);
+        }
+
+        @Override
         public TraceNodeMatch<ClusteredAbstractSpan> match() {
             return new KindMatch<ClusteredAbstractSpan>("server")
                     .and(new AttributeExistsMatch<>("http.request.method"));
@@ -51,6 +60,16 @@ public final class TraceonSpanFragmentBuilders {
 
         @Override
         public GraphFragment buildFragment(ClusteredAbstractSpan span, Graph graph) {
+            // Resolve the destination from the observed server, whose service name
+            // and route are authoritative (the client address may be a DNS alias).
+            List<ClusteredAbstractSpan> servers = span.getChildren().stream()
+                    .filter(child -> new HttpServer().match().matches(child).isMatch())
+                    .toList();
+            if (servers.size() == 1) {
+                ClusteredAbstractSpan server = servers.getFirst();
+                return new GraphFragment(node(graph, "http-server",
+                        attribute(server, "service.name", "unknown-service"), httpOperation(server)));
+            }
             String owner = attribute(span, "service.name", "unknown-service");
             String destination = attribute(span, "server.address", "unknown-destination");
             return new GraphFragment(node(graph, "http-client", owner, destination,
