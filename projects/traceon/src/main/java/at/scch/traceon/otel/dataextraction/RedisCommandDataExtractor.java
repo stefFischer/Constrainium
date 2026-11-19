@@ -7,6 +7,7 @@ import at.sfischer.constraints.data.DataValue;
 import at.sfischer.traces.otel.dataextraction.SpanData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
@@ -24,14 +25,14 @@ final class RedisCommandDataExtractor {
         this.decoder = decoder;
     }
 
-    SpanData enrich(DataCollection<DataObject> requests, DataCollection<DataObject> responses,
-                    DataObject input, DataObject output) {
+    SpanData enrich(DataCollection<DataObject> requests, DataCollection<DataObject> responses, DataObject input, DataObject output) {
         List<DataObject> requestList = ordered(requests);
         List<DataObject> responseList = ordered(responses);
         List<ObjectNode> commands = new ArrayList<>();
         for (DataObject request : requestList) {
             commands.add(describe(payload(request)));
         }
+
         List<ObjectNode> results = new ArrayList<>();
         // Missing/extra captures must not shift the positional correspondence.
         if (aligned(requestList, responseList)) {
@@ -44,6 +45,7 @@ final class RedisCommandDataExtractor {
                     transaction = null;
                     continue;
                 }
+
                 String name = command.path("command").asText();
                 if ("MULTI".equals(name)) {
                     transaction = reply.isTextual() && "OK".equals(reply.asText()) ? new ArrayList<>() : null;
@@ -67,6 +69,7 @@ final class RedisCommandDataExtractor {
                 addResult(results.get(i), reply);
             }
         }
+
         input = append(input, commands);
         output = append(output, results);
         return new SpanData(input, output);
@@ -75,9 +78,15 @@ final class RedisCommandDataExtractor {
     private static DataObject append(DataObject data, List<ObjectNode> commands) {
         List<DataObject> entries = new ArrayList<>();
         for (ObjectNode command : commands) {
-            if (command != null) entries.add(DataObject.parseData(command.toString()));
+            if (command != null){
+                entries.add(DataObject.parseData(command.toString()));
+            }
         }
-        if (entries.isEmpty()) return data;
+
+        if (entries.isEmpty()){
+            return data;
+        }
+
         // The legacy multi-capture wrapper is redundant only when every capture
         // has a usable command representation. Keep it for partial extraction.
         boolean complete = entries.size() == commands.size()
@@ -86,7 +95,10 @@ final class RedisCommandDataExtractor {
         if (complete && data != null && data.getDataValue("results") != null) {
             data = withoutResults(data);
         }
-        if (data == null) data = new DataObject();
+        if (data == null){
+            data = new DataObject();
+        }
+
         data.putValue("commands", entries.toArray(DataObject[]::new));
         return data;
     }
@@ -103,11 +115,15 @@ final class RedisCommandDataExtractor {
 
     private JsonNode payload(DataObject capture) {
         DataValue<?> value = capture.getDataValue("payload_inline");
-        if (value == null || !(value.getValue() instanceof String encoded)) return null;
+        if (value == null || !(value.getValue() instanceof String encoded)) {
+            return null;
+        }
+
         try {
             JsonNode decoded = JSON.readTree(decoder.decode(encoded).toJson());
             // DataObject omits JSON null fields, although RESP null is a valid reply.
-            return decoded.has("payload") ? decoded.get("payload")
+            return decoded.has("payload") ?
+                    decoded.get("payload")
                     : com.fasterxml.jackson.databind.node.NullNode.getInstance();
         } catch (Exception ignored) {
             // The original extraction retains decoding errors; do not invent a command.
@@ -116,12 +132,14 @@ final class RedisCommandDataExtractor {
     }
 
     private static ObjectNode describe(JsonNode payload) {
-        if (payload == null || !payload.isArray() || payload.isEmpty() || !payload.get(0).isTextual()) return null;
+        if (payload == null || !payload.isArray() || payload.isEmpty() || !payload.get(0).isTextual()){
+            return null;
+        }
+
         ObjectNode command = JSON.createObjectNode();
         String name = payload.get(0).asText().toUpperCase(Locale.ROOT);
         command.put("command", name);
-        command.set("arguments", JSON.createArrayNode().addAll(
-                java.util.stream.IntStream.range(1, payload.size()).mapToObj(payload::get).toList()));
+        command.set("arguments", JSON.createArrayNode().addAll(java.util.stream.IntStream.range(1, payload.size()).mapToObj(payload::get).toList()));
         switch (name) {
             case "GET", "HGETALL", "TTL", "PTTL", "INCR", "DECR", "PERSIST", "TYPE" -> role(command, payload, 1, "key");
             case "HGET", "HEXISTS" -> {
@@ -160,11 +178,15 @@ final class RedisCommandDataExtractor {
             }
             default -> { /* Unknown commands retain all positional arguments. */ }
         }
+
         return command;
     }
 
     private static void role(ObjectNode command, JsonNode payload, int index, String name) {
-        if (index >= payload.size()) return;
+        if (index >= payload.size()){
+            return;
+        }
+
         JsonNode value = payload.get(index);
         if (name.equals("increment") || name.startsWith("timeout_") || name.startsWith("unix_time_")) {
             try {
@@ -172,14 +194,19 @@ final class RedisCommandDataExtractor {
                 return;
             } catch (NumberFormatException ignored) { /* Retain malformed arguments verbatim. */ }
         }
+
         command.set(name, value);
     }
 
     private static void addResult(ObjectNode command, JsonNode reply) {
-        if (reply.isNull()) command.put("result_is_null", true);
-        else command.set("result", reply);
+        if (reply.isNull()){
+            command.put("result_is_null", true);
+        } else {
+            command.set("result", reply);
+        }
+
         if ("HGETALL".equals(command.path("command").asText())) {
-            var entries = JSON.createArrayNode();
+            ArrayNode entries = JSON.createArrayNode();
             if (reply.isArray() && reply.size() % 2 == 0) {
                 for (int i = 0; i < reply.size(); i += 2) {
                     ObjectNode entry = entries.addObject();
@@ -204,13 +231,19 @@ final class RedisCommandDataExtractor {
     }
 
     private static boolean aligned(List<DataObject> requests, List<DataObject> responses) {
-        if (requests.size() != responses.size()) return false;
+        if (requests.size() != responses.size()) {
+            return false;
+        }
+
         for (int i = 0; i < requests.size(); i++) {
             DataObject request = requests.get(i), response = responses.get(i);
             if (connection(request).isEmpty() || header(request, "redis.command").isEmpty()
                     || !Objects.equals(connection(request), connection(response))
-                    || !header(request, "redis.command").equalsIgnoreCase(header(response, "redis.command"))) return false;
+                    || !header(request, "redis.command").equalsIgnoreCase(header(response, "redis.command"))){
+                return false;
+            }
         }
+
         return true;
     }
 
@@ -218,16 +251,24 @@ final class RedisCommandDataExtractor {
         DataValue<?> attributes = capture.getDataValue("attributes");
         if (attributes != null && attributes.getValue() instanceof DataObject object) {
             String id = text(object, "envoy.connection_id");
-            if (!id.isEmpty()) return id;
+            if (!id.isEmpty()) {
+                return id;
+            }
         }
+
         return text(capture, "trace_id");
     }
 
     private static String header(DataObject capture, String name) {
         DataValue<?> headers = capture.getDataValue("headers");
         if (headers != null && headers.getValue() instanceof DataObject[] entries) {
-            for (DataObject entry : entries) if (name.equals(text(entry, "name"))) return text(entry, "value");
+            for (DataObject entry : entries){
+                if (name.equals(text(entry, "name"))){
+                    return text(entry, "value");
+                }
+            }
         }
+
         return "";
     }
 
