@@ -29,8 +29,7 @@ public class HttpUrlParameterExtractor {
     private static final String URL_FULL = "url.full";
     private static final String HTTP_ROUTE = "http.route";
 
-    private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     /**
      * Extracts path and query parameters from an HTTP span.
@@ -53,13 +52,18 @@ public class HttpUrlParameterExtractor {
             }
             return "/" + String.join("/", segments);
         }
+
         String path = resolvePath(span);
-        if (path == null) return null;
+        if (path == null){
+            return null;
+        }
+
         String[] segments = splitPath(path);
         String[] pattern = segments.clone();
         for (int i = 0; i < segments.length; i++) {
             if (isIdLike(segments[i])) pattern[i] = "{" + deriveParamName(segments, i) + "}";
         }
+
         return "/" + String.join("/", pattern);
     }
 
@@ -69,6 +73,7 @@ public class HttpUrlParameterExtractor {
         if (headers == null || !(headers.getValue() instanceof DataObject[] entries)) {
             return null;
         }
+
         for (DataObject header : entries) {
             DataValue<?> name = header.getDataValue("name");
             DataValue<?> value = header.getDataValue("value");
@@ -80,12 +85,12 @@ public class HttpUrlParameterExtractor {
                 return extract(path, resolveRoute(span), query);
             }
         }
+
         return null;
     }
 
     private DataObject extract(String path, String route, String queryString) {
         DataObject result = new DataObject();
-
         Map<String, String> pathParams = null;
         if (path != null && route != null) {
             pathParams = extractPathParams(path, route);
@@ -187,21 +192,21 @@ public class HttpUrlParameterExtractor {
         if (path.contains("{")) {
             return true;
         }
+
         // Match :param segments (e.g. /carts/:cartId) but not :port in URLs
         for (String segment : splitPath(path)) {
             if (segment.startsWith(":")) {
                 return true;
             }
         }
+
         return false;
     }
 
     private Map<String, String> extractPathParams(String path, String route) {
         Map<String, String> params = new LinkedHashMap<>();
-
         String[] pathSegments = splitPath(path);
         String[] routeSegments = splitPath(route);
-
         if (pathSegments.length != routeSegments.length) {
             return params;
         }
@@ -266,6 +271,7 @@ public class HttpUrlParameterExtractor {
         if (index > 0 && !isIdLike(segments[index - 1])) {
             return singularize(camelCase(segments[index - 1])) + "Id";
         }
+
         return "param" + index;
     }
 
@@ -277,6 +283,7 @@ public class HttpUrlParameterExtractor {
         if (word.length() > 3 && word.endsWith("s") && !word.endsWith("ss")) {
             return word.substring(0, word.length() - 1);
         }
+
         return word;
     }
 
@@ -294,6 +301,7 @@ public class HttpUrlParameterExtractor {
                 sb.append(c);
             }
         }
+
         return sb.toString();
     }
 
@@ -302,6 +310,7 @@ public class HttpUrlParameterExtractor {
         if (trimmed.isEmpty()) {
             return new String[0];
         }
+
         return trimmed.split("/");
     }
 
@@ -309,15 +318,16 @@ public class HttpUrlParameterExtractor {
         if (segment.startsWith("{") && segment.endsWith("}")) {
             return segment.substring(1, segment.length() - 1);
         }
+
         if (segment.startsWith(":")) {
             return segment.substring(1);
         }
+
         return null;
     }
 
     private Map<String, String> parseQueryString(String queryString) {
         Map<String, String> params = new LinkedHashMap<>();
-
         for (String pair : queryString.split("&")) {
             if (pair.isEmpty()) {
                 continue;

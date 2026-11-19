@@ -39,6 +39,7 @@ public class HttpSpanDataExtractor extends AbstractSpanDataExtractor {
                 capturedParams.putDataValues(parameters);
             }
         });
+
         if (!capturedParams.getFieldNames().isEmpty()) {
             if (urlParams == null) {
                 urlParams = capturedParams;

@@ -24,8 +24,10 @@ public class KafkaSpanDataFinder extends SpanDataFinder<DataObject> {
         StringLiteral traceId = new StringLiteral(span.getTraceId() == null ? "" : span.getTraceId());
         return new Constraint(and(
                 equal("source_kind", "kafka_record"),
-                and(equal("span_id", span.getSpanId()),
-                        new StringEquals(new FirstValue(new Variable("trace_id"), traceId), traceId))
+                and(
+                        equal("span_id", span.getSpanId()),
+                        new StringEquals(new FirstValue(new Variable("trace_id"), traceId), traceId)
+                )
         ));
     }
 }
