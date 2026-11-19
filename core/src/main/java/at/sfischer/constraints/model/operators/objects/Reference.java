@@ -12,8 +12,15 @@ public class Reference extends Function  {
 
     private static final String FUNCTION_NAME = "objects.reference";
 
+    private final Type returnType;
+
     public Reference(Node object, StringLiteral reference) {
+        this(object, reference, TypeEnum.ANY);
+    }
+
+    public Reference(Node object, StringLiteral reference, Type returnType) {
         super(FUNCTION_NAME, object, reference);
+        this.returnType = returnType;
     }
 
     @Override
@@ -68,7 +75,7 @@ public class Reference extends Function  {
 
     @Override
     public Type getReturnType() {
-        return TypeEnum.ANY;
+        return returnType;
     }
 
     @Override
@@ -78,6 +85,6 @@ public class Reference extends Function  {
 
     @Override
     public Node setVariableValues(Map<Variable, Node> values) {
-        return new Reference(getParameter(0).setVariableValues(values), (StringLiteral) getParameter(1));
+        return new Reference(getParameter(0).setVariableValues(values), (StringLiteral) getParameter(1), returnType);
     }
 }
