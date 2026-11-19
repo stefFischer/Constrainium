@@ -88,7 +88,7 @@ class CallGraphBuilderTest {
         Graph graph = Main.CALL_GRAPH_BUILDER.build(new ClusteredAbstractSpan(root));
         assertEquals(3, graph.getNodes().size());
         assertTrue(graph.getNodes().stream().anyMatch(node ->
-                node.getName().equals("checkout-service / cart-service / 8080 / GET /carts")));
+                node.getName().equals("cart-service / GET /carts")));
     }
 
     @Test
