@@ -47,7 +47,7 @@ public final class TraceonSpanFragmentBuilders {
         public GraphFragment buildFragment(ClusteredAbstractSpan span, Graph graph) {
             String service = attribute(span, "service.name", "unknown-service");
             String endpoint = httpOperation(span);
-            GraphNode entry = node(graph, "http-server", service, endpoint);
+            GraphNode entry = node(graph, "http-server", "endpoint", service, endpoint);
             GraphNode exit = service(graph, service);
             return new GraphFragment(entry, exit, List.of(new SynchronousCallEdge(entry, exit, schema(span))));
         }
@@ -69,13 +69,13 @@ public final class TraceonSpanFragmentBuilders {
                     .toList();
             if (servers.size() == 1) {
                 ClusteredAbstractSpan server = servers.getFirst();
-                return new GraphFragment(node(graph, "http-server",
+                return new GraphFragment(node(graph, "http-server", "endpoint",
                         attribute(server, "service.name", "unknown-service"), httpOperation(server)));
             }
 
             String destination = attribute(span, "server.address", "unknown-destination");
             return new GraphFragment(
-                    node(graph, "http-client", destination, httpOperation(span))
+                    node(graph, "http-client", "endpoint", destination, httpOperation(span))
             );
         }
     }
@@ -96,7 +96,7 @@ public final class TraceonSpanFragmentBuilders {
         public GraphFragment buildFragment(ClusteredAbstractSpan span, Graph graph) {
             // No address is guaranteed in these captures. Scope by owning service
             // rather than merging every unnamed database into one shared node.
-            return new GraphFragment(node(graph, "database", kind,
+            return new GraphFragment(node(graph, "database", "database", kind,
                     attribute(span, "db.name", "default")));
         }
     }
@@ -114,7 +114,7 @@ public final class TraceonSpanFragmentBuilders {
                     "messaging.destination.name",
                     attribute(span, "messaging.destination", "unknown-topic")
             );
-            GraphNode topicNode = node(graph, "kafka-topic", topic);
+            GraphNode topicNode = node(graph, "kafka-topic", "kafka-topic", topic);
             if ("producer".equalsIgnoreCase(span.getKind())) {
                 GraphNode serviceNode = service(graph, attribute(span, "service.name", "unknown-service"));
                 SimpleDataSchema inputSchema = span.getSpanDataCollection().getInputDataCollection().deriveSchema(new TraceonTypePromotionPolicy());
@@ -163,16 +163,16 @@ public final class TraceonSpanFragmentBuilders {
     }
 
     private static GraphNode service(Graph graph, String name) {
-        return node(graph, "service", name);
+        return node(graph, "service", "service", name);
     }
 
-    private static GraphNode node(Graph graph, String type, String... parts) {
+    private static GraphNode node(Graph graph, String idCategory, String type, String... parts) {
         // Length prefixes keep IDs distinct even when names contain separators.
-        StringBuilder id = new StringBuilder(type);
+        StringBuilder id = new StringBuilder(idCategory);
         for (String part : parts){
             id.append(':').append(part.length()).append(':').append(part);
         }
 
-        return graph.getOrCreateNode(new GraphNode(id.toString(), String.join(" / ", parts)));
+        return graph.getOrCreateNode(new GraphNode(id.toString(), String.join(" / ", parts), type));
     }
 }
