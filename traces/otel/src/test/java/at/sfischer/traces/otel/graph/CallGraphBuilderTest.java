@@ -269,19 +269,24 @@ public class CallGraphBuilderTest {
     }
 
     @Test
-    void insertEdgeDataFlowMapsIdFromRootOutput() {
+    void insertReceivesNameAndPriceFromTheRootRequest() {
         Graph graph = builder().build(buildProductServiceTrace());
 
         DatabaseQueryEdge insertEdge = findEdgeByQuery(graph,
                 "insert into product (name,price,id) values (?,?,?)");
 
-        // DataFlow maps source DataSchemaEntry → target DataSchemaEntry
-        // The INSERT input schema should receive "id" mapped from the root output
-        boolean hasIdMapping = insertEdge.getDataFlows().stream()
-                .flatMap(df -> df.getDataFlows().entrySet().stream())
-                .anyMatch(entry -> entry.getValue().name.equals("id"));
+        SynchronousCallEdge rootEdge = (SynchronousCallEdge) graph.getEntryNodes().iterator().next().getOutgoing().getFirst();
+        InOutputDataSchema<SimpleDataSchema> rootSchema = rootEdge.getSchema();
+        DataSchemaEntry<SimpleDataSchema> insertedName = insertEdge.getSchema().getInputSchema().findDataSchemaEntry("name");
+        DataSchemaEntry<SimpleDataSchema> insertedPrice = insertEdge.getSchema().getInputSchema().findDataSchemaEntry("price");
+        List<DataFlow> flows = rootEdge.getDataFlowsTo(insertEdge);
 
-        assertThat(hasIdMapping).isTrue();
+        assertThat(flows).anyMatch(flow ->
+                flow.getDataFlows().get(rootSchema.getInputSchema().findDataSchemaEntry("name")) == insertedName);
+        assertThat(flows).anyMatch(flow ->
+                flow.getDataFlows().get(rootSchema.getInputSchema().findDataSchemaEntry("price")) == insertedPrice);
+        assertThat(flows).allMatch(flow ->
+                !flow.getDataFlows().containsKey(rootSchema.getOutputSchema().findDataSchemaEntry("id")));
     }
 
     @Test

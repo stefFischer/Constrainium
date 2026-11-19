@@ -62,6 +62,8 @@ public class CallGraphBuilder {
 
             inferDataFlows(parentSpan, parentFragment, childSpan, childFragment, edges, fragmentMap, traceId, typePromotionPolicy);
 
+            inferFlowsIntoChildFragment(childSpan, childFragment, edges, traceId, typePromotionPolicy);
+
             traverse(childSpan, childFragment, graph, fragmentMap, traceId, typePromotionPolicy);
         }
     }
@@ -69,6 +71,27 @@ public class CallGraphBuilder {
     // -------------------------------------------------------------------------
     // Data flow inference
     // -------------------------------------------------------------------------
+
+    private void inferFlowsIntoChildFragment(
+            ClusteredAbstractSpan childSpan,
+            GraphFragment childFragment,
+            List<CallEdge> connectingEdges,
+            String traceId,
+            TypePromotionPolicy typePromotionPolicy
+    ) {
+        InOutputDataCollection childData = childSpan.getSpanDataCollection();
+        for (CallEdge connectingEdge : connectingEdges) {
+            // A shared boundary can make the connector an internal edge already.
+            if (childFragment.internalEdges().contains(connectingEdge)) {
+                continue;
+            }
+            for (CallEdge internalEdge : childFragment.internalEdges()) {
+                if (connectingEdge.getTo() == internalEdge.getFrom()) {
+                    connectingEdge.inferDataFlows(traceId, childData, internalEdge, childData, typePromotionPolicy);
+                }
+            }
+        }
+    }
 
     private void inferDataFlows(
             ClusteredAbstractSpan parentSpan,
