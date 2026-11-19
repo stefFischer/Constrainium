@@ -127,18 +127,21 @@ public final class TraceonSpanFragmentBuilders {
         }
 
         @Override
-        public List<CallEdge> connectFragments(GraphFragment parent, ClusteredAbstractSpan parentSpan,
-                                              GraphFragment child, ClusteredAbstractSpan childSpan, Graph graph) {
+        public List<CallEdge> connectFragments(
+                GraphFragment parent,
+                ClusteredAbstractSpan parentSpan,
+                GraphFragment child,
+                ClusteredAbstractSpan childSpan,
+                Graph graph
+        ) {
             // Producer and consumer fragments may share the same topic node.
             if (parent.exitNode() == child.entryNode()){
                 return child.internalEdges();
             }
 
-            SimpleDataSchema payloadSchema = (
-                    "producer".equalsIgnoreCase(childSpan.getKind()) ?
-                            childSpan.getSpanDataCollection().getOutputDataCollection() :
-                            parentSpan.getSpanDataCollection().getOutputDataCollection()
-            ).deriveSchema(new TraceonTypePromotionPolicy());
+            SimpleDataSchema payloadSchema = childSpan.getSpanDataCollection()
+                    .getInputDataCollection()
+                    .deriveSchema(new TraceonTypePromotionPolicy());
 
             return List.of(new AsynchronousCallEdge(parent.exitNode(), child.entryNode(), payloadSchema));
         }

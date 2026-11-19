@@ -12,7 +12,7 @@ import at.sfischer.traces.otel.dataextraction.SpanData;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Matches Kafka records to the span in whose context they were published. */
+/** Extracts the Kafka record payloads matched by the data finder. */
 public class KafkaSpanDataExtractor implements DataExtractor {
     private final KafkaSpanDataFinder dataFinder;
 
@@ -49,7 +49,7 @@ public class KafkaSpanDataExtractor implements DataExtractor {
             data = new DataObject();
             data.putValue("results", payloads.toArray(DataObject[]::new));
         }
-        // The IDs describe publication, not consumption, regardless of span kind.
+        // Preserve the input-data convention used for Kafka call edges.
         return new SpanData(data, null);
     }
 
