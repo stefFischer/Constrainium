@@ -66,7 +66,7 @@ public final class GraphJsonExporter {
 
         Map<String, Object> document() {
             List<Map<String, Object>> nodeRows = new ArrayList<>();
-            for (GraphNode node : nodes) nodeRows.add(row("id", node.getId(), "name", node.getName(),
+            for (GraphNode node : nodes) nodeRows.add(row("id", node.getId(), "name", node.getName(), "type", node.getType(),
                     "incoming", node.getIncoming().stream().map(edgeIds::get).toList(),
                     "outgoing", node.getOutgoing().stream().map(edgeIds::get).toList()));
             List<Map<String, Object>> edgeRows = new ArrayList<>();

@@ -28,8 +28,8 @@ class GraphJsonExporterTest {
     @Test
     void preservesTopologyParallelEdgesCyclesAndEscapedLabels() {
         Graph graph = new Graph();
-        GraphNode first = graph.getOrCreateNode(new GraphNode("a", "Grün \"service\"\n"));
-        GraphNode second = graph.getOrCreateNode(new GraphNode("b", "database"));
+        GraphNode first = graph.getOrCreateNode(new GraphNode("a", "Grün \"service\"\n", "service"));
+        GraphNode second = graph.getOrCreateNode(new GraphNode("b", "database", "database"));
         graph.getOrCreateNode(new GraphNode("isolated", "isolated"));
         graph.addEntryNode(first);
         graph.addEntryNode(second);
@@ -47,6 +47,9 @@ class GraphJsonExporterTest {
         assertEquals(2, document.getJSONArray("entryNodes").length());
         Map<String, JSONObject> nodes = index(document.getJSONArray("nodes"));
         assertEquals(first.getName(), nodes.get("a").getString("name"));
+        assertEquals("service", nodes.get("a").getString("type"));
+        assertEquals("database", nodes.get("b").getString("type"));
+        assertEquals("unknown", nodes.get("isolated").getString("type"));
         assertEquals(3, nodes.get("a").getJSONArray("outgoing").length());
         assertEquals(4, document.getJSONArray("edges").length());
         Set<String> kinds = new HashSet<>();
