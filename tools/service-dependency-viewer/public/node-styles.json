@@ -1,0 +1,15 @@
+{
+  "format": "constrainium-node-styles",
+  "version": 1,
+  "default": {
+    "shape": "round-rectangle",
+    "fill": "#e7effa",
+    "border": "#bdcde2",
+    "text": "#132c48",
+    "width": 128,
+    "height": 46,
+    "fontSize": 13,
+    "borderWidth": 1
+  },
+  "types": {}
+}

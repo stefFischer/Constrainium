@@ -9,11 +9,11 @@ import java.nio.file.Path;
 public class GenerateSample {
     public static void main(String[] args) throws Exception {
         Graph g = new Graph();
-        GraphNode gateway = g.getOrCreateNode(new GraphNode("gateway", "API Gateway"));
-        GraphNode orders = g.getOrCreateNode(new GraphNode("orders", "Order Service"));
-        GraphNode inventory = g.getOrCreateNode(new GraphNode("inventory", "Inventory"));
-        GraphNode database = g.getOrCreateNode(new GraphNode("database", "Orders Database"));
-        GraphNode events = g.getOrCreateNode(new GraphNode("events", "Event Worker"));
+        GraphNode gateway = g.getOrCreateNode(new GraphNode("gateway", "API Gateway", "gateway"));
+        GraphNode orders = g.getOrCreateNode(new GraphNode("orders", "Order Service", "service"));
+        GraphNode inventory = g.getOrCreateNode(new GraphNode("inventory", "Inventory", "service"));
+        GraphNode database = g.getOrCreateNode(new GraphNode("database", "Orders Database", "database"));
+        GraphNode events = g.getOrCreateNode(new GraphNode("events", "Event Worker", "worker"));
         g.getOrCreateNode(new GraphNode("isolated", "Disconnected Service"));
         g.addEntryNode(gateway);
 

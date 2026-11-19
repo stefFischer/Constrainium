@@ -11,7 +11,7 @@ const schema = z.discriminatedUnion('kind', [
 ]);
 export const documentSchema = z.object({
   format: z.literal('constrainium-call-graph'), version: z.literal(1), entryNodes: z.array(ref),
-  nodes: z.array(z.object({ id: ref, name: z.string(), incoming: z.array(ref), outgoing: z.array(ref) })),
+  nodes: z.array(z.object({ id: ref, name: z.string(), type: z.string().default('unknown'), incoming: z.array(ref), outgoing: z.array(ref) })),
   edges: z.array(z.object({ id: ref, kind: z.enum(['dependency', 'synchronous-call', 'asynchronous-call', 'database-query']), from: ref, to: ref, schema: ref.nullable().optional(), query: z.string().nullable().optional(), dataFlows: z.array(ref).optional() })),
   schemas: z.array(schema),
   schemaEntries: z.array(z.object({ id: ref, name: z.string(), qualifiedName: z.string(), type, mandatory: z.boolean(), parentSchema: ref.nullable(), nestedSchema: ref.nullable(), constraints: z.array(z.unknown()), potentialConstraints: z.array(z.unknown()) })),

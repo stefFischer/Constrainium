@@ -1,0 +1,68 @@
+import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import sample from '../public/sample.json' with { type: 'json' };
+import defaults from '../public/node-styles.json' with { type: 'json' };
+
+test('per-type styles preserve topology and selection, persist and round-trip through JSON', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Load sample' }).click();
+  await expect(page.getByText('6 services', { exact: true })).toBeVisible();
+  await page.getByRole('region', { name: 'Field connections' }).getByRole('button').first().click();
+  const field = await page.getByRole('button', { pressed: true }).getAttribute('data-field');
+  const graph = () => page.locator('.graph').evaluate(el => {
+    const cy = (el as unknown as { _cyreg: { cy: import('cytoscape').Core } })._cyreg.cy;
+    return { camera: { zoom: cy.zoom(), pan: cy.pan(), positions: cy.nodes().map(n => n.position()) }, nodes: cy.nodes().map(n => ({ type: n.data('nodeType'), shape: n.style('shape'), fill: n.style('background-color') })) };
+  });
+  const before = await graph();
+  await page.getByRole('button', { name: 'Node styles', exact: true }).click();
+  await page.getByLabel('Style for node type').selectOption(JSON.stringify(['database']));
+  await page.getByLabel('Shape', { exact: true }).selectOption('ellipse');
+  await page.getByLabel('Fill color', { exact: true }).fill('#ffcc00');
+  await page.getByRole('button', { name: 'Apply style', exact: true }).click();
+  const after = await graph();
+  expect(after.camera).toEqual(before.camera);
+  expect(after.nodes.find(n => n.type === 'database')).toMatchObject({ shape: 'ellipse', fill: 'rgb(255,204,0)' });
+  expect(after.nodes.find(n => n.type === 'service')?.shape).toBe('round-rectangle');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save JSON' }).click();
+  const download = await downloadPromise;
+  const saved = JSON.parse(await readFile((await download.path())!, 'utf8'));
+  expect(saved.types.database).toEqual({ shape: 'ellipse', fill: '#ffcc00' });
+  await page.getByRole('button', { name: 'Use default for this type' }).click();
+  expect((await graph()).nodes.find(n => n.type === 'database')?.shape).toBe('round-rectangle');
+  await page.getByLabel('Load node styles JSON').setInputFiles({ name: 'styles.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) });
+  await expect.poll(async () => (await graph()).nodes.find(n => n.type === 'database')?.shape).toBe('ellipse');
+  await page.getByLabel('Load node styles JSON').setInputFiles({ name: 'invalid.json', mimeType: 'application/json', buffer: Buffer.from('{}') });
+  await expect(page.getByRole('alert')).toContainText('format');
+  expect((await graph()).nodes.find(n => n.type === 'database')?.shape).toBe('ellipse');
+  await page.screenshot({ path: 'test-results/node-styles.png', fullPage: true });
+  await page.getByRole('button', { name: 'Close node styles' }).click();
+  await expect(page.getByRole('button', { pressed: true })).toHaveAttribute('data-field', field!);
+  await page.reload();
+  await page.getByRole('button', { name: 'Load sample' }).click();
+  await expect.poll(async () => (await graph()).nodes.find(n => n.type === 'database')?.shape).toBe('ellipse');
+  await page.getByRole('button', { name: 'Node styles', exact: true }).click();
+  await page.getByRole('button', { name: 'Restore startup styles' }).click();
+  expect((await graph()).nodes.find(n => n.type === 'database')?.shape).toBe('round-rectangle');
+  await page.getByRole('button', { name: 'Close node styles' }).click();
+  await page.reload();
+  expect(await page.evaluate(() => localStorage.getItem('constrainium.node-styles.v1'))).toBeNull();
+});
+
+test('startup JSON styles work with arbitrary type names and remain editable in full screen', async ({ page }) => {
+  const type = 'db["special\\type]';
+  await page.route('**/node-styles.json', route => route.fulfill({ json: { ...defaults, default: { ...defaults.default, fill: '#aabbcc' }, types: { [type]: { shape: 'hexagon' }, unused: { shape: 'diamond' } } } }));
+  await page.goto('/');
+  const graph = { ...sample, nodes: sample.nodes.map(n => ({ ...n, type })) };
+  await page.getByLabel('Open GraphJsonExporter JSON file').setInputFiles({ name: 'typed.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(graph)) });
+  await expect(page.getByText('6 services', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Full screen', exact: true }).click();
+  await page.getByRole('button', { name: 'Node styles', exact: true }).click();
+  await page.getByLabel('Style for node type').selectOption(JSON.stringify([type]));
+  await expect(page.getByLabel('Shape', { exact: true })).toHaveValue('hexagon');
+  await expect(page.getByLabel('Fill color', { exact: true })).toHaveValue('#aabbcc');
+  await page.getByLabel('Style for node type').selectOption(JSON.stringify(['unused']));
+  await expect(page.getByLabel('Shape', { exact: true })).toHaveValue('diamond');
+  await page.getByRole('button', { name: 'Close node styles' }).click();
+  await page.getByRole('button', { name: 'Exit full screen', exact: true }).click();
+});

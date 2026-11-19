@@ -67,7 +67,7 @@ export function adapt(d: ExportDocument): Model {
     }
     return flow.mappings.map((m, i) => ({ id: JSON.stringify([flow.id, i]), flowId: flow.id, traceId: flow.traceId, from: endpoint(flow.from, m.from), to: endpoint(flow.to, m.to) }));
   });
-  return { services: d.nodes.map(n => ({ id: n.id, name: n.name })), edges: normalizedEdges, fields, connections };
+  return { services: d.nodes.map(n => ({ id: n.id, name: n.name, type: n.type })), edges: normalizedEdges, fields, connections };
 }
 function arrayDepth(type: ExportType): number { return type.kind === 'ARRAY' ? 1 + arrayDepth(type.elementType) : 0; }
 export function parseExport(text: string): Model {

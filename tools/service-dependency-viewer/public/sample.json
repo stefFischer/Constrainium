@@ -5,31 +5,37 @@
   "nodes" : [ {
     "id" : "database",
     "name" : "Orders Database",
+    "type" : "database",
     "incoming" : [ "edge-0" ],
     "outgoing" : [ ]
   }, {
     "id" : "events",
     "name" : "Event Worker",
+    "type" : "worker",
     "incoming" : [ "edge-3", "edge-2" ],
     "outgoing" : [ "edge-1", "edge-2" ]
   }, {
     "id" : "gateway",
     "name" : "API Gateway",
+    "type" : "gateway",
     "incoming" : [ "edge-1" ],
     "outgoing" : [ "edge-4", "edge-5" ]
   }, {
     "id" : "inventory",
     "name" : "Inventory",
+    "type" : "service",
     "incoming" : [ "edge-6" ],
     "outgoing" : [ ]
   }, {
     "id" : "isolated",
     "name" : "Disconnected Service",
+    "type" : "unknown",
     "incoming" : [ ],
     "outgoing" : [ ]
   }, {
     "id" : "orders",
     "name" : "Order Service",
+    "type" : "service",
     "incoming" : [ "edge-4", "edge-5" ],
     "outgoing" : [ "edge-6", "edge-0", "edge-3" ]
   } ],

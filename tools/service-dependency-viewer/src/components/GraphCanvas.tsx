@@ -6,9 +6,13 @@ import type { traceFields } from '../highlighting';
 import { createGraph, updateGraph } from '../graph/cytoscape';
 import { defaultLayout, layouts, runLayout, type LayoutId } from '../graph/layouts';
 import { useFullscreen } from '../useFullscreen';
+import { useNodeStyles } from '../styles/useNodeStyles';
+import { applyNodeStyles } from '../graph/nodeStyles';
+import { NodeStyleEditor } from './NodeStyleEditor';
 export function GraphCanvas({ model, selection, highlight, onSelect }: { model: Model; selection: Selection; highlight: ReturnType<typeof traceFields>; onSelect: (id: string) => void }) {
   const panel = useRef<HTMLElement>(null);
   const fullscreen = useFullscreen(panel);
+  const nodeStyles = useNodeStyles();
   const container = useRef<HTMLDivElement>(null), instance = useRef<Core | null>(null), callback = useRef(onSelect);
   const [layoutId, setLayoutId] = useState<LayoutId>(defaultLayout), [revision, setRevision] = useState(0);
   const currentLayout = layouts.find(l => l.id === layoutId)!;
@@ -17,6 +21,7 @@ export function GraphCanvas({ model, selection, highlight, onSelect }: { model: 
     const graph = createGraph(container.current!, model, id => callback.current(id)); instance.current = graph.cy;
     return () => { instance.current = null; graph.destroy(); };
   }, [model]);
+  useEffect(() => { if (instance.current) applyNodeStyles(instance.current, nodeStyles.config); }, [model, nodeStyles.config]);
   useEffect(() => {
     const layout = instance.current ? runLayout(instance.current, layoutId) : undefined;
     return () => { layout?.stop(); };
@@ -32,6 +37,7 @@ export function GraphCanvas({ model, selection, highlight, onSelect }: { model: 
           <button disabled={!model.services.length} onClick={() => setRevision(r => r + 1)} title="Rearrange all services using the selected layout and fit the graph">Apply again</button>
           <span id="layout-description" className="visually-hidden" role="status">{currentLayout.description}</span>
         </div>
+        <NodeStyleEditor model={model} config={nodeStyles.config} ready={nodeStyles.ready} notice={nodeStyles.notice} onSave={nodeStyles.save} onReset={nodeStyles.reset}/>
         <div className="viewport-controls"><button onClick={() => zoom(1.25)} aria-label="Zoom in">+</button><button onClick={() => zoom(.8)} aria-label="Zoom out">−</button><button onClick={() => instance.current?.fit(undefined, 55)}>Fit view</button><button onClick={fullscreen.toggle} disabled={!fullscreen.supported || fullscreen.pending} aria-pressed={fullscreen.active} title={!fullscreen.supported ? 'Full screen is unavailable in this browser or embedded view' : fullscreen.active ? 'Exit full screen (Esc)' : 'View the graph in full screen'}>{fullscreen.active ? 'Exit full screen' : 'Full screen'}</button></div>
       </div>
     </div>

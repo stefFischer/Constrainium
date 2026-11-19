@@ -1,6 +1,6 @@
 # Service dependency viewer
 
-A static React/TypeScript application for `GraphJsonExporter` snapshots. Imported data is read in the browser, held in memory, and never uploaded or persisted. There is no backend, analytics, or external runtime asset dependency.
+A static React/TypeScript application for `GraphJsonExporter` snapshots. Imported graph data is read in the browser, held in memory, and never uploaded or persisted. Node style preferences are saved locally in browser storage. There is no backend, analytics, or external runtime asset dependency.
 
 ## Install and run
 
@@ -52,11 +52,47 @@ Hierarchical layouts support cycles by drawing feedback edges against the main d
 
 **Full screen**, at the far right of the graph controls, expands just the graph panel, including its layout and viewport controls. Use **Exit full screen** or the browser's Escape shortcut to return to the three-panel view. The canvas resizes automatically, preserving node positions, selection and highlighting; **Fit view** can fit the graph to the larger space. The button is disabled if the browser or embedding page does not support full screen, and rejected requests show an inline error.
 
+## Node type styles
+
+Use **Node styles** in the graph header to customize the default or a specific node type. Edit shape, fill/border/text colors, width, height, font size and border width, then click **Apply style**. Type overrides store only differences from the default; unspecified values inherit it. **Use default for this type** removes its overrides. Types are matched literally and case-sensitively. Older exports without a type become `unknown`, matching the Java model. The regenerated sample includes gateway, service, database, worker and unknown nodes.
+
+The original rounded rectangle and blue colors remain the default. The app fetches `public/node-styles.json` at startup (served as `node-styles.json` in the static deployment). This public file is loaded by URL, not imported into JavaScript; the built-in fallback is bundled separately from `src/styles/builtin-node-styles.json`. Edit the public file to set deployment defaults, for example:
+
+```json
+{
+  "format": "constrainium-node-styles",
+  "version": 1,
+  "default": {
+    "shape": "round-rectangle",
+    "fill": "#e7effa",
+    "border": "#bdcde2",
+    "text": "#132c48",
+    "width": 128,
+    "height": 46,
+    "fontSize": 13,
+    "borderWidth": 1
+  },
+  "types": {
+    "database": { "shape": "ellipse", "fill": "#fdf2cc" },
+    "worker": { "shape": "hexagon" }
+  }
+}
+```
+
+The default must define every property; type overrides may define any subset. Supported shapes are `round-rectangle`, `rectangle`, `ellipse`, `diamond`, `hexagon`, `round-hexagon`. Colors use `#RRGGBB`; width is 60–400, height 30–240, font size 10–32, and border width 0–8. Unknown style properties and invalid values produce validation errors. Styles for types absent from the current graph are retained.
+
+Applied/imported styles are saved automatically under `constrainium.node-styles.v1` in local storage for this browser and origin. Startup precedence is **saved browser styles → startup JSON → built-in original style**. **Restore startup styles** removes the browser override and restores the loaded startup file. Storage/startup failures leave the viewer usable and show a notice in Node styles; use JSON export if browser storage is unavailable.
+
+**Save JSON** downloads a portable `node-styles.json`. **Load styles** validates a complete configuration (up to 1 MiB), replacing current settings only when valid. Share/import that file in another browser or use it as the deployment's startup JSON. It contains appearance settings and type names, not graph/field data. The editor does not upload files or modify server-side files.
+
+Style edits update existing Cytoscape nodes without rebuilding the graph or changing its viewport, positions, selection or field highlights. If larger nodes overlap, use **Apply again** to recompute the layout. The editor also works in full-screen mode.
+
 ## Export contract and assumptions
 
 Inspected `core/.../data/model/Graph.java`, its edge and flow classes, `SimpleDataSchema`, `InOutputDataSchema`, `DataSchemaEntry`, `TypeEnum`, and `GraphJsonExporter` plus its tests before implementation. No existing exported fixture was found among tracked project resources. This viewer consumes **the existing format**, not a new graph format:
 
 - `format: "constrainium-call-graph"`, `version: 1`; `entryNodes`, `nodes`, `edges`, `schemas`, `schemaEntries`, `dataFlows`, `objects` tables.
+- Nodes include `id`, `name`, `type`, `incoming`, `outgoing`; older version 1 exports without `type` are accepted as `unknown`.
 - Edges use `id`, `kind`, `from`, `to`, optional nullable `schema`/`query`, and `dataFlows` ownership references. Kinds are `dependency`, `synchronous-call`, `asynchronous-call`, `database-query`.
 - Simple schemas list entry IDs; input-output schemas reference input/output schema IDs and custom prefixes. Entries include exact identity, name, qualified name, recursively typed arrays, mandatory flag, parent/nested schema references, and constraint metadata.
 - Flows explicitly reference source/target edge IDs and mappings of exact entry IDs. Flow direction comes from the flow record, independently of the edge that owns it. Parent back-references are not field children.

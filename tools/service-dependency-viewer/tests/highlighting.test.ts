@@ -3,7 +3,7 @@ import { traceFields } from '../src/highlighting';
 import type { Model, Field } from '../src/model';
 const field = (id: string): Field => ({ id, entryId: id, edgeId: id, side: 'input', path: [id], name: id, type: 'string', mandatory: true, ancestors: [], children: [] });
 const model: Model = {
-  services: ['s', 't'].map(id => ({ id, name: id })),
+  services: ['s', 't'].map(id => ({ id, name: id, type: 'unknown' })),
   edges: ['a', 'b', 'c', 'd', 'e', 'x'].map(id => ({ id, type: 'dependency', source: 's', target: 't', schemas: [] })),
   fields: new Map(['a', 'b', 'c', 'd', 'e', 'x'].map(id => [id, field(id)])),
   connections: [['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'b'], ['a', 'e']].map(([from, to], i) => ({ id: String(i), flowId: String(i), from, to })),
