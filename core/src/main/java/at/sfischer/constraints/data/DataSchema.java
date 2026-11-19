@@ -8,6 +8,7 @@ import at.sfischer.constraints.miner.AndConstraintPolicy;
 import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.model.*;
 import at.sfischer.constraints.model.operators.array.ArrayOperation;
+import at.sfischer.constraints.model.operators.array.ForEach;
 import at.sfischer.constraints.model.operators.array.ForAll;
 import at.sfischer.constraints.model.operators.objects.Reference;
 import org.javatuples.Pair;
@@ -23,7 +24,11 @@ public abstract class DataSchema {
 
     protected static final FieldNodeProvider variableNodeProvider = field -> new Variable(field.getValue0());
     protected static final FieldNodeProvider arrayElementProvider = field -> new Variable(ArrayOperation.ELEMENT_NAME);
-    protected static final FieldNodeProvider arrayDereferenceProvider = field -> new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral(field.getValue0()));
+    protected static final FieldNodeProvider arrayDereferenceProvider = field -> arrayElementReference(field.getValue0(), TypeEnum.ANY);
+
+    private static Reference arrayElementReference(String path, Type returnType) {
+        return new Reference(new Variable(ArrayOperation.ELEMENT_NAME), new StringLiteral(path), returnType);
+    }
 
     protected abstract <DS extends DataSchema> Collection<DataSchemaEntry<DS>> getDataSchemaEntries();
 
@@ -281,10 +286,14 @@ public abstract class DataSchema {
     }
 
     protected static <DS extends DataSchema> void fillSchemaWithConstraint(Node term, ConstraintFactory factory, List<Map<Variable, DataSchemaEntry<DS>>> allCombinations, DataSchemaEntrySelector<DS> selector) {
+        Map<Variable, Type> placeholderTypes = term.inferVariableTypes();
         // For each combination, fill the term and attach it to the first DataSchemaEntry
         for (Map<Variable, DataSchemaEntry<DS>> combination : allCombinations) {
             Map<Variable, Node> replacement = new HashMap<>();
-            combination.forEach((k, v) -> replacement.put(k, new DataReference(v)));
+            for (Map.Entry<Variable, DataSchemaEntry<DS>> binding : combination.entrySet()) {
+                Variable placeholder = binding.getKey();
+                replacement.put(placeholder, fieldReference(binding.getValue(), placeholderTypes.get(placeholder)));
+            }
 
             Node filledTerm = term.cloneNode().setVariableValues(replacement);
 
@@ -294,6 +303,36 @@ public abstract class DataSchema {
             // Add the filled term to the potentialConstraints of the primary entry
             primaryEntry.potentialConstraints.addAll(factory.createConstraint(filledTerm));
         }
+    }
+
+    /** A field inside an array can supply an array of that field's values. */
+    protected static boolean matchesArrayField(DataSchemaEntry<?> entry, Type expectedType) {
+        return expectedType instanceof ArrayType arrayType
+                && entry.type.canAssignTo(arrayType.elementType())
+                && enclosingArray(entry) != null;
+    }
+
+    private static DataSchemaEntry<?> enclosingArray(DataSchemaEntry<?> entry) {
+        DataSchemaEntry<?> parent = entry.getParentSchemaEntry();
+        while (parent != null) {
+            if (parent.type instanceof ArrayType) {
+                return parent;
+            }
+            parent = parent.getParentSchemaEntry();
+        }
+        return null;
+    }
+
+    private static Node fieldReference(DataSchemaEntry<?> field, Type expectedType) {
+        if (field.type.canAssignTo(expectedType) || !matchesArrayField(field, expectedType)) {
+            return new DataReference(field);
+        }
+
+        DataSchemaEntry<?> array = enclosingArray(field);
+        // Strip the complete array prefix, preserving any intervening object fields.
+        String relativePath = field.getQualifiedName().substring(array.getQualifiedName().length() + 1);
+        Node elementReference = arrayElementReference(relativePath, field.type);
+        return new ForEach(new DataReference(array), elementReference);
     }
 
     protected static <DS extends DataSchema> List<Map<Variable, DataSchemaEntry<DS>>> generateUniqueCombinations(Map<Variable, List<DataSchemaEntry<DS>>> matchingEntries) {

@@ -230,7 +230,7 @@ public class SimpleDataSchema extends DataSchema {
     private <DS extends DataSchema> List<DataSchemaEntry<DS>> findMatchingEntries(Collection<DataSchemaEntry<DS>> schema, Variable variable, Type valueType, Node term, ConstraintFactory factory, int recursiveCount) {
         List<DataSchemaEntry<DS>> matches = new ArrayList<>();
         for (DataSchemaEntry<DS> entry : schema) {
-            if (entry.type.canAssignTo(valueType)) {
+            if (entry.type.canAssignTo(valueType) || matchesArrayField(entry, valueType)) {
                 matches.add(entry);
             } else if(entry.type instanceof ArrayType){
                 if (((ArrayType) entry.type).elementType().canAssignTo(valueType)) {
