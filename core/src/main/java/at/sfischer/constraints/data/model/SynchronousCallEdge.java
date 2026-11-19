@@ -18,11 +18,24 @@ public class SynchronousCallEdge extends CallEdge {
 
     @Override
     public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
+        // An earlier call's response is available to a later call made by the same node.
+        if (getFrom() == to.getFrom()) {
+            if (fromData instanceof InOutputDataCollection sourceData) {
+                InOutputDataCollection responseToRequest = InOutputDataCollection.createFromSimpleCollections(
+                        sourceData.getOutputDataCollection(), getData(toData)
+                );
+                DataFlow dataFlow = new DataFlow(traceId, this, to);
+                dataFlow.inferDataFlows(responseToRequest, schema.getOutputSchema(), getSchema(to.getSchema()), typePromotionPolicy);
+                addDataFlow(dataFlow);
+            }
+            return;
+        }
+
         if(to instanceof SynchronousCallEdge){
             if(fromData instanceof InOutputDataCollection && toData instanceof InOutputDataCollection){
                 InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(
-                        ((InOutputDataCollection) fromData).getOutputDataCollection(),
-                        ((InOutputDataCollection) toData).getOutputDataCollection()
+                        ((InOutputDataCollection) toData).getOutputDataCollection(),
+                        ((InOutputDataCollection) fromData).getOutputDataCollection()
                 );
                 DataFlow dataFlow = new DataFlow(traceId, to, this);
                 dataFlow.inferDataFlows(inOut, ((SynchronousCallEdge) to).getSchema().getOutputSchema(), this.schema.getOutputSchema(), typePromotionPolicy);
