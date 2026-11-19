@@ -8,17 +8,24 @@ import java.util.*;
 public class GraphNode {
     private final String id;
     private final String name;
+    private final String type;
 
     private final List<Edge> incoming = new ArrayList<>();
     private final List<Edge> outgoing = new ArrayList<>();
 
     public GraphNode(String id, String name) {
+        this(id, name, "unknown");
+    }
+
+    public GraphNode(String id, String name, String type) {
         this.id = id;
         this.name = name;
+        this.type = Objects.requireNonNull(type, "type");
     }
 
     public String getId() { return id; }
     public String getName() { return name; }
+    public String getType() { return type; }
 
     public void addIncoming(Edge e) { incoming.add(e); }
     public void addOutgoing(Edge e) { outgoing.add(e); }

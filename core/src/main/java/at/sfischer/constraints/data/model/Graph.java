@@ -12,10 +12,16 @@ public class Graph {
     private final Map<String, GraphNode> nodes = new HashMap<>();
 
     public GraphNode getOrCreateNode(GraphNode candidate) {
-        return nodes.computeIfAbsent(
+        GraphNode node = nodes.computeIfAbsent(
                 candidate.getId(),
                 id -> candidate
         );
+        if (!node.getType().equals(candidate.getType())) {
+            throw new IllegalArgumentException("Conflicting types for graph node '" + candidate.getId()
+                    + "': '" + node.getType() + "' and '" + candidate.getType() + "'");
+        }
+
+        return node;
     }
 
     public Collection<GraphNode> getNodes() {
