@@ -4,7 +4,6 @@ import at.sfischer.constraints.data.InOutputDataSchema;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.model.*;
 import at.sfischer.traces.otel.clustering.ClusteredAbstractSpan;
-import at.sfischer.traces.otel.dataextraction.SpanData;
 import at.sfischer.traces.otel.graph.GraphFragment;
 import at.sfischer.traces.otel.graph.MatchingSpanFragmentBuilder;
 import at.sfischer.traces.otel.matching.AttributeExistsMatch;
@@ -21,6 +20,10 @@ public final class TraceonSpanFragmentBuilders {
     private abstract static class SynchronousBuilder implements MatchingSpanFragmentBuilder {
         @Override
         public List<CallEdge> connectFragments(GraphFragment parent, ClusteredAbstractSpan parentSpan, GraphFragment child, ClusteredAbstractSpan childSpan, Graph graph) {
+            if(parent.exitNode().equals(child.entryNode())){
+                return List.of();
+            }
+
             return List.of(new SynchronousCallEdge(parent.exitNode(), child.entryNode(), schema(childSpan)));
         }
     }
@@ -74,9 +77,27 @@ public final class TraceonSpanFragmentBuilders {
             }
 
             String destination = attribute(span, "server.address", "unknown-destination");
-            return new GraphFragment(
-                    node(graph, "http-client", "endpoint", destination, httpOperation(span))
-            );
+            GraphNode endpoint = node(graph, "http-client", "endpoint", destination, httpOperation(span));
+
+            String destinationService = servers.isEmpty() ? inferDestinationService(span) : null;
+            if (destinationService != null) {
+                GraphNode service = service(graph, destinationService);
+                CallEdge internalEdge = new SynchronousCallEdge(endpoint, service, schema(span));
+                return new GraphFragment(endpoint, service, List.of(internalEdge));
+            }
+
+            return new GraphFragment(endpoint);
+        }
+
+        private String inferDestinationService(ClusteredAbstractSpan span) {
+            String caller = attribute(span, "service.name", null);
+            // Children from another service reveal the receiver when its server span is missing.
+            List<String> services = span.getChildren().stream()
+                    .map(child -> attribute(child, "service.name", null))
+                    .filter(service -> service != null && !service.isBlank() && !service.equals(caller))
+                    .distinct()
+                    .toList();
+            return services.size() == 1 ? services.getFirst() : null;
         }
     }
 
