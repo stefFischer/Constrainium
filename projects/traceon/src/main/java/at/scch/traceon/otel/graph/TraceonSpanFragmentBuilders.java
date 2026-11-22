@@ -124,6 +124,22 @@ public final class TraceonSpanFragmentBuilders {
         }
 
         @Override
+        public List<CallEdge> connectFragments(GraphFragment parent, ClusteredAbstractSpan parentSpan, GraphFragment child, ClusteredAbstractSpan childSpan, Graph graph) {
+            if (parent.exitNode() == child.entryNode()) {
+                return List.of();
+            }
+
+            String operation = attribute(childSpan, "db.operation.name", childSpan.getName());
+            String query = attribute(childSpan, "db.query.text", attribute(childSpan, "db.statement", operation));
+            DatabaseQueryEdge existing = DatabaseQueryEdge.findQueryEdge(parent.exitNode(), child.entryNode(), query);
+            if (existing != null) {
+                return List.of(existing);
+            }
+
+            return List.of(new DatabaseQueryEdge(parent.exitNode(), child.entryNode(), query));
+        }
+
+        @Override
         public GraphFragment buildFragment(ClusteredAbstractSpan span, Graph graph) {
             // No address is guaranteed in these captures. Scope by owning service
             // rather than merging every unnamed database into one shared node.

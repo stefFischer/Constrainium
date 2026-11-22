@@ -4,6 +4,7 @@ import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.model.CallEdge;
+import at.sfischer.constraints.data.model.DataFlow;
 import at.sfischer.constraints.data.model.Graph;
 import at.sfischer.constraints.data.model.GraphNode;
 import at.sfischer.constraints.data.model.SynchronousCallEdge;
@@ -72,7 +73,7 @@ class MutableCallGraphTest {
 
         graph.finalizeGraph(new TraceonTypePromotionPolicy());
 
-        assertEquals(2, cart.getDataFlowsTo(products).size());
+        assertEquals(4, cart.getDataFlowsTo(products).size());
         assertEquals(Set.of("execution-a", "execution-b"), cart.getDataFlowsTo(products).stream()
                 .map(flow -> flow.getTraceId()).collect(Collectors.toSet()));
         DataSchemaEntry<SimpleDataSchema> source = cart.getSchema().getOutputSchema().findDataSchemaEntry("payload.items.id");
@@ -130,10 +131,74 @@ class MutableCallGraphTest {
 
         graph.finalizeGraph(new TraceonTypePromotionPolicy());
 
-        assertEquals(1, cart.getDataFlowsTo(products).size());
+        assertEquals(4, cart.getDataFlowsTo(products).size());
         assertEquals("same-situation", cart.getDataFlowsTo(products).getFirst().getTraceId());
         assertMapping(cart, products, cart.getSchema().getOutputSchema().findDataSchemaEntry("payload.items.id"),
                 products.getSchema().getInputSchema().findDataSchemaEntry("path_params.productId"));
+        assertEquals(Set.of("0:0", "1:1", "0:2", "1:3"), cart.getDataFlowsTo(products).stream()
+                .map(flow -> flow.getSourceRow() + ":" + flow.getTargetRow()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    void aCounterexampleInOneProductLookupDoesNotInvalidateTheOtherLookupOnTheSharedEdge() {
+        AbstractSpan first = checkout("A1", "A2");
+        AbstractSpan second = checkout("B1", "B2");
+        AbstractSpan firstProduct = second.getChildren().get(1);
+        firstProduct.setSpanData(new SpanData(DataObject.parseData("{path_params:{productId:'MISSING'}}"),
+                firstProduct.getSpanData().getOutputData()));
+        ClusteredAbstractSpan cluster = new ClusteredAbstractSpan(first);
+        cluster.addSpan(second);
+        Graph graph = builder().buildMutable(cluster, List.of("execution-a", "execution-b"));
+        List<CallEdge> outgoing = node(graph, "checkout-service").getOutgoing().stream()
+                .map(CallEdge.class::cast).toList();
+        CallEdge cart = outgoing.getFirst();
+        CallEdge products = outgoing.getLast();
+
+        graph.finalizeGraph(new TraceonTypePromotionPolicy());
+
+        DataSchemaEntry<SimpleDataSchema> ids = cart.getSchema().findDataSchemaEntry("output.payload.items.id");
+        DataSchemaEntry<SimpleDataSchema> productId = products.getSchema().findDataSchemaEntry("input.path_params.productId");
+        assertEquals(4, cart.getDataFlowsTo(products).size());
+        for (DataFlow flow : cart.getDataFlowsTo(products)) {
+            if (Integer.valueOf(0).equals(flow.getTargetRow())) {
+                assertFalse(flow.getDataFlows().containsKey(ids));
+            } else {
+                assertEquals(1, flow.getTargetRow());
+                assertSame(productId, flow.getDataFlows().get(ids));
+            }
+        }
+    }
+
+    @Test
+    void repeatedHttpCallCanConsumeTheEarlierResponseOnTheSameEdge() {
+        AbstractSpan root = http("server", "checkout-service", "POST", "/follow", "{}", "{}");
+        AbstractSpan first = http("client", "checkout-service", "GET", "/next",
+                "{key:'A'}", "{nextKey:'B'}");
+        AbstractSpan second = http("client", "checkout-service", "GET", "/next",
+                "{key:'B'}", "{nextKey:'C'}");
+        first.getAttributes().put("server.address", "links-service");
+        second.getAttributes().put("server.address", "links-service");
+        root.addChild(first);
+        root.addChild(second);
+        Graph graph = builder().buildMutable(new ClusteredAbstractSpan(root), List.of("follow"));
+        GraphNode caller = node(graph, "checkout-service");
+        assertEquals(1, caller.getOutgoing().size());
+        CallEdge edge = (CallEdge) caller.getOutgoing().getFirst();
+        assertEquals(1, graph.getCallRelations().stream()
+                .filter(relation -> relation.source() == edge && relation.target() == edge).count());
+        assertTrue(graph.getCallRelations().stream()
+                .noneMatch(relation -> relation.source() == relation.target()
+                        && relation.sourceRow() == relation.targetRow()));
+
+        graph.finalizeGraph();
+
+        assertEquals(1, edge.getDataFlowsTo(edge).size());
+        DataFlow flow = edge.getDataFlowsTo(edge).getFirst();
+        assertEquals(0, flow.getSourceRow());
+        assertEquals(1, flow.getTargetRow());
+        assertMapping(edge, edge, edge.getSchema().findDataSchemaEntry("output.nextKey"),
+                edge.getSchema().findDataSchemaEntry("input.key"));
+        assertTrue(edge.getDataByTrace().isEmpty());
     }
 
     private static AbstractSpan checkout(String first, String second) {
