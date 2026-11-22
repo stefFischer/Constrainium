@@ -26,9 +26,8 @@ public class ClusteredAbstractSpan extends TraceNode<ClusteredAbstractSpan> {
     }
 
     public void addSpan(AbstractSpan baseSpan){
-        if(baseSpan.getSpanData() != null){
-            this.spanData.add(baseSpan.getSpanData());
-        }
+        // Missing captures still occupy their original execution slot.
+        this.spanData.add(baseSpan.getSpanData());
         if(this.getChildren().size() != baseSpan.getChildren().size()){
             throw new IllegalArgumentException("Span must have the same children to be matched.");
         }
@@ -47,8 +46,8 @@ public class ClusteredAbstractSpan extends TraceNode<ClusteredAbstractSpan> {
         InOutputDataCollection data = new InOutputDataCollection();
         for (SpanData spanDatum : this.getSpanData()) {
             data.addDataEntry(
-                    spanDatum.getInputData() != null ? spanDatum.getInputData() : new DataObject(),
-                    spanDatum.getOutputData() != null ? spanDatum.getOutputData() : new DataObject()
+                    spanDatum != null && spanDatum.getInputData() != null ? spanDatum.getInputData() : new DataObject(),
+                    spanDatum != null && spanDatum.getOutputData() != null ? spanDatum.getOutputData() : new DataObject()
             );
         }
 

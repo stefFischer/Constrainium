@@ -4,7 +4,11 @@ import at.sfischer.constraints.data.*;
 
 public class SynchronousCallEdge extends CallEdge {
 
-    private final InOutputDataSchema<SimpleDataSchema> schema;
+    private InOutputDataSchema<SimpleDataSchema> schema;
+
+    public SynchronousCallEdge(GraphNode from, GraphNode to) {
+        super(from, to);
+    }
 
     public SynchronousCallEdge(GraphNode from, GraphNode to, InOutputDataSchema<SimpleDataSchema> schema) {
         super(from, to);
@@ -13,11 +17,27 @@ public class SynchronousCallEdge extends CallEdge {
 
     @Override
     public InOutputDataSchema<SimpleDataSchema> getSchema() {
+        if (schema == null) {
+            throw new IllegalStateException("Finalize the graph before reading its schemas.");
+        }
+
         return schema;
     }
 
     @Override
+    protected void deriveSchema(TypePromotionPolicy policy) {
+        checkMutable();
+        if (hasData()) {
+            schema = collectedData().deriveSchema(policy);
+        } else if (schema == null) {
+            schema = new InOutputDataSchema<>(new SimpleDataSchema(), new SimpleDataSchema());
+        }
+    }
+
+    @Override
     public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
+        checkMutable();
+        to.checkMutable();
         // An earlier call's response is available to a later call made by the same node.
         if (getFrom() == to.getFrom()) {
             if (fromData instanceof InOutputDataCollection sourceData) {
@@ -28,6 +48,7 @@ public class SynchronousCallEdge extends CallEdge {
                 dataFlow.inferDataFlows(responseToRequest, schema.getOutputSchema(), getSchema(to.getSchema()), typePromotionPolicy);
                 addDataFlow(dataFlow);
             }
+
             return;
         }
 
