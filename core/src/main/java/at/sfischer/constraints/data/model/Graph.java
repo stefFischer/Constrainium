@@ -2,7 +2,6 @@ package at.sfischer.constraints.data.model;
 
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.data.SimpleDataSchema;
-import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.TypePromotionPolicy;
 
 import java.util.*;
@@ -13,6 +12,7 @@ public class Graph {
 
     private final Map<String, GraphNode> nodes = new HashMap<>();
     private final Set<CallRelation> callRelations = new LinkedHashSet<>();
+    private final Set<Set<CallRelation>> callRelationGroups = new LinkedHashSet<>();
     private final Set<String> traceIds = new LinkedHashSet<>();
     private boolean finalized;
 
@@ -78,15 +78,65 @@ public class Graph {
         return Collections.unmodifiableSet(ids);
     }
 
-    /** Records evidence without combining samples from different trace IDs. */
+    /** Without an explicit group, relations with the same trace and edge pair are compared together. */
     public void addCallRelation(CallRelation relation) {
         checkMutable();
+        validateRelation(relation);
+        callRelations.add(relation);
+    }
+
+    /** Records comparable observations of one logical call relationship, possibly across executions. */
+    public void addCallRelationGroup(Collection<CallRelation> relations) {
+        checkMutable();
+        Set<CallRelation> group = new LinkedHashSet<>(relations);
+        if (group.isEmpty()) {
+            return;
+        }
+
+        CallRelation first = group.iterator().next();
+        for (CallRelation relation : group) {
+            validateRelation(relation);
+            if (relation.source() != first.source() || relation.target() != first.target()) {
+                throw new IllegalArgumentException("Comparable observations must refer to the same pair of edges.");
+            }
+        }
+
+        callRelationGroups.add(Collections.unmodifiableSet(group));
+        callRelations.addAll(group);
+    }
+
+    /** Immutable snapshots preserve grouping for inspection or later graph composition. */
+    public List<List<CallRelation>> getCallRelationGroups() {
+        List<List<CallRelation>> groups = new ArrayList<>();
+        Set<CallRelation> explicitlyGrouped = new HashSet<>();
+        for (Set<CallRelation> group : callRelationGroups) {
+            groups.add(List.copyOf(group));
+            explicitlyGrouped.addAll(group);
+        }
+
+        Map<DefaultGroup, List<CallRelation>> defaults = new LinkedHashMap<>();
+        for (CallRelation relation : callRelations) {
+            if (!explicitlyGrouped.contains(relation)) {
+                DefaultGroup key = new DefaultGroup(relation.traceId(), relation.source(), relation.target());
+                defaults.computeIfAbsent(key, ignored -> new ArrayList<>()).add(relation);
+            }
+        }
+
+        for (List<CallRelation> group : defaults.values()) {
+            groups.add(List.copyOf(group));
+        }
+
+        return List.copyOf(groups);
+    }
+
+    private void validateRelation(CallRelation relation) {
         validateEdge(relation.source());
         validateEdge(relation.target());
         relation.source().dataRow(relation.traceId(), relation.sourceRow());
         relation.target().dataRow(relation.traceId(), relation.targetRow());
-        callRelations.add(relation);
     }
+
+    private record DefaultGroup(String traceId, CallEdge source, CallEdge target) {}
 
     public void finalizeGraph() {
         finalizeGraph(null);
@@ -120,27 +170,14 @@ public class Graph {
         nodes.values().forEach(GraphNode::freeze);
         calls.forEach(CallEdge::discardData);
         callRelations.clear();
+        callRelationGroups.clear();
         traceIds.addAll(ids);
         finalized = true;
     }
 
     private void inferDataFlows(TypePromotionPolicy policy) {
-        Map<FlowGroup, List<CallRelation>> groups = new LinkedHashMap<>();
-        for (CallRelation relation : callRelations) {
-            FlowGroup group = new FlowGroup(relation.traceId(), relation.source(), relation.target());
-            groups.computeIfAbsent(group, key -> new ArrayList<>()).add(relation);
-        }
-
-        for (Map.Entry<FlowGroup, List<CallRelation>> entry : groups.entrySet()) {
-            InOutputDataCollection sourceData = new InOutputDataCollection();
-            InOutputDataCollection targetData = new InOutputDataCollection();
-            for (CallRelation relation : entry.getValue()) {
-                relation.source().appendRowTo(relation.traceId(), relation.sourceRow(), sourceData);
-                relation.target().appendRowTo(relation.traceId(), relation.targetRow(), targetData);
-            }
-
-            FlowGroup group = entry.getKey();
-            group.source().inferDataFlows(group.traceId(), sourceData, group.target(), targetData, policy);
+        for (List<CallRelation> group : getCallRelationGroups()) {
+            group.getFirst().source().inferDataFlows(group, policy);
         }
     }
 
@@ -158,8 +195,6 @@ public class Graph {
             throw new IllegalArgumentException("Edge endpoints must be registered in this graph: " + edge);
         }
     }
-
-    private record FlowGroup(String traceId, CallEdge source, CallEdge target) {}
 
     public DataPaths deriveDataPaths(String qualifiedName) {
         List<DataPathNode> roots = new ArrayList<>();

@@ -29,13 +29,29 @@ public class DataFlow {
 
     private final CallEdge to;
 
+    private final Integer sourceRow;
+
+    private final Integer targetRow;
+
     private final Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> dataFlows = new IdentityHashMap<>();
     private boolean frozen;
 
     public DataFlow(String traceId, CallEdge from, CallEdge to) {
+        this(traceId, from, to, null, null);
+    }
+
+    /** Row references identify occurrences within each edge and trace, even after payload disposal. */
+    public DataFlow(String traceId, CallEdge from, CallEdge to, Integer sourceRow, Integer targetRow) {
+        if ((sourceRow == null) != (targetRow == null)
+                || (sourceRow != null && (sourceRow < 0 || targetRow < 0))) {
+            throw new IllegalArgumentException("Provide two non-negative row references, or neither for legacy flows.");
+        }
+
         this.traceId = traceId;
         this.from = from;
         this.to = to;
+        this.sourceRow = sourceRow;
+        this.targetRow = targetRow;
     }
 
     public String getTraceId() {
@@ -48,6 +64,27 @@ public class DataFlow {
 
     public CallEdge getTo() {
         return to;
+    }
+
+    public Integer getSourceRow() {
+        return sourceRow;
+    }
+
+    public Integer getTargetRow() {
+        return targetRow;
+    }
+
+    DataFlow forOccurrence(CallRelation relation) {
+        boolean forward = from == relation.source() && to == relation.target();
+        boolean reverse = from == relation.target() && to == relation.source();
+        if (!forward && !reverse) {
+            throw new IllegalArgumentException("The occurrence must refer to this flow's edges.");
+        }
+        DataFlow flow = new DataFlow(relation.traceId(), from, to,
+                forward ? relation.sourceRow() : relation.targetRow(),
+                forward ? relation.targetRow() : relation.sourceRow());
+        flow.dataFlows.putAll(dataFlows);
+        return flow;
     }
 
     public Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> getDataFlows() {

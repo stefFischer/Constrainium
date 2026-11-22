@@ -11,11 +11,21 @@ public class DataPathNode {
     private final CallEdge edge;
     private final DataSchemaEntry<SimpleDataSchema> entry;
 
+    private final String traceId;
+
+    private final Integer row;
+
     private final List<DataPathNode> next = new ArrayList<>();
 
     public DataPathNode(CallEdge edge, DataSchemaEntry<SimpleDataSchema> entry) {
+        this(edge, entry, null, null);
+    }
+
+    public DataPathNode(CallEdge edge, DataSchemaEntry<SimpleDataSchema> entry, String traceId, Integer row) {
         this.edge = edge;
         this.entry = entry;
+        this.traceId = traceId;
+        this.row = row;
     }
 
     public CallEdge getEdge() {
@@ -24,6 +34,14 @@ public class DataPathNode {
 
     public DataSchemaEntry<SimpleDataSchema> getEntry() {
         return entry;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public Integer getRow() {
+        return row;
     }
 
     public List<DataPathNode> getNext() {

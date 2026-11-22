@@ -133,7 +133,37 @@ public abstract class CallEdge extends Edge {
         inferDataFlows(traceId, fromData, to , toData, null);
     }
 
-    public abstract void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy);
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData,
+                               TypePromotionPolicy typePromotionPolicy) {
+        checkMutable();
+        to.checkMutable();
+        for (DataFlow flow : deriveDataFlows(traceId, fromData, to, toData, typePromotionPolicy)) {
+            flow.getFrom().addDataFlow(flow);
+        }
+    }
+
+    void inferDataFlows(List<CallRelation> comparableCalls, TypePromotionPolicy policy) {
+        checkMutable();
+        CallRelation first = comparableCalls.getFirst();
+        CallEdge target = first.target();
+        target.checkMutable();
+        InOutputDataCollection sourceData = new InOutputDataCollection();
+        InOutputDataCollection targetData = new InOutputDataCollection();
+        for (CallRelation relation : comparableCalls) {
+            appendRowTo(relation.traceId(), relation.sourceRow(), sourceData);
+            target.appendRowTo(relation.traceId(), relation.targetRow(), targetData);
+        }
+
+        List<DataFlow> accepted = deriveDataFlows(first.traceId(), sourceData, target, targetData, policy);
+        for (DataFlow flow : accepted) {
+            for (CallRelation relation : comparableCalls) {
+                flow.getFrom().addDataFlow(flow.forOccurrence(relation));
+            }
+        }
+    }
+
+    protected abstract List<DataFlow> deriveDataFlows(String traceId, DataCollection<?> fromData, CallEdge to,
+                                                     DataCollection<?> toData, TypePromotionPolicy policy);
 
     public abstract DataSchema getSchema();
 }

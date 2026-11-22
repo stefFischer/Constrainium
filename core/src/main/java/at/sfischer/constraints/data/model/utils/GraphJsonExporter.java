@@ -153,7 +153,8 @@ public final class GraphJsonExporter {
                 mappings.add(row("from", entryIds.get(mapping.getKey()), "to", entryIds.get(mapping.getValue())));
             }
             mappings.sort(Comparator.comparing(mapping -> mapping.get("from").toString()));
-            flows.add(row("id", id, "traceId", flow.getTraceId(), "from", from, "to", to, "mappings", mappings));
+            flows.add(row("id", id, "traceId", flow.getTraceId(), "from", from, "to", to,
+                    "sourceRow", flow.getSourceRow(), "targetRow", flow.getTargetRow(), "mappings", mappings));
             return id;
         }
 

@@ -105,6 +105,9 @@ class GraphFinalizationTest {
         Collection<GraphNode> nodes = graph.getNodes();
         Set<GraphNode> entries = graph.getEntryNodes();
         List<DataFlow> heldFlows = source.getDataFlows();
+        List<List<CallRelation>> groups = graph.getCallRelationGroups();
+        assertThrows(UnsupportedOperationException.class, groups::clear);
+        assertThrows(UnsupportedOperationException.class, groups.getFirst()::clear);
 
         graph.finalizeGraph();
 
@@ -117,6 +120,8 @@ class GraphFinalizationTest {
         assertThrows(UnsupportedOperationException.class, heldFlows::clear);
         assertThrows(IllegalStateException.class, () -> source.addData("trace", data("{}", "{}")));
         assertThrows(IllegalStateException.class, () -> graph.addCallRelation(relation));
+        assertThrows(IllegalStateException.class, () -> graph.addCallRelationGroup(List.of(relation)));
+        assertTrue(graph.getCallRelationGroups().isEmpty());
         assertThrows(IllegalStateException.class, () -> source.addDataFlow(new DataFlow("late", source, target)));
         assertThrows(UnsupportedOperationException.class, () -> flow.getDataFlows().clear());
         assertThrows(IllegalStateException.class, () -> flow.addMapping(field, field));
@@ -239,7 +244,7 @@ class GraphFinalizationTest {
 
         graph.finalizeGraph();
 
-        assertEquals(1, cart.getDataFlowsTo(products).size());
+        assertEquals(2, cart.getDataFlowsTo(products).size());
         DataSchemaEntry<SimpleDataSchema> source = cart.getSchema().getOutputSchema().findDataSchemaEntry("ids");
         DataSchemaEntry<SimpleDataSchema> target = products.getSchema().getInputSchema().findDataSchemaEntry("id");
         assertNotNull(source);

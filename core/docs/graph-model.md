@@ -24,11 +24,13 @@ classDiagram
         -Map nodes
         -Set entryNodes
         -Set callRelations
+        -Set callRelationGroups
         -Set traceIds
         -boolean finalized
         +getOrCreateNode(candidate) GraphNode
         +addEntryNode(candidate)
         +addCallRelation(relation)
+        +addCallRelationGroup(relations)
         +finalizeGraph()
         +finalizeGraph(policy)
         +deriveDataPaths(qualifiedName) DataPaths
@@ -81,9 +83,9 @@ type for an existing ID is rejected. Callers should use the returned instance wh
 constructing edges.
 
 Each [`GraphNode`](../src/main/java/at/sfischer/constraints/data/model/GraphNode.java)
-has an immutable `id`, display `name`, and string `type`. Types can describe roles
-such as `service`, `endpoint`, `database`, or `kafka-topic`; the core model does not
-restrict them to an enum. The two-argument constructor uses `"unknown"`.
+has an immutable `id`, display `name`, and string `type`. Types are application-defined
+labels; the core model does not restrict them to an enum. The two-argument constructor
+uses `"unknown"`.
 
 A registered node belongs to one graph. Entry nodes are explicitly marked using
 `addEntryNode`; they are a subset of the registered nodes, rather than automatically
@@ -101,7 +103,14 @@ validated when adding call relationships and when finalizing or exporting.
 
 The model permits parallel edges and cycles. Creating another edge between the same
 nodes creates another edge instance. Reusing an edge for repeated calls is the
-builder's responsibility, rather than an automatic behavior of `Graph`.
+responsibility of the code constructing the graph.
+
+`DatabaseQueryEdge.query` is a caller-supplied query or operation identifier.
+`findQueryEdge(from, to, query)` searches the source node's outgoing edges for an
+existing database edge with that destination instance and exact query string. The
+two-argument `findQueryEdge(from, query)` overload searches all destinations of the
+source node. The lookup returns an edge or null; the caller decides whether to
+reuse the result or create another edge.
 
 | Edge class | Meaning | Schema |
 | --- | --- | --- |
@@ -140,24 +149,42 @@ The row indexes are zero-based and local to an edge and trace group. Both rows m
 exist under the same `traceId`. Identical relations are deduplicated by the graph's
 set. A relation is temporary inference evidence, not an inferred field mapping.
 
-For example, one cart response can supply two product requests:
+For example, one response containing two IDs can supply two subsequent requests:
 
 ```mermaid
 flowchart LR
-    subgraph Cart["Cart edge: trace-1"]
-        C0["Row 0: response contains products A and B"]
+    subgraph Source["Source edge: trace-1"]
+        S0["Row 0: response contains IDs A and B"]
     end
-    subgraph Products["Product edge: trace-1"]
-        P0["Row 0: request for A"]
-        P1["Row 1: request for B"]
+    subgraph Target["Target edge: trace-1"]
+        T0["Row 0: request for A"]
+        T1["Row 1: request for B"]
     end
-    C0 -->|"sourceRow=0, targetRow=0"| P0
-    C0 -->|"sourceRow=0, targetRow=1"| P1
+    S0 -->|"sourceRow=0, targetRow=0"| T0
+    S0 -->|"sourceRow=0, targetRow=1"| T1
 ```
 
 These links preserve one-to-many pairing. Simply zipping the collections would
 miss the second request; comparing every possible row combination could mix
 unrelated observations.
+
+### Comparable observations
+
+Pairing and comparability serve different purposes. A `CallRelation` identifies
+which two observations belong together. `addCallRelationGroup(relations)` declares
+that several such pairs are comparable observations of one logical call relationship.
+All pairs in a group use the same source and target edges, but they may come from
+different traces and refer to different rows.
+
+The caller declares which observations are comparable. `Graph` does not infer
+that context from payload values. Different call contexts can share edges while
+keeping separate inference groups. Individually added `addCallRelation` records
+default to groups with the same trace ID and edge pair. Use an explicit group to
+compare observations across traces or to declare separate call contexts.
+
+`getCallRelationGroups()` returns immutable snapshots of the effective groups,
+including these defaults. Mutable graph composition must preserve these groups,
+in addition to remapping edges and row references.
 
 ## Schemas and inferred data-flows
 
@@ -175,6 +202,8 @@ classDiagram
         -String traceId
         -CallEdge from
         -CallEdge to
+        -Integer sourceRow
+        -Integer targetRow
         -IdentityHashMap dataFlows
     }
     class DataSchema {
@@ -211,7 +240,7 @@ classDiagram
 name, type, mandatory flag, confirmed constraints, and potential constraints. Object
 fields and arrays of complex elements reference a nested schema. Parent references
 allow a field to provide its full qualified name, such as
-`output.payload.items.productId`.
+`output.payload.items.id`.
 
 `InOutputDataSchema` wraps separate input and output schemas. Its default prefixes
 are `input` and `output`. A synchronous edge uses both schemas; an asynchronous edge
@@ -219,25 +248,35 @@ uses a simple schema for its input data.
 
 Schemas derived during finalization combine all rows from all trace groups on an
 edge. A supplied `TypePromotionPolicy` controls type reconciliation when needed.
-This shared schema describes the observed data shapes; flow inference still keeps
-the trace groups separate.
+This shared schema describes the observed data shapes; flow inference evaluates
+comparable groups separately.
 
 ### DataFlow structure and inference
 
 [`DataFlow`](../src/main/java/at/sfischer/constraints/data/model/DataFlow.java)
 connects **two call edges**, rather than two graph nodes. It contains a `traceId`,
-explicit `from` and `to` edges, and mappings between their schema entries.
+explicit `from` and `to` edges, `sourceRow` and `targetRow` occurrence references,
+and mappings between their schema entries. Row references are local to an edge and
+trace and remain meaningful as occurrence references after payloads are discarded.
+The original constructor remains available for legacy flows without row references;
+both references are null in that case.
 
 The mapping uses an `IdentityHashMap`: fields refer to the exact entry instances in
 the edges' schemas. Qualified names alone are insufficient because different edges
 can contain equally named fields. Within one `DataFlow`, each source entry has at
-most one target entry. The stored result does not retain the matching expression
-or individual row indexes.
+most one target entry. The stored result retains the row pairing but not the
+matching expression. Several flows between the same edges and within the same
+trace can therefore express different mappings for different call occurrences.
 
-Inference tests equality and array membership constraints against the related
-observations, retaining constraints without violations. Array projections allow
-fields inside complex array elements to participate, for example a cart's
-`items.productId` field matching a product request's `productId`.
+Inference tests equality and array membership constraints against all aligned
+observations in a comparable group. `NoViolationsPolicy` rejects a candidate if
+any observation in that group contradicts it. Only the surviving mappings are
+then attached to the group's individual trace and row pairs. A coincidental match
+in one observation cannot survive a counterexample from another comparable observation.
+These are inferred relationships for that context, rather than universal rules
+for every call sharing an edge. Array projections allow
+fields inside complex array elements to participate, for example an
+`items.id` field matching a subsequent request's `selectedId`.
 
 Call edge subclasses select which data sides to compare:
 
@@ -249,15 +288,17 @@ Call edge subclasses select which data sides to compare:
 | Asynchronous source | Source input to target input |
 
 Thus one `CallRelation` group can produce both a forward request flow and a reverse
-response flow. Read `DataFlow.getFrom()` and `getTo()` for the actual flow direction.
+response flow. Reverse response flows also reverse the row references. Read
+`DataFlow.getFrom()` and `getTo()` for the actual flow direction.
 The source edge type and the supplied relationships determine the comparison; the
 model does not discover execution ordering from payload values.
 
-`traceId` is the grouping label used for inference. Different labels preserve
-different flow sets even when topology and schemas are shared. It need not be an
-original OpenTelemetry trace ID: the trace builder generates labels unless callers
-provide them. Supplying the same label for several executions deliberately combines
-their related observations into one inference group.
+`traceId` is a caller-supplied label identifying execution provenance for data and
+paths. A declared comparable group can span different trace IDs for validation;
+the emitted flows retain each occurrence's actual trace ID. Separate situations
+can retain different flow sets by keeping their evidence in separate groups.
+Supplying the same trace label for several executions shares the collection namespace,
+while distinct rows and their individual flow occurrences remain separate.
 
 ## Construction and finalization
 
@@ -276,16 +317,19 @@ Successful `Graph.finalizeGraph(policy)` performs these steps:
 1. Validates that every edge endpoint is registered in the graph.
 2. Clears existing flow results when there is collected call data, then derives
    each call edge's schema from all its data.
-3. Groups relations by `(traceId, source edge, target edge)`, builds aligned
-   collections from those row pairs, and asks the source edge to infer flows.
+3. Builds aligned source and target collections for each comparable group and
+   evaluates candidates across the whole group. Surviving mappings are copied to
+   occurrence flows with the original trace IDs and row references; reverse response
+   flows swap the row references.
 4. Freezes edges, their flow mappings, and graph nodes.
-5. Discards edge data and call relations, retains the graph's trace IDs, and marks
-   the graph finalized.
+5. Discards edge data, call relations, and comparable groups, retains the graph's
+   trace IDs, and marks the graph finalized.
 
 After success, adding topology, observations, relations, or flows is rejected.
 Graph/node collections, edge flow lists, and flow maps are exposed read-only.
-`getDataByTrace()` and `getCallRelations()` are empty; `Graph.getTraceIds()` retains
-the labels, whereas `CallEdge.getTraceIds()` describes only its pending data.
+`getDataByTrace()`, `getCallRelations()`, and `getCallRelationGroups()` are empty;
+`Graph.getTraceIds()` retains the labels, whereas `CallEdge.getTraceIds()` describes
+only its pending data.
 
 Finalization does **not** freeze shared schema classes or constraint expressions.
 Their existing mutable APIs remain available. Treat finalized schemas as read-only
@@ -304,32 +348,32 @@ been supplied or derived throws `IllegalStateException`.
 
 ### Example
 
-This builds two logical call edges, records two product requests, and links both
-requests to the same cart response:
+This builds two logical call edges, records two subsequent requests, and links
+both requests to the same source response:
 
 ```java
 Graph graph = new Graph();
-GraphNode checkout = graph.getOrCreateNode(new GraphNode("checkout", "checkout-service", "service"));
-GraphNode carts = graph.getOrCreateNode(new GraphNode("carts", "GET /carts/{cartId}", "endpoint"));
-GraphNode products = graph.getOrCreateNode(new GraphNode("products", "GET /products/{productId}", "endpoint"));
-graph.addEntryNode(checkout);
+GraphNode caller = graph.getOrCreateNode(new GraphNode("caller", "Caller", "component"));
+GraphNode source = graph.getOrCreateNode(new GraphNode("source", "Source", "component"));
+GraphNode target = graph.getOrCreateNode(new GraphNode("target", "Target", "component"));
+graph.addEntryNode(caller);
 
-SynchronousCallEdge cartCall = new SynchronousCallEdge(checkout, carts);
-SynchronousCallEdge productCall = new SynchronousCallEdge(checkout, products);
+SynchronousCallEdge sourceCall = new SynchronousCallEdge(caller, source);
+SynchronousCallEdge targetCall = new SynchronousCallEdge(caller, target);
 String traceId = "trace-1";
 
-int cartRow = cartCall.addData(traceId, new DataObject(),
-        DataObject.parseData("{items:[{productId:'A'},{productId:'B'}]}"));
-int firstProductRow = productCall.addData(traceId,
-        DataObject.parseData("{productId:'A'}"), new DataObject());
-int secondProductRow = productCall.addData(traceId,
-        DataObject.parseData("{productId:'B'}"), new DataObject());
+int sourceRow = sourceCall.addData(traceId, new DataObject(),
+        DataObject.parseData("{ids:['A','B']}"));
+int firstTargetRow = targetCall.addData(traceId,
+        DataObject.parseData("{selectedId:'A'}"), new DataObject());
+int secondTargetRow = targetCall.addData(traceId,
+        DataObject.parseData("{selectedId:'B'}"), new DataObject());
 
-graph.addCallRelation(new CallRelation(traceId, cartCall, cartRow, productCall, firstProductRow));
-graph.addCallRelation(new CallRelation(traceId, cartCall, cartRow, productCall, secondProductRow));
+graph.addCallRelation(new CallRelation(traceId, sourceCall, sourceRow, targetCall, firstTargetRow));
+graph.addCallRelation(new CallRelation(traceId, sourceCall, sourceRow, targetCall, secondTargetRow));
 graph.finalizeGraph();
 
-List<DataFlow> flows = cartCall.getDataFlowsTo(productCall);
+List<DataFlow> flows = sourceCall.getDataFlowsTo(targetCall);
 String json = GraphJsonExporter.export(graph);
 ```
 
@@ -341,13 +385,19 @@ and `java.util.List`.
 
 [`DataPaths`](../src/main/java/at/sfischer/constraints/data/model/DataPaths.java)
 contains root `DataPathNode` objects. Each node references a call edge, one schema
-entry on that edge, and a list of next path nodes.
+entry on that edge, its trace ID and row reference, and a list of next path nodes.
 
 `Graph.deriveDataPaths(qualifiedName)` starts at the graph's entry nodes and searches
 their outgoing call schemas for the field. `GraphNode.deriveDataPaths(entry)` can
 start from a specific entry instance. Traversal follows directed field mappings
-within the same trace label and stops revisiting an edge/field pair to handle cycles.
-`DataPathNode` itself stores no trace ID; the trace is used during traversal.
+within the same trace label and occurrence: a flow's target row must match the next
+flow's source row on the shared edge. Traversal stops revisiting an edge/field/row
+combination on a path to handle cycles. Legacy flows without row references are
+traversed separately from flows with known occurrences.
+
+Different occurrences of the same logical edge may be related, for example when
+one lookup response supplies the next lookup's key. The caller records those row
+relationships explicitly through the graph API.
 
 ## Export
 
@@ -357,7 +407,8 @@ snapshot with separate tables for nodes, edges, schemas, schema entries, data-fl
 and constraint/expression objects. References preserve shared object identities.
 Generated edge, schema, and field IDs are local to the snapshot.
 
-The snapshot includes `finalized` and `traceIds`. Pending call data prevents export;
+The snapshot includes `finalized` and `traceIds`, and each data-flow includes
+`sourceRow` and `targetRow` (null for legacy flows). Pending call data prevents export;
 raw observations and `CallRelation` records are not serialized. Schema-only graphs
 can also be exported without finalization. There is no corresponding graph importer.
 
