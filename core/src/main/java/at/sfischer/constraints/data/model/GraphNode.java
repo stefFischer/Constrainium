@@ -88,44 +88,46 @@ public class GraphNode {
                 continue;
             }
 
-            if (contains(callEdge, source)) {
-                callEdge.getDataFlows().stream()
-                        .filter(flow -> flow.getDataFlows().containsKey(source) || flow.getDataFlows().containsValue(source))
-                        .map(DataFlow::getTraceId)
-                        .distinct()
-                        .forEach(traceId ->
-                                roots.add(build(callEdge, source, traceId, new HashSet<>()))
-                        );
-
+            Set<Occurrence> occurrences = new LinkedHashSet<>();
+            for (DataFlow flow : callEdge.getDataFlows()) {
+                if (flow.getFrom() == callEdge && flow.getDataFlows().containsKey(source)) {
+                    occurrences.add(new Occurrence(flow.getTraceId(), flow.getSourceRow()));
+                }
+                if (flow.getTo() == callEdge && flow.getDataFlows().containsValue(source)) {
+                    occurrences.add(new Occurrence(flow.getTraceId(), flow.getTargetRow()));
+                }
+            }
+            for (Occurrence occurrence : occurrences) {
+                roots.add(build(callEdge, source, occurrence.traceId(), occurrence.row(), new HashSet<>()));
             }
         }
 
         return new DataPaths(roots);
     }
 
-    private record Visited(
-            CallEdge edge,
-            DataSchemaEntry<SimpleDataSchema> entry) {
-    }
+    private record Occurrence(String traceId, Integer row) {}
+
+    private record Visited(CallEdge edge, DataSchemaEntry<SimpleDataSchema> entry, Integer row) {}
 
     private DataPathNode build(
             CallEdge edge,
             DataSchemaEntry<SimpleDataSchema> current,
             String traceId,
+            Integer row,
             Set<Visited> visited) {
 
-        Visited state = new Visited(edge, current);
+        DataPathNode node = new DataPathNode(edge, current, traceId, row);
+        Visited state = new Visited(edge, current, row);
         if (!visited.add(state)) {
-            return new DataPathNode(edge, current);
+            return node;
         }
 
-        DataPathNode node = new DataPathNode(edge, current);
         for (DataFlow flow : edge.getDataFlows()) {
             if (!flow.getFrom().equals(edge)) {
                 continue;
             }
 
-            if (!flow.getTraceId().equals(traceId)) {
+            if (!flow.getTraceId().equals(traceId) || !Objects.equals(flow.getSourceRow(), row)) {
                 continue;
             }
 
@@ -134,17 +136,10 @@ public class GraphNode {
                 continue;
             }
 
-            node.addNext(build(flow.getTo(), nextEntry, traceId, visited));
+            node.addNext(build(flow.getTo(), nextEntry, traceId, flow.getTargetRow(), new HashSet<>(visited)));
         }
 
         return node;
     }
 
-    private boolean contains(CallEdge edge, DataSchemaEntry<SimpleDataSchema> entry) {
-        return edge.getDataFlows().stream()
-                .anyMatch(df ->
-                        df.getDataFlows().containsKey(entry) ||
-                        df.getDataFlows().containsValue(entry)
-                );
-    }
 }

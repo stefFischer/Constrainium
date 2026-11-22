@@ -191,10 +191,6 @@ public class CallGraphBuilder {
     private void relate(CallEdge source, ClusteredAbstractSpan sourceSpan, CallEdge target,
                         ClusteredAbstractSpan targetSpan, Graph graph,
                         List<String> traceIds, Map<EdgeSpan, List<Integer>> dataRows) {
-        if (source == target) {
-            return;
-        }
-
         List<Integer> sources = dataRows.get(new EdgeSpan(source, sourceSpan));
         List<Integer> targets = dataRows.get(new EdgeSpan(target, targetSpan));
         // An incoming graph edge can belong to another span at the shared service node.
@@ -202,9 +198,14 @@ public class CallGraphBuilder {
             return;
         }
 
+        List<CallRelation> comparableCalls = new ArrayList<>();
         for (int index = 0; index < sources.size(); index++) {
-            graph.addCallRelation(new CallRelation(traceIds.get(index), source, sources.get(index), target, targets.get(index)));
+            if (source == target && sources.get(index).equals(targets.get(index))) {
+                continue;
+            }
+            comparableCalls.add(new CallRelation(traceIds.get(index), source, sources.get(index), target, targets.get(index)));
         }
+        graph.addCallRelationGroup(comparableCalls);
     }
 
     private record EdgeSpan(CallEdge edge, ClusteredAbstractSpan span) {}

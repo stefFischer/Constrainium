@@ -2,6 +2,8 @@ package at.sfischer.constraints.data.model;
 
 import at.sfischer.constraints.data.*;
 
+import java.util.List;
+
 public class AsynchronousCallEdge extends CallEdge {
 
     private SimpleDataSchema schema;
@@ -35,13 +37,12 @@ public class AsynchronousCallEdge extends CallEdge {
     }
 
     @Override
-    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
-        checkMutable();
-        to.checkMutable();
+    protected List<DataFlow> deriveDataFlows(String traceId, DataCollection<?> fromData, CallEdge to,
+                                             DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
         DataFlow dataFlow = new DataFlow(traceId, this, to);
         dataFlow.inferDataFlows(inOut, schema, getSchema(to.getSchema()), typePromotionPolicy);
-        this.addDataFlow(dataFlow);
+        return List.of(dataFlow);
     }
 
     private SimpleDataCollection getData(DataCollection<?> data){

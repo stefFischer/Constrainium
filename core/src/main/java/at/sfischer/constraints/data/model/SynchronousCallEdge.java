@@ -2,6 +2,9 @@ package at.sfischer.constraints.data.model;
 
 import at.sfischer.constraints.data.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SynchronousCallEdge extends CallEdge {
 
     private InOutputDataSchema<SimpleDataSchema> schema;
@@ -35,9 +38,8 @@ public class SynchronousCallEdge extends CallEdge {
     }
 
     @Override
-    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
-        checkMutable();
-        to.checkMutable();
+    protected List<DataFlow> deriveDataFlows(String traceId, DataCollection<?> fromData, CallEdge to,
+                                             DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
         // An earlier call's response is available to a later call made by the same node.
         if (getFrom() == to.getFrom()) {
             if (fromData instanceof InOutputDataCollection sourceData) {
@@ -46,12 +48,13 @@ public class SynchronousCallEdge extends CallEdge {
                 );
                 DataFlow dataFlow = new DataFlow(traceId, this, to);
                 dataFlow.inferDataFlows(responseToRequest, schema.getOutputSchema(), getSchema(to.getSchema()), typePromotionPolicy);
-                addDataFlow(dataFlow);
+                return List.of(dataFlow);
             }
 
-            return;
+            return List.of();
         }
 
+        List<DataFlow> flows = new ArrayList<>();
         if(to instanceof SynchronousCallEdge){
             if(fromData instanceof InOutputDataCollection && toData instanceof InOutputDataCollection){
                 InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(
@@ -60,14 +63,15 @@ public class SynchronousCallEdge extends CallEdge {
                 );
                 DataFlow dataFlow = new DataFlow(traceId, to, this);
                 dataFlow.inferDataFlows(inOut, ((SynchronousCallEdge) to).getSchema().getOutputSchema(), this.schema.getOutputSchema(), typePromotionPolicy);
-                to.addDataFlow(dataFlow);
+                flows.add(dataFlow);
             }
         }
 
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
         DataFlow dataFlow = new DataFlow(traceId, this, to);
         dataFlow.inferDataFlows(inOut, schema.getInputSchema(), getSchema(to.getSchema()), typePromotionPolicy);
-        this.addDataFlow(dataFlow);
+        flows.add(dataFlow);
+        return flows;
     }
 
     private SimpleDataCollection getData(DataCollection<?> data){
