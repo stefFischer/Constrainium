@@ -4,7 +4,6 @@ import at.sfischer.constraints.data.DataObject;
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.model.AsynchronousCallEdge;
-import at.sfischer.constraints.data.model.CallEdge;
 import at.sfischer.constraints.data.model.Graph;
 import at.sfischer.constraints.data.model.DataFlow;
 import at.sfischer.constraints.data.model.Edge;
@@ -12,7 +11,6 @@ import at.sfischer.constraints.data.model.GraphNode;
 import at.sfischer.traces.otel.abstraction.AbstractSpan;
 import at.sfischer.traces.otel.clustering.ClusteredAbstractSpan;
 import at.sfischer.traces.otel.dataextraction.SpanData;
-import at.sfischer.traces.otel.graph.GraphFragment;
 import at.sfischer.traces.otel.graph.CallGraphBuilder;
 import at.sfischer.traces.otel.graph.DispatchingSpanFragmentBuilder;
 import org.junit.jupiter.api.Test;
@@ -92,19 +90,16 @@ class KafkaSpanFragmentBuilderTest {
     @ParameterizedTest
     @ValueSource(strings = {"consumer", "producer"})
     void connectsFragmentsUsingTheChildMessageInput(String childKind) {
-        TraceonSpanFragmentBuilders.Kafka builder = new TraceonSpanFragmentBuilders.Kafka();
-        Graph graph = new Graph();
-
         ClusteredAbstractSpan parentSpan = createSpan("consumer", "order-service", "checkout.orders", "{checkoutId:'checkout-1'}");
         ClusteredAbstractSpan childSpan = createSpan(childKind, "invoice-service", "order.created", "{orderId:'order-1'}");
-        GraphFragment parent = builder.buildFragment(parentSpan, graph);
-        GraphFragment child = builder.buildFragment(childSpan, graph);
-
-        List<CallEdge> connections = builder.connectFragments(parent, parentSpan, child, childSpan, graph);
-        AsynchronousCallEdge connection = (AsynchronousCallEdge) connections.getFirst();
-
-        assertSame(parent.exitNode(), connection.getFrom());
-        assertSame(child.entryNode(), connection.getTo());
+        parentSpan.addChild(childSpan);
+        CallGraphBuilder builder = new CallGraphBuilder(
+                new DispatchingSpanFragmentBuilder(new TraceonSpanFragmentBuilders.Kafka()));
+        Graph graph = builder.build(parentSpan, new TraceonTypePromotionPolicy());
+        String destination = childKind.equals("producer") ? "invoice-service" : "order.created";
+        AsynchronousCallEdge connection = findEdge(graph, "order-service", destination);
+        assertEquals("order-service", connection.getFrom().getName());
+        assertEquals(destination, connection.getTo().getName());
         assertNotNull(connection.getSchema().findDataSchemaEntry("orderId"));
         assertNull(connection.getSchema().findDataSchemaEntry("checkoutId"));
     }

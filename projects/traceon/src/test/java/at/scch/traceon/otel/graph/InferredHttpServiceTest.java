@@ -21,11 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class InferredHttpServiceTest {
 
     @Test
-    void accountingFragmentOwnsTheInferredServiceAndUsesItsOwnSchema() {
+    void accountingFragmentOwnsTheInferredServiceBeforeFinalization() {
         Graph graph = new Graph();
         GraphFragment fragment = new TraceonSpanFragmentBuilders.HttpClient()
                 .buildFragment(new ClusteredAbstractSpan(accounting()), graph);
@@ -37,7 +38,7 @@ class InferredHttpServiceTest {
         SynchronousCallEdge processing = (SynchronousCallEdge) fragment.internalEdges().getFirst();
         assertSame(fragment.entryNode(), processing.getFrom());
         assertSame(fragment.exitNode(), processing.getTo());
-        assertAccountingSchema(processing);
+        assertThrows(IllegalStateException.class, processing::getSchema);
     }
 
     @Test

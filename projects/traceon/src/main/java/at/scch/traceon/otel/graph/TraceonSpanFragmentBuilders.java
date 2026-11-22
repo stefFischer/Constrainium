@@ -1,7 +1,5 @@
 package at.scch.traceon.otel.graph;
 
-import at.sfischer.constraints.data.InOutputDataSchema;
-import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.model.*;
 import at.sfischer.traces.otel.clustering.ClusteredAbstractSpan;
 import at.sfischer.traces.otel.graph.GraphFragment;
@@ -24,11 +22,23 @@ public final class TraceonSpanFragmentBuilders {
                 return List.of();
             }
 
-            return List.of(new SynchronousCallEdge(parent.exitNode(), child.entryNode(), schema(childSpan)));
+            return List.of(new SynchronousCallEdge(parent.exitNode(), child.entryNode()));
         }
     }
 
-    public static final class HttpServer extends SynchronousBuilder {
+    private abstract static class HttpBuilder extends SynchronousBuilder {
+        @Override
+        public List<CallEdge> connectFragments(GraphFragment parent, ClusteredAbstractSpan parentSpan,
+                                              GraphFragment child, ClusteredAbstractSpan childSpan, Graph graph) {
+            if (parent.exitNode() == child.entryNode()) {
+                return List.of();
+            }
+
+            return List.of(httpEdge(parent.exitNode(), child.entryNode()));
+        }
+    }
+
+    public static final class HttpServer extends HttpBuilder {
         @Override
         public TraceNodeMatch<ClusteredAbstractSpan> match() {
             return new KindMatch<ClusteredAbstractSpan>("server")
@@ -52,11 +62,11 @@ public final class TraceonSpanFragmentBuilders {
             String endpoint = httpOperation(span);
             GraphNode entry = node(graph, "http-server", "endpoint", service, endpoint);
             GraphNode exit = service(graph, service);
-            return new GraphFragment(entry, exit, List.of(new SynchronousCallEdge(entry, exit, schema(span))));
+            return new GraphFragment(entry, exit, List.of(httpEdge(entry, exit)));
         }
     }
 
-    public static final class HttpClient extends SynchronousBuilder {
+    public static final class HttpClient extends HttpBuilder {
         @Override
         public TraceNodeMatch<ClusteredAbstractSpan> match() {
             return new KindMatch<ClusteredAbstractSpan>("client")
@@ -82,7 +92,7 @@ public final class TraceonSpanFragmentBuilders {
             String destinationService = servers.isEmpty() ? inferDestinationService(span) : null;
             if (destinationService != null) {
                 GraphNode service = service(graph, destinationService);
-                CallEdge internalEdge = new SynchronousCallEdge(endpoint, service, schema(span));
+                CallEdge internalEdge = httpEdge(endpoint, service);
                 return new GraphFragment(endpoint, service, List.of(internalEdge));
             }
 
@@ -138,13 +148,11 @@ public final class TraceonSpanFragmentBuilders {
             GraphNode topicNode = node(graph, "kafka-topic", "kafka-topic", topic);
             if ("producer".equalsIgnoreCase(span.getKind())) {
                 GraphNode serviceNode = service(graph, attribute(span, "service.name", "unknown-service"));
-                SimpleDataSchema inputSchema = span.getSpanDataCollection().getInputDataCollection().deriveSchema(new TraceonTypePromotionPolicy());
-                return new GraphFragment(serviceNode, topicNode, List.of(new AsynchronousCallEdge(serviceNode, topicNode, inputSchema)));
+                return new GraphFragment(serviceNode, topicNode, List.of(new AsynchronousCallEdge(serviceNode, topicNode)));
             }
 
             GraphNode serviceNode = service(graph, attribute(span, "service.name", "unknown-service"));
-            SimpleDataSchema inputSchema = span.getSpanDataCollection().getInputDataCollection().deriveSchema(new TraceonTypePromotionPolicy());
-            return new GraphFragment(topicNode, serviceNode, List.of(new AsynchronousCallEdge(topicNode, serviceNode, inputSchema)));
+            return new GraphFragment(topicNode, serviceNode, List.of(new AsynchronousCallEdge(topicNode, serviceNode)));
         }
 
         @Override
@@ -160,16 +168,18 @@ public final class TraceonSpanFragmentBuilders {
                 return child.internalEdges();
             }
 
-            SimpleDataSchema payloadSchema = childSpan.getSpanDataCollection()
-                    .getInputDataCollection()
-                    .deriveSchema(new TraceonTypePromotionPolicy());
-
-            return List.of(new AsynchronousCallEdge(parent.exitNode(), child.entryNode(), payloadSchema));
+            return List.of(new AsynchronousCallEdge(parent.exitNode(), child.entryNode()));
         }
     }
 
-    private static InOutputDataSchema<SimpleDataSchema> schema(ClusteredAbstractSpan span) {
-        return span.getSpanDataCollection().deriveSchema(new TraceonTypePromotionPolicy());
+    private static SynchronousCallEdge httpEdge(GraphNode from, GraphNode to) {
+        for (Edge edge : from.getOutgoing()) {
+            if (edge.getClass() == SynchronousCallEdge.class && edge.getTo() == to) {
+                return (SynchronousCallEdge) edge;
+            }
+        }
+
+        return new SynchronousCallEdge(from, to);
     }
 
     private static String httpOperation(ClusteredAbstractSpan span) {
