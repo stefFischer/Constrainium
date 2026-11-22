@@ -30,6 +30,7 @@ public class DataFlow {
     private final CallEdge to;
 
     private final Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> dataFlows = new IdentityHashMap<>();
+    private boolean frozen;
 
     public DataFlow(String traceId, CallEdge from, CallEdge to) {
         this.traceId = traceId;
@@ -50,10 +51,26 @@ public class DataFlow {
     }
 
     public Map<DataSchemaEntry<SimpleDataSchema>, DataSchemaEntry<SimpleDataSchema>> getDataFlows() {
-        return dataFlows;
+        return Collections.unmodifiableMap(dataFlows);
+    }
+
+    public void addMapping(DataSchemaEntry<SimpleDataSchema> source, DataSchemaEntry<SimpleDataSchema> target) {
+        checkMutable();
+        dataFlows.put(source, target);
+    }
+
+    private void checkMutable() {
+        if (frozen) {
+            throw new IllegalStateException("The data-flow is finalized.");
+        }
+    }
+
+    void freeze() {
+        frozen = true;
     }
 
     public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema, SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy){
+        checkMutable();
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = dataCollection.deriveSchema(typePromotionPolicy);
 

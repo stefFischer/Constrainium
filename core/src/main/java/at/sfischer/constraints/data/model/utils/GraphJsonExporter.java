@@ -47,6 +47,11 @@ public final class GraphJsonExporter {
             nodes = graph.getNodes().stream().sorted(Comparator.comparing(GraphNode::getId)).toList();
             for (GraphNode node : nodes) {
                 if (node.getClass() != GraphNode.class) throw unsupported(node);
+                for (Edge edge : node.getOutgoing()) {
+                    if (edge instanceof CallEdge call && call.hasData()) {
+                        throw new IllegalStateException("Finalize the graph before exporting pending call data.");
+                    }
+                }
                 // Include both directions, but export each edge instance only once.
                 for (Edge edge : node.getOutgoing()) registerEdge(edge);
                 for (Edge edge : node.getIncoming()) registerEdge(edge);
@@ -89,6 +94,7 @@ public final class GraphJsonExporter {
                 edgeRows.add(record);
             }
             return row("format", "constrainium-call-graph", "version", 1,
+                    "finalized", graph.isFinalized(), "traceIds", graph.getTraceIds().stream().sorted().toList(),
                     "entryNodes", graph.getEntryNodes().stream().map(GraphNode::getId).sorted().toList(),
                     "nodes", nodeRows, "edges", edgeRows, "schemas", schemas,
                     "schemaEntries", entries, "dataFlows", flows, "objects", objects);

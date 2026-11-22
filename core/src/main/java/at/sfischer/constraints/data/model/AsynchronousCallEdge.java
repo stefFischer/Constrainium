@@ -4,7 +4,11 @@ import at.sfischer.constraints.data.*;
 
 public class AsynchronousCallEdge extends CallEdge {
 
-    private final SimpleDataSchema schema;
+    private SimpleDataSchema schema;
+
+    public AsynchronousCallEdge(GraphNode from, GraphNode to) {
+        super(from, to);
+    }
 
     public AsynchronousCallEdge(GraphNode from, GraphNode to, SimpleDataSchema schema) {
         super(from, to);
@@ -13,11 +17,27 @@ public class AsynchronousCallEdge extends CallEdge {
 
     @Override
     public SimpleDataSchema getSchema() {
+        if (schema == null) {
+            throw new IllegalStateException("Finalize the graph before reading its schemas.");
+        }
+
         return schema;
     }
 
     @Override
+    protected void deriveSchema(TypePromotionPolicy policy) {
+        checkMutable();
+        if (hasData()) {
+            schema = collectedData().getInputDataCollection().deriveSchema(policy);
+        } else if (schema == null) {
+            schema = new SimpleDataSchema();
+        }
+    }
+
+    @Override
     public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData, TypePromotionPolicy typePromotionPolicy) {
+        checkMutable();
+        to.checkMutable();
         InOutputDataCollection inOut = InOutputDataCollection.createFromSimpleCollections(getData(fromData), getData(toData));
         DataFlow dataFlow = new DataFlow(traceId, this, to);
         dataFlow.inferDataFlows(inOut, schema, getSchema(to.getSchema()), typePromotionPolicy);

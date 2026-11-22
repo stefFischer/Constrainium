@@ -9,6 +9,8 @@ public class GraphNode {
     private final String id;
     private final String name;
     private final String type;
+    private boolean frozen;
+    private Graph graph;
 
     private final List<Edge> incoming = new ArrayList<>();
     private final List<Edge> outgoing = new ArrayList<>();
@@ -27,8 +29,38 @@ public class GraphNode {
     public String getName() { return name; }
     public String getType() { return type; }
 
-    public void addIncoming(Edge e) { incoming.add(e); }
-    public void addOutgoing(Edge e) { outgoing.add(e); }
+    public void addIncoming(Edge edge) {
+        checkMutable();
+        incoming.add(edge);
+    }
+
+    public void addOutgoing(Edge edge) {
+        checkMutable();
+        outgoing.add(edge);
+    }
+
+    public boolean isFrozen() {
+        return frozen;
+    }
+
+    void checkMutable() {
+        if (frozen) {
+            throw new IllegalStateException("The graph node is finalized.");
+        }
+    }
+
+    void attachTo(Graph owner) {
+        checkMutable();
+        if (graph != null && graph != owner) {
+            throw new IllegalArgumentException("The node already belongs to another graph.");
+        }
+
+        graph = owner;
+    }
+
+    void freeze() {
+        frozen = true;
+    }
 
     public List<Edge> getIncoming() { return Collections.unmodifiableList(incoming); }
     public List<Edge> getOutgoing() { return Collections.unmodifiableList(outgoing); }
@@ -58,6 +90,7 @@ public class GraphNode {
 
             if (contains(callEdge, source)) {
                 callEdge.getDataFlows().stream()
+                        .filter(flow -> flow.getDataFlows().containsKey(source) || flow.getDataFlows().containsValue(source))
                         .map(DataFlow::getTraceId)
                         .distinct()
                         .forEach(traceId ->

@@ -116,10 +116,10 @@ class GraphJsonExporterTest {
         AsynchronousCallEdge first = new AsynchronousCallEdge(node, node, firstSchema);
         AsynchronousCallEdge second = new AsynchronousCallEdge(node, node, secondSchema);
         DataFlow flow = new DataFlow("trace-123", first, second);
-        flow.getDataFlows().put(firstField, secondField);
+        flow.addMapping(firstField, secondField);
         // Ownership and flow direction need not agree; serialize both explicitly.
-        second.getDataFlows().add(flow);
-        first.getDataFlows().add(flow);
+        second.addDataFlow(flow);
+        first.addDataFlow(flow);
         JSONObject document = new JSONObject(GraphJsonExporter.export(graph));
         JSONArray flows = document.getJSONArray("dataFlows");
         assertEquals(1, flows.length());
