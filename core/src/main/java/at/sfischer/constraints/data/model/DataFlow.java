@@ -3,6 +3,7 @@ package at.sfischer.constraints.data.model;
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.*;
+import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.miner.NoViolationsPolicy;
 import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.Node;
@@ -107,14 +108,36 @@ public class DataFlow {
     }
 
     public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema, SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy){
+        inferDataFlows(dataCollection, fromSchema, toSchema, typePromotionPolicy, List.of());
+    }
+
+    /**
+     * Adds Boolean templates to the built-in matching terms. Templates relate two field placeholders;
+     * placeholder names do not bind them to the source or target schema. Array membership can be
+     * expressed explicitly with a quantifier. Each candidate must satisfy NoViolationsPolicy.
+     */
+    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema,
+                               SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy,
+                               Collection<? extends Node> additionalTerms) {
+        inferDataFlows(dataCollection, fromSchema, toSchema, typePromotionPolicy, additionalTerms,
+                new NoViolationsPolicy());
+    }
+
+    /** Uses the supplied retention policy for both built-in and additional matching terms. */
+    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema,
+                               SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy,
+                               Collection<? extends Node> additionalTerms, ConstraintPolicy retentionPolicy) {
         checkMutable();
+        Objects.requireNonNull(retentionPolicy, "retentionPolicy");
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = dataCollection.deriveSchema(typePromotionPolicy);
 
-        schema.fillSchemaWithConstraints(new StringEquals(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
-        schema.fillSchemaWithConstraints(new EqualOperator(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
-        schema.fillSchemaWithConstraints(new EquivalentOperator(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
-        schema.fillSchemaWithConstraints(new ArrayEquals(new Variable("a"), new Variable("b")), term -> Set.of(new Constraint(term)));
+        List<Node> matchingTerms = new ArrayList<>(List.of(
+                new StringEquals(new Variable("a"), new Variable("b")),
+                new EqualOperator(new Variable("a"), new Variable("b")),
+                new EquivalentOperator(new Variable("a"), new Variable("b")),
+                new ArrayEquals(new Variable("a"), new Variable("b"))
+        ));
         Variable element = new Variable(ArrayOperation.ELEMENT_NAME);
         Variable candidate = new Variable("b");
         List<Node> membershipComparisons = List.of(
@@ -124,12 +147,15 @@ public class DataFlow {
                 new ArrayEquals(element, candidate)
         );
         for (Node comparison : membershipComparisons) {
-            Node membership = new Exists(new Variable("a"), comparison);
-            schema.fillSchemaWithConstraints(membership, term -> Set.of(new Constraint(term)));
+            matchingTerms.add(new Exists(new Variable("a"), comparison));
+        }
+        matchingTerms.addAll(additionalTerms);
+        for (Node template : matchingTerms) {
+            schema.fillSchemaWithConstraints(template.cloneNode(), term -> Set.of(new Constraint(term)));
         }
 
         EvaluationResults<DataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(dataCollection);
-        schema.applyConstraintRetentionPolicy(results, new NoViolationsPolicy());
+        schema.applyConstraintRetentionPolicy(results, retentionPolicy);
 
         // Get references from constraints and link the entries from the edge schemas.
         Map<DataSchemaEntry<InOutputDataSchema<SimpleDataSchema>>, Set<IConstraint>> constraints = new HashMap<>();

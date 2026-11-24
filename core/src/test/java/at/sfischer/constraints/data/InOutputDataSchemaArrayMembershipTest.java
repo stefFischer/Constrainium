@@ -140,10 +140,6 @@ public class InOutputDataSchemaArrayMembershipTest {
             results.addAll(fieldResults);
         }
 
-        for (ConstraintResults<Pair<DataObject, DataObject>> result : results) {
-            System.out.println(result.constraint());
-        }
-
         return results;
     }
 
