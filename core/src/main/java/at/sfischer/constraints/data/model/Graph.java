@@ -3,6 +3,7 @@ package at.sfischer.constraints.data.model;
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.TypePromotionPolicy;
+import at.sfischer.constraints.model.Node;
 
 import java.util.*;
 
@@ -144,10 +145,16 @@ public class Graph {
 
     /** Derives results once, releases raw evidence, and prevents further graph mutations. */
     public void finalizeGraph(TypePromotionPolicy policy) {
+        finalizeGraph(policy, List.of());
+    }
+
+    /** Additional Boolean term templates supplement the defaults for every data-flow comparison. */
+    public void finalizeGraph(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms) {
         if (finalized) {
             return;
         }
 
+        List<Node> matchingTerms = List.copyOf(additionalTerms);
         List<Edge> allEdges = edges();
         for (Edge edge : allEdges) {
             validateEdge(edge);
@@ -163,7 +170,7 @@ public class Graph {
             edge.deriveSchema(policy);
         }
 
-        inferDataFlows(policy);
+        inferDataFlows(policy, matchingTerms);
         for (Edge edge : allEdges) {
             edge.freeze();
         }
@@ -175,9 +182,9 @@ public class Graph {
         finalized = true;
     }
 
-    private void inferDataFlows(TypePromotionPolicy policy) {
+    private void inferDataFlows(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms) {
         for (List<CallRelation> group : getCallRelationGroups()) {
-            group.getFirst().source().inferDataFlows(group, policy);
+            group.getFirst().source().inferDataFlows(group, policy, additionalTerms);
         }
     }
 
