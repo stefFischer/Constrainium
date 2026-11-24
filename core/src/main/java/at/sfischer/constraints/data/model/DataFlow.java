@@ -3,6 +3,7 @@ package at.sfischer.constraints.data.model;
 import at.sfischer.constraints.Constraint;
 import at.sfischer.constraints.IConstraint;
 import at.sfischer.constraints.data.*;
+import at.sfischer.constraints.miner.ConstraintPolicy;
 import at.sfischer.constraints.miner.NoViolationsPolicy;
 import at.sfischer.constraints.model.Variable;
 import at.sfischer.constraints.model.Node;
@@ -118,7 +119,16 @@ public class DataFlow {
     public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema,
                                SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy,
                                Collection<? extends Node> additionalTerms) {
+        inferDataFlows(dataCollection, fromSchema, toSchema, typePromotionPolicy, additionalTerms,
+                new NoViolationsPolicy());
+    }
+
+    /** Uses the supplied retention policy for both built-in and additional matching terms. */
+    public void inferDataFlows(InOutputDataCollection dataCollection, SimpleDataSchema fromSchema,
+                               SimpleDataSchema toSchema, TypePromotionPolicy typePromotionPolicy,
+                               Collection<? extends Node> additionalTerms, ConstraintPolicy retentionPolicy) {
         checkMutable();
+        Objects.requireNonNull(retentionPolicy, "retentionPolicy");
         //noinspection unchecked
         InOutputDataSchema<SimpleDataSchema> schema = dataCollection.deriveSchema(typePromotionPolicy);
 
@@ -145,7 +155,7 @@ public class DataFlow {
         }
 
         EvaluationResults<DataSchema, Pair<DataObject, DataObject>> results = schema.evaluate(dataCollection);
-        schema.applyConstraintRetentionPolicy(results, new NoViolationsPolicy());
+        schema.applyConstraintRetentionPolicy(results, retentionPolicy);
 
         // Get references from constraints and link the entries from the edge schemas.
         Map<DataSchemaEntry<InOutputDataSchema<SimpleDataSchema>>, Set<IConstraint>> constraints = new HashMap<>();

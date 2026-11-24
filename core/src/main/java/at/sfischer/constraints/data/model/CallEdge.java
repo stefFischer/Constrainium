@@ -5,6 +5,8 @@ import at.sfischer.constraints.data.DataSchema;
 import at.sfischer.constraints.data.TypePromotionPolicy;
 import at.sfischer.constraints.data.InOutputDataCollection;
 import at.sfischer.constraints.data.DataObject;
+import at.sfischer.constraints.miner.ConstraintPolicy;
+import at.sfischer.constraints.miner.NoViolationsPolicy;
 import at.sfischer.constraints.model.Node;
 import org.javatuples.Pair;
 
@@ -142,15 +144,23 @@ public abstract class CallEdge extends Edge {
 
     public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData,
                                TypePromotionPolicy typePromotionPolicy, Collection<? extends Node> additionalTerms) {
+        inferDataFlows(traceId, fromData, to, toData, typePromotionPolicy, additionalTerms, new NoViolationsPolicy());
+    }
+
+    public void inferDataFlows(String traceId, DataCollection<?> fromData, CallEdge to, DataCollection<?> toData,
+                               TypePromotionPolicy typePromotionPolicy, Collection<? extends Node> additionalTerms,
+                               ConstraintPolicy retentionPolicy) {
         checkMutable();
         to.checkMutable();
-        for (DataFlow flow : deriveDataFlows(traceId, fromData, to, toData, typePromotionPolicy, additionalTerms)) {
+        Objects.requireNonNull(retentionPolicy, "retentionPolicy");
+        for (DataFlow flow : deriveDataFlows(traceId, fromData, to, toData, typePromotionPolicy,
+                additionalTerms, retentionPolicy)) {
             flow.getFrom().addDataFlow(flow);
         }
     }
 
     void inferDataFlows(List<CallRelation> comparableCalls, TypePromotionPolicy policy,
-                        Collection<? extends Node> additionalTerms) {
+                        Collection<? extends Node> additionalTerms, ConstraintPolicy retentionPolicy) {
         checkMutable();
         CallRelation first = comparableCalls.getFirst();
         CallEdge target = first.target();
@@ -162,7 +172,8 @@ public abstract class CallEdge extends Edge {
             target.appendRowTo(relation.traceId(), relation.targetRow(), targetData);
         }
 
-        List<DataFlow> accepted = deriveDataFlows(first.traceId(), sourceData, target, targetData, policy, additionalTerms);
+        List<DataFlow> accepted = deriveDataFlows(first.traceId(), sourceData, target, targetData, policy,
+                additionalTerms, retentionPolicy);
         for (DataFlow flow : accepted) {
             for (CallRelation relation : comparableCalls) {
                 flow.getFrom().addDataFlow(flow.forOccurrence(relation));
@@ -172,7 +183,8 @@ public abstract class CallEdge extends Edge {
 
     protected abstract List<DataFlow> deriveDataFlows(String traceId, DataCollection<?> fromData, CallEdge to,
                                                      DataCollection<?> toData, TypePromotionPolicy policy,
-                                                     Collection<? extends Node> additionalTerms);
+                                                     Collection<? extends Node> additionalTerms,
+                                                     ConstraintPolicy retentionPolicy);
 
     public abstract DataSchema getSchema();
 }

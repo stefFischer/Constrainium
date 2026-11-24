@@ -3,6 +3,8 @@ package at.sfischer.constraints.data.model;
 import at.sfischer.constraints.data.DataSchemaEntry;
 import at.sfischer.constraints.data.SimpleDataSchema;
 import at.sfischer.constraints.data.TypePromotionPolicy;
+import at.sfischer.constraints.miner.ConstraintPolicy;
+import at.sfischer.constraints.miner.NoViolationsPolicy;
 import at.sfischer.constraints.model.Node;
 
 import java.util.*;
@@ -150,11 +152,17 @@ public class Graph {
 
     /** Additional Boolean term templates supplement the defaults for every data-flow comparison. */
     public void finalizeGraph(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms) {
+        finalizeGraph(policy, additionalTerms, new NoViolationsPolicy());
+    }
+
+    /** Applies the supplied retention policy to every comparable group before discarding the data. */
+    public void finalizeGraph(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms, ConstraintPolicy retentionPolicy) {
         if (finalized) {
             return;
         }
 
         List<Node> matchingTerms = List.copyOf(additionalTerms);
+        Objects.requireNonNull(retentionPolicy, "retentionPolicy");
         List<Edge> allEdges = edges();
         for (Edge edge : allEdges) {
             validateEdge(edge);
@@ -170,7 +178,7 @@ public class Graph {
             edge.deriveSchema(policy);
         }
 
-        inferDataFlows(policy, matchingTerms);
+        inferDataFlows(policy, matchingTerms, retentionPolicy);
         for (Edge edge : allEdges) {
             edge.freeze();
         }
@@ -182,9 +190,9 @@ public class Graph {
         finalized = true;
     }
 
-    private void inferDataFlows(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms) {
+    private void inferDataFlows(TypePromotionPolicy policy, Collection<? extends Node> additionalTerms, ConstraintPolicy retentionPolicy) {
         for (List<CallRelation> group : getCallRelationGroups()) {
-            group.getFirst().source().inferDataFlows(group, policy, additionalTerms);
+            group.getFirst().source().inferDataFlows(group, policy, additionalTerms, retentionPolicy);
         }
     }
 
